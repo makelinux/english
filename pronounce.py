@@ -311,12 +311,42 @@ def clear_line():
     print("\r\033[K", end="", flush=True)
 
 
+_term_saved = None
+
+
+def set_cbreak():
+    """Set terminal to cbreak mode for immediate key reads."""
+    global _term_saved
+    _term_saved = termios.tcgetattr(sys.stdin)
+    tty.setcbreak(sys.stdin.fileno())
+
+
+def restore_term():
+    """Restore terminal to original mode."""
+    global _term_saved
+    if _term_saved:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, _term_saved)
+        _term_saved = None
+
+
 def wait_key(timeout=2):
     """Wait up to timeout for keypress. Returns last key pressed or None."""
+    if _term_saved:
+        # already in cbreak - just read
+        key = None
+        while select.select([sys.stdin], [], [], 0)[0]:
+            key = sys.stdin.read(1)
+        if key:
+            return key
+        if timeout is None:
+            return sys.stdin.read(1)
+        if select.select([sys.stdin], [], [], timeout)[0]:
+            return sys.stdin.read(1)
+        return None
+    # set cbreak temporarily
     old = termios.tcgetattr(sys.stdin)
     try:
         tty.setcbreak(sys.stdin.fileno())
-        # read any buffered keys first
         key = None
         while select.select([sys.stdin], [], [], 0)[0]:
             key = sys.stdin.read(1)
@@ -544,9 +574,10 @@ def practice_word(w, rec, num="", cont=False, debug=False):
             if k == 's':
                 break
             if k == 'p':
-                input("  Paused. [Enter] resume: ")
+                print("  Paused. Any key to resume...",
+                      end=" ", flush=True)
+                wait_key(None)
                 clear_line()
-                print("\033[A\033[K", end="", flush=True)
         else:
             try:
                 c = input("  [Enter] retry, [s] skip: ").strip()
@@ -570,36 +601,44 @@ def practice(data, gid, h, cont=False, debug=False):
     else:
         print(f"  [s] skip, [q] quit.\n")
 
+    if cont:
+        set_cbreak()
+
     rec = sr.Recognizer()
 
     words = pick_words(g.words, h)
     results = []
 
-    for i, w in enumerate(words):
-        best = practice_word(w, rec, f"{i + 1}/{len(words)}: ", cont, debug)
-        if best == -1:
-            break
-        results.append((w.word, best))
-        update_history(h, gid, w.word, best)
+    try:
+        for i, w in enumerate(words):
+            best = practice_word(w, rec, f"{i + 1}/{len(words)}: ", cont, debug)
+            if best == -1:
+                break
+            results.append((w.word, best))
+            update_history(h, gid, w.word, best)
 
-        if i < len(words) - 1:
-            if cont:
-                k = wait_key(1)
-                if k == 'q':
-                    break
-                if k == 'p':
-                    input("  Paused. [Enter] resume: ")
-                    clear_line()
-                    print("\033[A\033[K", end="", flush=True)
-            else:
-                try:
-                    c = input("\n  [Enter] next word, [q] quit: ").strip()
-                    clear_line()
-                    print("\033[A\033[K", end="", flush=True)
-                except EOFError:
-                    break
-                if c == "q":
-                    break
+            if i < len(words) - 1:
+                if cont:
+                    k = wait_key(1)
+                    if k == 'q':
+                        break
+                    if k == 'p':
+                        print("  Paused. Any key to resume...",
+                              end=" ", flush=True)
+                        wait_key(None)
+                        clear_line()
+                else:
+                    try:
+                        c = input("\n  [Enter] next word, [q] quit: ").strip()
+                        clear_line()
+                        print("\033[A\033[K", end="", flush=True)
+                    except EOFError:
+                        break
+                    if c == "q":
+                        break
+    finally:
+        if cont:
+            restore_term()
 
     # session summary
     total = len(results)
