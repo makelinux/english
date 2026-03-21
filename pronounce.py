@@ -207,10 +207,13 @@ def audio_similarity(ref_path, rec_raw):
     return total, s, m, e
 
 
-WORD_NUMS = {
+STT_ALIASES = {
     "zero": "0", "one": "1", "two": "2", "three": "3",
     "four": "4", "five": "5", "six": "6", "seven": "7",
     "eight": "8", "nine": "9", "ten": "10",
+    "know": "no", "write": "right", "night": "knight",
+    "road": "rode", "red": "read", "led": "lead",
+    "sea": "see", "through": "threw",
 }
 
 # IPA-based homophone lookup, built from words.yaml
@@ -233,7 +236,7 @@ def stt_score(expected, heard):
     h = heard.lower().strip()
     if e == h:
         return 100
-    if WORD_NUMS.get(e) == h:
+    if STT_ALIASES.get(e) == h or STT_ALIASES.get(h) == e:
         return 100
     for words in ipa_to_words.values():
         if e in words and h in words:
