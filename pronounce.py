@@ -6,6 +6,7 @@ import ctypes
 import json
 import logging
 import os
+import re
 import select
 import subprocess
 import sys
@@ -64,6 +65,7 @@ def load_calibration():
     if CAL_FILE.exists():
         with open(CAL_FILE) as f:
             cal.update(json.load(f))
+        cal["gain"] = min(cal["gain"], 5.0)
 
 
 def save_calibration():
@@ -220,6 +222,17 @@ WORD_NUMS = {
     "eight": "8", "nine": "9", "ten": "10",
 }
 
+# IPA-based homophone lookup, built from words.yaml
+ipa_to_words = {}  # "/raɪt/" -> {"right", "write"}
+
+
+def build_ipa_map(data):
+    """Build IPA -> words mapping for homophone detection."""
+    for g in data.values():
+        for w in g.words:
+            for ipa in re.findall(r'/[^/]+/', w.ipa):
+                ipa_to_words.setdefault(ipa, set()).add(w.word.lower())
+
 
 def stt_score(expected, heard):
     """Score based on speech-to-text match, return 0-100."""
@@ -231,6 +244,9 @@ def stt_score(expected, heard):
         return 100
     if WORD_NUMS.get(e) == h:
         return 100
+    for words in ipa_to_words.values():
+        if e in words and h in words:
+            return 100
     if e in h.split():
         return 80
     r = SequenceMatcher(None, e, h).ratio()
@@ -291,11 +307,16 @@ def clear_line():
 
 
 def wait_key(timeout=2):
-    """Wait up to timeout for keypress. Returns key or None."""
+    """Wait up to timeout for keypress. Returns last key pressed or None."""
     old = termios.tcgetattr(sys.stdin)
     try:
         tty.setcbreak(sys.stdin.fileno())
-        termios.tcflush(sys.stdin, termios.TCIFLUSH)
+        # read any buffered keys first
+        key = None
+        while select.select([sys.stdin], [], [], 0)[0]:
+            key = sys.stdin.read(1)
+        if key:
+            return key
         if select.select([sys.stdin], [], [], timeout)[0]:
             return sys.stdin.read(1)
     finally:
@@ -303,20 +324,26 @@ def wait_key(timeout=2):
     return None
 
 
-def play_raw(raw):
-    """Play back raw recorded audio."""
+def play_raw(raw, volume=0.3):
+    """Play back raw recorded audio at normalized volume."""
+    a = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
+    peak = np.max(np.abs(a))
+    if peak < 500:
+        return
+    a = a / peak * 32767 * volume
+    out = a.astype(np.int16).tobytes()
     with pasimple.PaSimple(
         pasimple.PA_STREAM_PLAYBACK,
         pasimple.PA_SAMPLE_S16LE,
         CHANNELS, SAMPLE_RATE,
         app_name="pronounce",
     ) as pa:
-        pa.write(raw)
+        pa.write(out)
         pa.drain()
 
 
 def record_word(word, rec):
-    """Record, recognize, and score audio similarity. Returns (heard, pct)."""
+    """Record, recognize, and score. Returns (heard, pct, sim, stt, segs, peak)."""
     print("  Speak now...", end=" ", flush=True)
     try:
         ref = get_ref_path(word)
@@ -325,7 +352,11 @@ def record_word(word, rec):
             if spoke:
                 break
         clear_line()
+        samples = np.frombuffer(raw, dtype=np.int16)
+        peak = int(np.max(np.abs(samples)))
+        dur = len(samples) / SAMPLE_RATE
         play_raw(raw)
+        print("  Processing...", end=" ", flush=True)
         # audio similarity
         if ref.exists():
             sim, seg_s, seg_m, seg_e = audio_similarity(ref, raw)
@@ -340,12 +371,12 @@ def record_word(word, rec):
             heard = None
         stt = stt_score(word, heard)
         pct = max(sim, stt)
-        return heard, pct, sim, stt, seg_s, seg_m, seg_e
+        clear_line()
+        return heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur
     except Exception as e:
         clear_line()
         print(f"  Recording error: {e}")
-
-        return None, 0, 0, 0, 0, 0, 0
+        return None, 0, 0, 0, 0, 0, 0, 0, 0
 
 
 def group_accuracy(h, gid):
@@ -473,7 +504,7 @@ def select_group(data, h):
             return groups[n - 1]
 
 
-def practice_word(w, rec, num="", cont=False):
+def practice_word(w, rec, num="", cont=False, debug=False):
     """Practice one word with retries. Returns best pct, or -1 for quit."""
     print(f"\n{num}{w.word}  {w.ipa}")
 
@@ -485,16 +516,17 @@ def practice_word(w, rec, num="", cont=False):
         speak(w.word)
         clear_line()
 
-        heard, pct, sim, stt, seg_s, seg_m, seg_e = record_word(w.word, rec)
+        heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur = record_word(w.word, rec)
         if pct > best:
             best = pct
 
         heard_s = f"  heard: {heard}" if heard else ""
+        dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}% gain={cal['gain']}" if debug else ""
         print(f"  {pct_bar(pct)} {pct}%{heard_s}"
               f"  {pct_block(sim)}{sim:2d}%:"
               f" {pct_block(seg_s)}{seg_s:2d}%"
               f" {pct_block(seg_m)}{seg_m:2d}%"
-              f" {pct_block(seg_e)}{seg_e:2d}%")
+              f" {pct_block(seg_e)}{seg_e:2d}%{dbg}")
 
         if pct >= 80:
             break
@@ -522,7 +554,7 @@ def practice_word(w, rec, num="", cont=False):
     return best
 
 
-def practice(data, gid, h, cont=False):
+def practice(data, gid, h, cont=False, debug=False):
     """Run a practice session for a phoneme group."""
     g = data[gid]
     print(f"\n--- {g.name} ---")
@@ -538,7 +570,7 @@ def practice(data, gid, h, cont=False):
     results = []
 
     for i, w in enumerate(words):
-        best = practice_word(w, rec, f"{i + 1}/{len(words)}: ", cont)
+        best = practice_word(w, rec, f"{i + 1}/{len(words)}: ", cont, debug)
         if best == -1:
             break
         results.append((w.word, best))
@@ -609,7 +641,7 @@ def calibrate():
     peak = np.max(np.abs(samples))
     target = 16000  # ~50% of int16 range
     if peak > 100:
-        cal["gain"] = round(float(target / peak), 2)
+        cal["gain"] = round(min(float(target / peak), 5.0), 2)
     print(f"peak={int(peak)}, gain={cal['gain']}")
 
     # find best top_db by testing trim lengths
@@ -725,12 +757,17 @@ def main():
                    help="calibrate mic/speaker channel")
     p.add_argument("--group", "-g",
                    help="practice specific group by id")
+    p.add_argument("--weak", "-w", action="store_true",
+                   help="auto-select weakest group")
     p.add_argument("--continuous", "-c", action="store_true",
                    help="continuous mode, no Enter between words")
+    p.add_argument("--debug", "-d", action="store_true",
+                   help="show audio debug info")
     a = p.parse_args()
 
     load_calibration()
     data = load_words()
+    build_ipa_map(data)
     h = load_history()
 
     if a.list:
@@ -752,11 +789,15 @@ def main():
             print("Use --list to see available groups.")
             return
         gid = a.group
+    elif a.weak:
+        accs = [(gid, group_accuracy(h, gid)) for gid in data.keys()]
+        accs.sort(key=lambda x: x[1])
+        gid = accs[0][0]
     else:
         gid = select_group(data, h)
 
     try:
-        practice(data, gid, h, a.continuous)
+        practice(data, gid, h, a.continuous, a.debug)
     except KeyboardInterrupt:
         save_history(h)
         print("\n\nProgress saved.")
