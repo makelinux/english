@@ -1,0 +1,10 @@
+SpeechRecognition
+pyyaml
+python-box
+gTTS
+pasimple
+pydub
+librosa
+scipy
+numpy
+webrtcvad
