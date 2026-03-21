@@ -58,14 +58,14 @@ N_MFCC = 13
 CAL_WORDS = ["test", "one", "two", "three", "four", "five"]
 
 # calibration state - loaded at startup
-cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3, "gain": 1.0}
+cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 
 
 def load_calibration():
     if CAL_FILE.exists():
         with open(CAL_FILE) as f:
             cal.update(json.load(f))
-        cal["gain"] = min(cal["gain"], 5.0)
+        cal.pop("gain", None)
 
 
 def save_calibration():
@@ -159,15 +159,6 @@ def dtw_distance(a, b):
                 d[i - 1, j], d[i, j - 1], d[i - 1, j - 1])
     return d[n, m] / (n + m)
 
-
-def apply_gain(raw):
-    """Apply calibrated gain to raw int16 bytes."""
-    g = cal["gain"]
-    if g == 1.0:
-        return raw
-    a = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
-    a = np.clip(a * g, -32768, 32767).astype(np.int16)
-    return a.tobytes()
 
 
 def normalize_volume(samples):
@@ -272,7 +263,7 @@ def record_audio(duration=5, pause=0.8):
     silence = 0
     try:
         for _ in range(max_chunks):
-            c = apply_gain(pa.read(chunk_bytes))
+            c = pa.read(chunk_bytes)
             chunks.append(c)
             if vad.is_speech(c, SAMPLE_RATE):
                 speech_run += 1
@@ -290,15 +281,26 @@ def record_audio(duration=5, pause=0.8):
     return b"".join(chunks), speech_started
 
 
+def normalize_raw(raw):
+    """Normalize raw int16 bytes to ~50% peak amplitude."""
+    a = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
+    peak = np.max(np.abs(a))
+    if peak < 100:
+        return raw
+    a = a / peak * 16000
+    return np.clip(a, -32768, 32767).astype(np.int16).tobytes()
+
+
 def raw_to_sr_audio(raw):
     """Convert raw bytes to sr.AudioData for Google recognition."""
     pad = b'\x00' * (SAMPLE_RATE * SAMPLE_WIDTH)  # 1s silence
+    norm = normalize_raw(raw)
     buf = BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(CHANNELS)
         w.setsampwidth(SAMPLE_WIDTH)
         w.setframerate(SAMPLE_RATE)
-        w.writeframes(pad + raw + pad)
+        w.writeframes(pad + norm + pad)
     return sr.AudioData(buf.getvalue(), SAMPLE_RATE, SAMPLE_WIDTH)
 
 
@@ -349,7 +351,8 @@ def record_word(word, rec):
         ref = get_ref_path(word)
         while True:
             raw, spoke = record_audio()
-            if spoke:
+            peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
+            if spoke and peak_raw > 1000:
                 break
         clear_line()
         samples = np.frombuffer(raw, dtype=np.int16)
@@ -521,7 +524,7 @@ def practice_word(w, rec, num="", cont=False, debug=False):
             best = pct
 
         heard_s = f"  heard: {heard}" if heard else ""
-        dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}% gain={cal['gain']}" if debug else ""
+        dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
         print(f"  {pct_bar(pct)} {pct}%{heard_s}"
               f"  {pct_block(sim)}{sim:2d}%:"
               f" {pct_block(seg_s)}{seg_s:2d}%"
@@ -628,22 +631,6 @@ def calibrate():
     for w in CAL_WORDS:
         ensure_ref(w)
 
-    # measure mic volume
-    print("  Measuring mic level...", end=" ", flush=True)
-    cal["gain"] = 1.0  # reset for measurement
-    raw = [None]
-    t = threading.Thread(target=lambda: raw.__setitem__(0, record_audio(3)[0]))
-    t.start()
-    time.sleep(0.3)
-    speak(CAL_WORDS[0])
-    t.join()
-    samples = np.frombuffer(raw[0], dtype=np.int16).astype(np.float32)
-    peak = np.max(np.abs(samples))
-    target = 16000  # ~50% of int16 range
-    if peak > 100:
-        cal["gain"] = round(min(float(target / peak), 5.0), 2)
-    print(f"peak={int(peak)}, gain={cal['gain']}")
-
     # find best top_db by testing trim lengths
     print("  Finding trim threshold...", end=" ", flush=True)
     raw, _ = record_audio(duration=2)  # silence sample
@@ -721,8 +708,7 @@ def calibrate():
 
     save_calibration()
 
-    print(f"\n  gain: {cal['gain']}")
-    print(f"  bias: {cal['bias']}")
+    print(f"\n  bias: {cal['bias']}")
     print(f"  scale: {cal['scale']}")
     print(f"  top_db: {cal['top_db']}")
     print(f"  delay: {cal['delay']}s")
