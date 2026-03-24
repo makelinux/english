@@ -55,7 +55,7 @@ SAMPLE_RATE = 16000
 SAMPLE_WIDTH = 2
 CHANNELS = 1
 N_MFCC = 13
-CAL_WORDS = ["test", "one", "two", "three", "four", "five"]
+CAL_WORDS = ["test", "sip", "one", "two", "three", "four", "five"]
 
 # calibration state - loaded at startup
 cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
@@ -134,6 +134,29 @@ def speak(text):
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+def speak_text(text):
+    """Speak arbitrary text via gTTS, no caching."""
+    try:
+        buf = BytesIO()
+        gTTS(text, lang="en").write_to_fp(buf)
+        buf.seek(0)
+        seg = AudioSegment.from_mp3(buf)
+        seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
+        seg -= 10
+        with pasimple.PaSimple(
+            pasimple.PA_STREAM_PLAYBACK,
+            pasimple.PA_SAMPLE_S16LE,
+            1, SAMPLE_RATE,
+            app_name="pronounce",
+        ) as pa:
+            pa.write(seg.raw_data)
+            pa.drain()
+    except Exception:
+        subprocess.run(
+            ["espeak-ng", "-s", "150", "-v", "en-us", text],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def extract_mfcc(samples, sr_rate=SAMPLE_RATE):
     """Extract MFCC + delta features, skip c0, mean-centered."""
     m = librosa.feature.mfcc(y=samples, sr=sr_rate, n_mfcc=N_MFCC)
@@ -171,7 +194,7 @@ def normalize_volume(samples):
 
 def dist_to_pct(dist):
     d = max(0, dist - cal["bias"])
-    return max(0, min(100, int(100 * (1 - d / cal["scale"]))))
+    return max(0, min(100, int(100 * (1 - d / (cal["scale"] * 3)))))
 
 
 def segment_similarity(mfcc_ref, mfcc_rec):
@@ -211,9 +234,11 @@ STT_ALIASES = {
     "zero": "0", "one": "1", "two": "2", "three": "3",
     "four": "4", "five": "5", "six": "6", "seven": "7",
     "eight": "8", "nine": "9", "ten": "10",
+    "eleven": "11", "twelfth": "12", "twelve": "12",
     "know": "no", "write": "right", "night": "knight",
     "road": "rode", "red": "read", "led": "lead",
     "sea": "see", "through": "threw",
+    "laughed": "loft",
 }
 
 # IPA-based homophone lookup, built from words.yaml
@@ -244,7 +269,9 @@ def stt_score(expected, heard):
     if e in h.split():
         return 80
     r = SequenceMatcher(None, e, h).ratio()
-    return int(r * 100)
+    if r > 0.9:
+        return int(r * 80)
+    return 0
 
 
 def record_audio(duration=5, pause=0.8):
@@ -377,9 +404,12 @@ def play_raw(raw, volume=0.3):
         pa.drain()
 
 
-def record_word(word, rec):
-    """Record, recognize, and score. Returns (heard, pct, sim, stt, segs, peak)."""
-    print("  Speak now...", end=" ", flush=True)
+def record_word(word, rec, prefix=""):
+    """Record, recognize, and score."""
+    def status(msg):
+        print(f"\r\033[K{prefix}{msg}", end="", flush=True)
+
+    status("Speak now...")
     try:
         ref = get_ref_path(word)
         while True:
@@ -387,12 +417,12 @@ def record_word(word, rec):
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
             if spoke and peak_raw > 1000:
                 break
-        clear_line()
+        status("")
         samples = np.frombuffer(raw, dtype=np.int16)
         peak = int(np.max(np.abs(samples)))
         dur = len(samples) / SAMPLE_RATE
         play_raw(raw)
-        print("  Processing...", end=" ", flush=True)
+        status("Processing...")
         # audio similarity
         if ref.exists():
             sim, seg_s, seg_m, seg_e = audio_similarity(ref, raw)
@@ -407,12 +437,11 @@ def record_word(word, rec):
             heard = None
         stt = stt_score(word, heard)
         pct = max(sim, stt)
-        clear_line()
-        return heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur
+        return heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw
     except Exception as e:
-        clear_line()
-        print(f"  Recording error: {e}")
-        return None, 0, 0, 0, 0, 0, 0, 0, 0
+        status(f"Recording error: {e}")
+        print()
+        return None, 0, 0, 0, 0, 0, 0, 0, 0, None
 
 
 def group_accuracy(h, gid):
@@ -447,6 +476,43 @@ def update_history(h, gid, word, pct):
         h["groups"][gid] = {"attempts": 0, "correct": 0}
     h["groups"][gid]["attempts"] += 1
     h["groups"][gid]["correct"] += pct / 100
+
+
+DIM = "\033[2m"
+
+
+def get_feedback(raw, word, ipa):
+    """Ask Gemini for pronunciation feedback on recorded audio."""
+    try:
+        import google.generativeai as genai
+    except ImportError:
+        return "Install google-generativeai: pip install google-generativeai"
+    key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if not key:
+        return "Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable"
+    genai.configure(api_key=key)
+    model = genai.GenerativeModel("gemini-2.0-flash")
+    # convert raw to wav bytes
+    buf = BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(CHANNELS)
+        w.setsampwidth(SAMPLE_WIDTH)
+        w.setframerate(SAMPLE_RATE)
+        w.writeframes(normalize_raw(raw))
+    wav = buf.getvalue()
+    prompt = (
+        f"The speaker is trying to pronounce the English word \"{word}\" "
+        f"(IPA: {ipa}). Listen to the audio and give brief, specific "
+        f"feedback on the pronunciation. Address the speaker directly "
+        f"as \"you\". What sounds are wrong and how to fix them? "
+        f"Don't use IPA symbols in your response, use plain English "
+        f"descriptions of sounds instead. Be concise - 2-3 sentences max."
+    )
+    r = model.generate_content([
+        prompt,
+        {"mime_type": "audio/wav", "data": wav},
+    ])
+    return r.text.strip()
 
 
 RED = "\033[31m"
@@ -542,51 +608,62 @@ def select_group(data, h):
 
 def practice_word(w, rec, num="", cont=False, debug=False):
     """Practice one word with retries. Returns best pct, or -1 for quit."""
-    print(f"\n{num}{w.word}  {w.ipa}")
-
     ensure_ref(w.word)
 
+    prefix = f"{num}{w.word}  {w.ipa}  "
     best = 0
+    last_raw = None
     while True:
-        print("  Listen...", end=" ", flush=True)
+        print(f"\r\033[K{prefix}Listen...", end="", flush=True)
         speak(w.word)
-        clear_line()
 
-        heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur = record_word(w.word, rec)
+        heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, last_raw = \
+            record_word(w.word, rec, prefix)
         if pct > best:
             best = pct
 
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
-        print(f"  {pct_bar(pct)} {pct}%{heard_s}"
-              f"  {pct_block(sim)}{sim:2d}%:"
-              f" {pct_block(seg_s)}{seg_s:2d}%"
-              f" {pct_block(seg_m)}{seg_m:2d}%"
-              f" {pct_block(seg_e)}{seg_e:2d}%{dbg}")
+        score = (f"{pct_bar(pct)} {pct}%{heard_s}"
+                 f"  {pct_block(sim)}{sim:2d}%:"
+                 f" {pct_block(seg_s)}{seg_s:2d}%"
+                 f" {pct_block(seg_m)}{seg_m:2d}%"
+                 f" {pct_block(seg_e)}{seg_e:2d}%{dbg}")
+        print(f"\r\033[K{prefix}{score}")
 
         if pct >= 80:
             break
 
         if cont:
+            print(f"  {DIM}[p] [s] [f] [q]{RST}", end="", flush=True)
             k = wait_key(2)
+            clear_line()
             if k == 'q':
                 return -1
             if k == 's':
                 break
-            if k == 'p':
-                print("  Paused. Any key to resume...",
-                      end=" ", flush=True)
+            if k == 'f' and last_raw:
+                fb = get_feedback(last_raw, w.word, w.ipa)
+                print(f"  {DIM}{fb}{RST}")
+                speak_text(re.sub(r'[\"\'()"/]', '', fb))
+            elif k == 'p':
+                print(f"  {DIM}Paused. Any key...{RST}",
+                      end="", flush=True)
                 wait_key(None)
                 clear_line()
         else:
             try:
-                c = input("  [Enter] retry, [s] skip: ").strip()
+                c = input("  [Enter] retry, [s] skip, [f] feedback: ").strip()
                 clear_line()
                 print("\033[A\033[K", end="", flush=True)
             except EOFError:
                 break
             if c == "s":
                 break
+            if c == "f" and last_raw:
+                fb = get_feedback(last_raw, w.word, w.ipa)
+                print(f"  {DIM}{fb}{RST}")
+                speak_text(re.sub(r'[\"\'()"/]', '', fb))
 
     return best
 
@@ -596,10 +673,7 @@ def practice(data, gid, h, cont=False, debug=False):
     g = data[gid]
     print(f"\n--- {g.name} ---")
     print(f"  {g.description}")
-    if cont:
-        print(f"  [p] pause, [s] skip, [q] quit\n")
-    else:
-        print(f"  [s] skip, [q] quit.\n")
+    print()
 
     if cont:
         set_cbreak()
@@ -619,17 +693,20 @@ def practice(data, gid, h, cont=False, debug=False):
 
             if i < len(words) - 1:
                 if cont:
+                    print(f"  {DIM}[p]ause [q]uit{RST}",
+                          end="", flush=True)
                     k = wait_key(1)
+                    clear_line()
                     if k == 'q':
                         break
                     if k == 'p':
-                        print("  Paused. Any key to resume...",
-                              end=" ", flush=True)
+                        print(f"  {DIM}Paused. Any key to resume...{RST}",
+                              end="", flush=True)
                         wait_key(None)
                         clear_line()
                 else:
                     try:
-                        c = input("\n  [Enter] next word, [q] quit: ").strip()
+                        c = input("  [Enter] next word, [q] quit: ").strip()
                         clear_line()
                         print("\033[A\033[K", end="", flush=True)
                     except EOFError:
@@ -791,6 +868,8 @@ def main():
                    help="continuous mode, no Enter between words")
     p.add_argument("--debug", "-d", action="store_true",
                    help="show audio debug info")
+    p.add_argument("--text", "-t",
+                   help="practice a specific word or phrase")
     a = p.parse_args()
 
     load_calibration()
@@ -806,6 +885,19 @@ def main():
         return
     if a.calibrate:
         calibrate()
+        return
+
+    if a.text:
+        # find word in data for IPA, or use empty
+        ipa = ""
+        for g in data.values():
+            for wd in g.words:
+                if wd.word.lower() == a.text.lower():
+                    ipa = wd.ipa
+                    break
+        w = Box({"word": a.text, "ipa": ipa})
+        rec = sr.Recognizer()
+        practice_word(w, rec, debug=a.debug)
         return
 
     print("English pronunciation trainer")
@@ -827,8 +919,11 @@ def main():
     try:
         practice(data, gid, h, a.continuous, a.debug)
     except KeyboardInterrupt:
+        pass
+    finally:
+        restore_term()
         save_history(h)
-        print("\n\nProgress saved.")
+        print("\nProgress saved.")
 
 
 if __name__ == "__main__":

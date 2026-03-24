@@ -8,3 +8,4 @@ librosa
 scipy
 numpy
 webrtcvad
+google-generativeai
