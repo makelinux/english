@@ -238,7 +238,7 @@ STT_ALIASES = {
     "know": "no", "write": "right", "night": "knight",
     "road": "rode", "red": "read", "led": "lead",
     "sea": "see", "through": "threw",
-    "laughed": "loft",
+    "laughed": "loft", "main": "maine",
 }
 
 # IPA-based homophone lookup, built from words.yaml
