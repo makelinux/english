@@ -240,6 +240,10 @@ STT_ALIASES = {
     "sea": "see", "through": "threw",
     "laughed": "loft", "main": "maine",
 }
+# groups of words that sound alike for STT purposes
+STT_EQUIV = [
+    {"heir", "air", "err", "are", "there", "hare", "hair", "hey"},
+]
 
 # IPA-based homophone lookup, built from words.yaml
 ipa_to_words = {}  # "/raɪt/" -> {"right", "write"}
@@ -263,6 +267,9 @@ def stt_score(expected, heard):
         return 100
     if STT_ALIASES.get(e) == h or STT_ALIASES.get(h) == e:
         return 100
+    for group in STT_EQUIV:
+        if e in group and h in group:
+            return 100
     for words in ipa_to_words.values():
         if e in words and h in words:
             return 100
@@ -281,7 +288,7 @@ def record_audio(duration=5, pause=0.8, on_chunk=None):
     """Record with VAD - stops after pause seconds of silence.
     on_chunk(peak_0_1) called every ~200ms with peak amplitude.
     Returns (raw_bytes, speech_started, key_pressed)."""
-    vad = webrtcvad.Vad(1)
+    vad = webrtcvad.Vad(3)
     chunk_ms = 30
     chunk_bytes = int(SAMPLE_RATE * SAMPLE_WIDTH * chunk_ms / 1000)
     max_chunks = int(duration * 1000 / chunk_ms)
@@ -320,9 +327,17 @@ def record_audio(duration=5, pause=0.8, on_chunk=None):
                 key = sys.stdin.read(1)
                 if speech_started:
                     break
-            if vad.is_speech(c, SAMPLE_RATE):
+            is_speech = vad.is_speech(c, SAMPLE_RATE)
+            # reject keyboard clicks: speech has more low-freq energy
+            if is_speech:
+                s = np.frombuffer(c, dtype=np.int16).astype(np.float32)
+                fft = np.abs(np.fft.rfft(s))
+                cutoff = len(fft) * 2000 // (SAMPLE_RATE // 2)
+                if np.sum(fft[cutoff:]) > np.sum(fft[:cutoff]) * 2:
+                    is_speech = False
+            if is_speech:
                 speech_run += 1
-                if speech_run >= 4:
+                if speech_run >= 8:
                     speech_started = True
                 silence = 0
             elif speech_started:
@@ -454,6 +469,7 @@ def record_word(word, rec, prefix=""):
         peak = int(np.max(np.abs(samples)))
         dur = len(samples) / SAMPLE_RATE
         play_raw(raw)
+        print(f"\r\033[K{prefix}Processing...", end="", flush=True)
         # audio similarity
         if ref.exists():
             sim, seg_s, seg_m, seg_e = audio_similarity(ref, raw)
@@ -470,8 +486,7 @@ def record_word(word, rec, prefix=""):
         pct = max(sim, stt)
         return heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key
     except Exception as e:
-        status(f"Recording error: {e}")
-        print()
+        print(f"\r\033[K{prefix}Recording error: {e}")
         return None, 0, 0, 0, 0, 0, 0, 0, 0, None, None
 
 
@@ -657,6 +672,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
     best = 0
     last_raw = None
     while True:
+        clear_line()
         print(f"{prefix}Listening", end="", flush=True)
         speak(w.word)
 
@@ -666,6 +682,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
             last_raw = raw
 
         if key == 'q':
+            clear_line()
             return -1, last_raw
         if key == 's':
             print(f"\r\033[K{prefix}{DIM}skipped{RST}")
