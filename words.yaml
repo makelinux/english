@@ -717,3 +717,273 @@ ei_ai:
       ipa: /rɪˈmaɪndər/
       example: Set a reminder for tomorrow.
       difficulty: 2
+
+ough_spellings:
+  name: ough variations
+  description: same spelling, different sounds - must memorize each
+  words:
+    - word: though
+      ipa: /ðoʊ/
+      example: Even though it rained, we went out.
+      difficulty: 2
+    - word: through
+      ipa: /θruː/
+      example: We drove through the tunnel.
+      difficulty: 2
+    - word: tough
+      ipa: /tʌf/
+      example: That was a tough question.
+      difficulty: 2
+    - word: cough
+      ipa: /kɔːf/
+      example: She has a bad cough.
+      difficulty: 2
+    - word: thought
+      ipa: /θɔːt/
+      example: I thought about it all day.
+      difficulty: 2
+    - word: enough
+      ipa: /ɪˈnʌf/
+      example: That is enough for now.
+      difficulty: 2
+    - word: dough
+      ipa: /doʊ/
+      example: Knead the dough for ten minutes.
+      difficulty: 2
+    - word: thorough
+      ipa: /ˈθɜːroʊ/
+      example: She did a thorough job.
+      difficulty: 3
+    - word: borough
+      ipa: /ˈbɜːroʊ/
+      example: He lives in the next borough.
+      difficulty: 3
+    - word: throughout
+      ipa: /θruːˈaʊt/
+      example: It rained throughout the day.
+      difficulty: 3
+
+r_vowels:
+  name: vowel + r (ɜːr, ɑːr, ɔːr, ɪr, ɛr)
+  description: r colors the vowel before it, each combination sounds different
+  words:
+    - word: bird
+      ipa: /bɜːrd/
+      example: A bird landed on the branch.
+      difficulty: 1
+    - word: work
+      ipa: /wɜːrk/
+      example: I have a lot of work to do.
+      difficulty: 1
+    - word: car
+      ipa: /kɑːr/
+      example: She parked the car outside.
+      difficulty: 1
+    - word: door
+      ipa: /dɔːr/
+      example: Please close the door.
+      difficulty: 1
+    - word: here
+      ipa: /hɪr/
+      example: Come here please.
+      difficulty: 1
+    - word: care
+      ipa: /kɛr/
+      example: I don't care about that.
+      difficulty: 1
+    - word: nurse
+      ipa: /nɜːrs/
+      example: The nurse took my temperature.
+      difficulty: 2
+    - word: heart
+      ipa: /hɑːrt/
+      example: She has a kind heart.
+      difficulty: 2
+    - word: earth
+      ipa: /ɜːrθ/
+      example: The earth orbits the sun.
+      difficulty: 2
+    - word: particular
+      ipa: /pərˈtɪkjələr/
+      example: Any particular reason?
+      difficulty: 3
+
+zh_sound:
+  name: 'zh sound (ʒ)'
+  description: 'like sh but voiced - tongue same as sh, add vibration'
+  words:
+    - word: vision
+      ipa: /ˈvɪʒən/
+      example: She has great vision.
+      difficulty: 2
+    - word: measure
+      ipa: /ˈmɛʒər/
+      example: Measure the distance carefully.
+      difficulty: 2
+    - word: pleasure
+      ipa: /ˈplɛʒər/
+      example: It was a pleasure to meet you.
+      difficulty: 2
+    - word: usual
+      ipa: /ˈjuːʒuəl/
+      example: The usual time works for me.
+      difficulty: 2
+    - word: decision
+      ipa: /dɪˈsɪʒən/
+      example: That was a difficult decision.
+      difficulty: 2
+    - word: television
+      ipa: /ˈtɛləˌvɪʒən/
+      example: Turn off the television.
+      difficulty: 2
+    - word: garage
+      ipa: /ɡəˈrɑːʒ/
+      example: Park the car in the garage.
+      difficulty: 2
+    - word: massage
+      ipa: /məˈsɑːʒ/
+      example: A massage would feel great.
+      difficulty: 2
+    - word: treasure
+      ipa: /ˈtrɛʒər/
+      example: They found buried treasure.
+      difficulty: 2
+    - word: explosion
+      ipa: /ɪkˈsploʊʒən/
+      example: We heard a loud explosion.
+      difficulty: 3
+
+h_sound:
+  name: h sound
+  description: gentle breath of air from throat, don't drop or add it
+  words:
+    - word: hat
+      ipa: /hæt/
+      example: She wore a big hat.
+      difficulty: 1
+    - word: help
+      ipa: /hɛlp/
+      example: Can you help me please?
+      difficulty: 1
+    - word: hour
+      ipa: /aʊər/
+      example: I waited for an hour.
+      difficulty: 2
+    - word: honest
+      ipa: /ˈɑːnɪst/
+      example: He is an honest person.
+      difficulty: 2
+    - word: behind
+      ipa: /bɪˈhaɪnd/
+      example: Look behind the curtain.
+      difficulty: 1
+    - word: ahead
+      ipa: /əˈhɛd/
+      example: Go ahead and start.
+      difficulty: 2
+    - word: heir
+      ipa: /ɛr/
+      example: She is the heir to the estate.
+      difficulty: 3
+    - word: exhaust
+      ipa: /ɪɡˈzɔːst/
+      example: The exhaust pipe is broken.
+      difficulty: 2
+    - word: vehicle
+      ipa: /ˈviːɪkəl/
+      example: The vehicle stopped suddenly.
+      difficulty: 2
+    - word: perhaps
+      ipa: /pərˈhæps/
+      example: Perhaps we should wait.
+      difficulty: 2
+
+tion_sion:
+  name: -tion and -sion endings
+  description: '-tion = /ʃən/, -sion = /ʒən/ or /ʃən/ depending on context'
+  words:
+    - word: nation
+      ipa: /ˈneɪʃən/
+      example: The nation celebrated independence.
+      difficulty: 1
+    - word: question
+      ipa: /ˈkwɛstʃən/
+      example: That is a good question.
+      difficulty: 1
+    - word: education
+      ipa: /ˌɛdʒʊˈkeɪʃən/
+      example: Education is very important.
+      difficulty: 2
+    - word: attention
+      ipa: /əˈtɛnʃən/
+      example: Pay attention to the teacher.
+      difficulty: 2
+    - word: version
+      ipa: /ˈvɜːrʒən/
+      example: Download the latest version.
+      difficulty: 2
+    - word: confusion
+      ipa: /kənˈfjuːʒən/
+      example: There was some confusion.
+      difficulty: 2
+    - word: suggestion
+      ipa: /səˈdʒɛstʃən/
+      example: Thank you for the suggestion.
+      difficulty: 2
+    - word: permission
+      ipa: /pərˈmɪʃən/
+      example: You need permission to enter.
+      difficulty: 2
+    - word: pronunciation
+      ipa: /prəˌnʌnsiˈeɪʃən/
+      example: Work on your pronunciation.
+      difficulty: 3
+    - word: comprehension
+      ipa: /ˌkɑːmprɪˈhɛnʃən/
+      example: Reading comprehension is key.
+      difficulty: 3
+
+f_v:
+  name: f and v contrast
+  description: 'both use upper teeth on lower lip - f is voiceless, v is voiced'
+  words:
+    - word: fan
+      ipa: /fæn/
+      example: Turn on the fan.
+      difficulty: 1
+    - word: van
+      ipa: /væn/
+      example: They rented a van.
+      difficulty: 1
+    - word: safe
+      ipa: /seɪf/
+      example: Keep your money in the safe.
+      difficulty: 1
+    - word: save
+      ipa: /seɪv/
+      example: Save your work often.
+      difficulty: 1
+    - word: leaf
+      ipa: /liːf/
+      example: A leaf fell from the tree.
+      difficulty: 1
+    - word: leave
+      ipa: /liːv/
+      example: I have to leave now.
+      difficulty: 1
+    - word: half
+      ipa: /hæf/
+      example: Cut it in half.
+      difficulty: 2
+    - word: have
+      ipa: /hæv/
+      example: I have two brothers.
+      difficulty: 1
+    - word: belief
+      ipa: /bɪˈliːf/
+      example: It is a common belief.
+      difficulty: 2
+    - word: believe
+      ipa: /bɪˈliːv/
+      example: I believe in you.
+      difficulty: 2

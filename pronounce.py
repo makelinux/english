@@ -275,7 +275,8 @@ def stt_score(expected, heard):
 
 
 def record_audio(duration=5, pause=0.8):
-    """Record with VAD - stops after pause seconds of silence."""
+    """Record with VAD - stops after pause seconds of silence.
+    Returns (raw_bytes, speech_started, key_pressed)."""
     vad = webrtcvad.Vad(1)
     chunk_ms = 30
     chunk_bytes = int(SAMPLE_RATE * SAMPLE_WIDTH * chunk_ms / 1000)
@@ -291,10 +292,16 @@ def record_audio(duration=5, pause=0.8):
     speech_started = False
     speech_run = 0
     silence = 0
+    key = None
     try:
         for _ in range(max_chunks):
             c = pa.read(chunk_bytes)
             chunks.append(c)
+            # check for keypress (works in cbreak mode)
+            if _term_saved and select.select([sys.stdin], [], [], 0)[0]:
+                key = sys.stdin.read(1)
+                if speech_started:
+                    break
             if vad.is_speech(c, SAMPLE_RATE):
                 speech_run += 1
                 if speech_run >= 4:
@@ -308,7 +315,7 @@ def record_audio(duration=5, pause=0.8):
                 speech_run = 0
     finally:
         pa.close()
-    return b"".join(chunks), speech_started
+    return b"".join(chunks), speech_started, key
 
 
 def normalize_raw(raw):
@@ -405,15 +412,21 @@ def play_raw(raw, volume=0.3):
 
 
 def record_word(word, rec, prefix=""):
-    """Record, recognize, and score."""
+    """Record, recognize, and score.
+    Returns (heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key).
+    key is set if user pressed a key during recording."""
     def status(msg):
         print(f"\r\033[K{prefix}{msg}", end="", flush=True)
 
-    status("Speak now...")
+    status(f"Speak now... {DIM}[s] [f] [q]{RST}" if _term_saved
+           else "Speak now...")
     try:
         ref = get_ref_path(word)
+        key = None
         while True:
-            raw, spoke = record_audio()
+            raw, spoke, key = record_audio()
+            if key in ('s', 'q', 'f'):
+                return None, 0, 0, 0, 0, 0, 0, 0, 0, None, key
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
             if spoke and peak_raw > 1000:
                 break
@@ -433,15 +446,15 @@ def record_word(word, rec, prefix=""):
             heard = rec.recognize_google(raw_to_sr_audio(raw))
         except sr.UnknownValueError:
             heard = None
-        except sr.RequestError as e:
+        except sr.RequestError:
             heard = None
         stt = stt_score(word, heard)
         pct = max(sim, stt)
-        return heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw
+        return heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key
     except Exception as e:
         status(f"Recording error: {e}")
         print()
-        return None, 0, 0, 0, 0, 0, 0, 0, 0, None
+        return None, 0, 0, 0, 0, 0, 0, 0, 0, None, None
 
 
 def group_accuracy(h, gid):
@@ -606,8 +619,20 @@ def select_group(data, h):
             return groups[n - 1]
 
 
-def practice_word(w, rec, num="", cont=False, debug=False):
-    """Practice one word with retries. Returns best pct, or -1 for quit."""
+def _do_feedback(raw, word, ipa):
+    """Get and display feedback, speak it."""
+    try:
+        fb = get_feedback(raw, word, ipa)
+    except Exception as e:
+        print(f"  {DIM}Feedback error: {e}{RST}")
+        return
+    print(f"  {DIM}{fb}{RST}")
+    speak_text(re.sub(r'[\"\'()"/]', '', fb))
+
+
+def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
+    """Practice one word with retries. Returns (best_pct, last_raw).
+    best_pct=-1 means quit. prev=(raw, word, ipa) for feedback fallback."""
     ensure_ref(w.word)
 
     prefix = f"{num}{w.word}  {w.ipa}  "
@@ -617,8 +642,29 @@ def practice_word(w, rec, num="", cont=False, debug=False):
         print(f"\r\033[K{prefix}Listen...", end="", flush=True)
         speak(w.word)
 
-        heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, last_raw = \
+        heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key = \
             record_word(w.word, rec, prefix)
+        if raw:
+            last_raw = raw
+
+        if key == 'q':
+            return -1, last_raw
+        if key == 's':
+            clear_line()
+            print(f"\r\033[K{prefix}{DIM}skipped{RST}")
+            break
+        if key == 'f':
+            clear_line()
+            if last_raw:
+                fb_raw, fb_word, fb_ipa = last_raw, w.word, w.ipa
+            elif prev:
+                fb_raw, fb_word, fb_ipa = prev
+            else:
+                continue
+            print(f"\r\033[K{prefix}", end="", flush=True)
+            _do_feedback(fb_raw, fb_word, fb_ipa)
+            continue
+
         if pct > best:
             best = pct
 
@@ -635,17 +681,13 @@ def practice_word(w, rec, num="", cont=False, debug=False):
             break
 
         if cont:
-            print(f"  {DIM}[p] [s] [f] [q]{RST}", end="", flush=True)
             k = wait_key(2)
-            clear_line()
             if k == 'q':
-                return -1
+                return -1, last_raw
             if k == 's':
                 break
             if k == 'f' and last_raw:
-                fb = get_feedback(last_raw, w.word, w.ipa)
-                print(f"  {DIM}{fb}{RST}")
-                speak_text(re.sub(r'[\"\'()"/]', '', fb))
+                _do_feedback(last_raw, w.word, w.ipa)
             elif k == 'p':
                 print(f"  {DIM}Paused. Any key...{RST}",
                       end="", flush=True)
@@ -661,11 +703,9 @@ def practice_word(w, rec, num="", cont=False, debug=False):
             if c == "s":
                 break
             if c == "f" and last_raw:
-                fb = get_feedback(last_raw, w.word, w.ipa)
-                print(f"  {DIM}{fb}{RST}")
-                speak_text(re.sub(r'[\"\'()"/]', '', fb))
+                _do_feedback(last_raw, w.word, w.ipa)
 
-    return best
+    return best, last_raw
 
 
 def practice(data, gid, h, cont=False, debug=False):
@@ -682,10 +722,14 @@ def practice(data, gid, h, cont=False, debug=False):
 
     words = pick_words(g.words, h)
     results = []
+    prev = None  # (raw, word, ipa) for feedback on previous word
 
     try:
         for i, w in enumerate(words):
-            best = practice_word(w, rec, f"{i + 1}/{len(words)}: ", cont, debug)
+            best, raw = practice_word(
+                w, rec, f"{i + 1}/{len(words)}: ", cont, debug, prev)
+            if raw:
+                prev = (raw, w.word, w.ipa)
             if best == -1:
                 break
             results.append((w.word, best))
@@ -693,14 +737,11 @@ def practice(data, gid, h, cont=False, debug=False):
 
             if i < len(words) - 1:
                 if cont:
-                    print(f"  {DIM}[p]ause [q]uit{RST}",
-                          end="", flush=True)
                     k = wait_key(1)
-                    clear_line()
                     if k == 'q':
                         break
                     if k == 'p':
-                        print(f"  {DIM}Paused. Any key to resume...{RST}",
+                        print(f"  {DIM}Paused. Any key...{RST}",
                               end="", flush=True)
                         wait_key(None)
                         clear_line()
@@ -752,7 +793,7 @@ def calibrate():
 
     # find best top_db by testing trim lengths
     print("  Finding trim threshold...", end=" ", flush=True)
-    raw, _ = record_audio(duration=2)  # silence sample
+    raw, _, _ = record_audio(duration=2)  # silence sample
     samples = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
     samples = normalize_volume(samples)
     best_db = 20
@@ -901,7 +942,13 @@ def main():
         return
 
     print("English pronunciation trainer")
-    print("The app will say each word, then you repeat it.\n")
+    print("The app will say each word, then you repeat it.")
+    if a.continuous:
+        print(f"{DIM}Keys: [s] skip  [f] feedback  [p] pause  [q] quit{RST}")
+        print(f"{DIM}Keys work during recording and between words{RST}")
+    else:
+        print(f"{DIM}Keys: [Enter] retry  [s] skip  [f] feedback  [q] quit{RST}")
+    print()
 
     if a.group:
         if a.group not in data:
