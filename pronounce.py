@@ -274,8 +274,12 @@ def stt_score(expected, heard):
     return 0
 
 
-def record_audio(duration=5, pause=0.8):
+_VU_BLOCKS = ".▁▂▃▄▅▆▇█"
+
+
+def record_audio(duration=5, pause=0.8, on_chunk=None):
     """Record with VAD - stops after pause seconds of silence.
+    on_chunk(peak_0_1) called every ~200ms with peak amplitude.
     Returns (raw_bytes, speech_started, key_pressed)."""
     vad = webrtcvad.Vad(1)
     chunk_ms = 30
@@ -287,16 +291,30 @@ def record_audio(duration=5, pause=0.8):
         CHANNELS, SAMPLE_RATE,
         app_name="pronounce",
         stream_name="record",
+        fragsize=chunk_bytes,
     )
     chunks = []
     speech_started = False
     speech_run = 0
     silence = 0
     key = None
+    vu_peak = 0.0
+    vu_count = 0
     try:
         for _ in range(max_chunks):
             c = pa.read(chunk_bytes)
             chunks.append(c)
+            # VU meter - emit one bar per 300ms (10 chunks)
+            if on_chunk:
+                p = float(np.max(np.abs(
+                    np.frombuffer(c, dtype=np.int16)))) / 32768.0
+                if p > vu_peak:
+                    vu_peak = p
+                vu_count += 1
+                if vu_count >= 10:
+                    on_chunk(vu_peak)
+                    vu_peak = 0.0
+                    vu_count = 0
             # check for keypress (works in cbreak mode)
             if _term_saved and select.select([sys.stdin], [], [], 0)[0]:
                 key = sys.stdin.read(1)
@@ -415,27 +433,27 @@ def record_word(word, rec, prefix=""):
     """Record, recognize, and score.
     Returns (heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key).
     key is set if user pressed a key during recording."""
-    def status(msg):
-        print(f"\r\033[K{prefix}{msg}", end="", flush=True)
+    hint = f" {DIM}[s] [f] [q]{RST}" if _term_saved else ""
 
-    status(f"Speak now... {DIM}[s] [f] [q]{RST}" if _term_saved
-           else "Speak now...")
+    def on_chunk(peak):
+        print(_VU_BLOCKS[min(8, int(peak * 40))], end="", flush=True)
+
     try:
         ref = get_ref_path(word)
         key = None
         while True:
-            raw, spoke, key = record_audio()
+            print("", end="", flush=True)
+            raw, spoke, key = record_audio(on_chunk=on_chunk)
             if key in ('s', 'q', 'f'):
+                print()
                 return None, 0, 0, 0, 0, 0, 0, 0, 0, None, key
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
             if spoke and peak_raw > 1000:
                 break
-        status("")
         samples = np.frombuffer(raw, dtype=np.int16)
         peak = int(np.max(np.abs(samples)))
         dur = len(samples) / SAMPLE_RATE
         play_raw(raw)
-        status("Processing...")
         # audio similarity
         if ref.exists():
             sim, seg_s, seg_m, seg_e = audio_similarity(ref, raw)
@@ -639,7 +657,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
     best = 0
     last_raw = None
     while True:
-        print(f"\r\033[K{prefix}Listen...", end="", flush=True)
+        print(f"{prefix}Listening", end="", flush=True)
         speak(w.word)
 
         heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key = \
@@ -650,7 +668,6 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
         if key == 'q':
             return -1, last_raw
         if key == 's':
-            clear_line()
             print(f"\r\033[K{prefix}{DIM}skipped{RST}")
             break
         if key == 'f':
@@ -661,7 +678,6 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
                 fb_raw, fb_word, fb_ipa = prev
             else:
                 continue
-            print(f"\r\033[K{prefix}", end="", flush=True)
             _do_feedback(fb_raw, fb_word, fb_ipa)
             continue
 
@@ -892,6 +908,39 @@ def calibrate():
     print(f"\n  Saved to {CAL_FILE}")
 
 
+def test_vu():
+    """Test VU meter - show live mic levels."""
+    print("VU meter test - speak into mic, Ctrl+C to stop\n")
+    chunk_ms = 30
+    chunk_bytes = int(SAMPLE_RATE * SAMPLE_WIDTH * chunk_ms / 1000)
+    pa = pasimple.PaSimple(
+        pasimple.PA_STREAM_RECORD,
+        pasimple.PA_SAMPLE_S16LE,
+        CHANNELS, SAMPLE_RATE,
+        app_name="pronounce",
+        fragsize=chunk_bytes,
+    )
+    peak = 0.0
+    count = 0
+    try:
+        while True:
+            c = pa.read(chunk_bytes)
+            p = float(np.max(np.abs(
+                np.frombuffer(c, dtype=np.int16)))) / 32768.0
+            if p > peak:
+                peak = p
+            count += 1
+            if count >= 10:
+                print(_VU_BLOCKS[min(8, int(peak * 40))], end="", flush=True)
+                peak = 0.0
+                count = 0
+    except KeyboardInterrupt:
+        pass
+    finally:
+        pa.close()
+    print()
+
+
 def main():
     p = argparse.ArgumentParser(
         description="English pronunciation trainer")
@@ -911,7 +960,13 @@ def main():
                    help="show audio debug info")
     p.add_argument("--text", "-t",
                    help="practice a specific word or phrase")
+    p.add_argument("--vu", action="store_true",
+                   help="test VU meter (mic level)")
     a = p.parse_args()
+
+    if a.vu:
+        test_vu()
+        return
 
     load_calibration()
     data = load_words()
