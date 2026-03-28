@@ -263,10 +263,10 @@ silent_letters:
       ipa: /ˈwɛnzdeɪ/
       example: The class meets on Wednesday.
       difficulty: 2
-    - word: colonel
+    - word: kernel
       ipa: /ˈkɜːrnəl/
-      example: The colonel led the regiment.
-      difficulty: 3
+      example: The kernel of the idea was simple.
+      difficulty: 2
 
 word_stress:
   name: word stress patterns
@@ -987,3 +987,35 @@ f_v:
       ipa: /bɪˈliːv/
       example: I believe in you.
       difficulty: 2
+
+stt_aliases:
+  zero: "0"
+  one: "1"
+  two: "2"
+  three: "3"
+  four: "4"
+  five: "5"
+  six: "6"
+  seven: "7"
+  eight: "8"
+  nine: "9"
+  ten: "10"
+  eleven: "11"
+  twelfth: "12"
+  twelve: "12"
+  laughed: loft
+  sea: see
+  road: rode
+
+stt_equiv:
+  - [heir, air, err, are, hare, hair]
+  - [there, their, "they're"]
+  - [right, write, rite]
+  - [know, "no"]
+  - [through, threw]
+  - [main, mane, maine]
+  - [red, read]
+  - [led, lead]
+  - [hour, our]
+  - [borough, burrow]
+  - [colonel, kernel]

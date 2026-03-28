@@ -78,7 +78,11 @@ def save_calibration():
 
 def load_words():
     with open(DATA) as f:
-        return Box(yaml.safe_load(f))
+        raw = yaml.safe_load(f)
+    STT_ALIASES.update(raw.pop("stt_aliases", {}))
+    for group in raw.pop("stt_equiv", []):
+        STT_EQUIV.append(set(group))
+    return Box(raw)
 
 
 def load_history():
@@ -232,20 +236,8 @@ def audio_similarity(ref_path, rec_raw):
     return total, s, m, e
 
 
-STT_ALIASES = {
-    "zero": "0", "one": "1", "two": "2", "three": "3",
-    "four": "4", "five": "5", "six": "6", "seven": "7",
-    "eight": "8", "nine": "9", "ten": "10",
-    "eleven": "11", "twelfth": "12", "twelve": "12",
-    "know": "no", "write": "right", "night": "knight",
-    "road": "rode", "red": "read", "led": "lead",
-    "sea": "see", "through": "threw",
-    "laughed": "loft", "main": "maine",
-}
-# groups of words that sound alike for STT purposes
-STT_EQUIV = [
-    {"heir", "air", "err", "are", "there", "hare", "hair", "hey"},
-]
+STT_ALIASES = {}
+STT_EQUIV = []
 
 # IPA-based homophone lookup, built from words.yaml
 ipa_to_words = {}  # "/raɪt/" -> {"right", "write"}
@@ -549,12 +541,15 @@ def get_feedback(raw, word, ipa):
         w.writeframes(normalize_raw(raw))
     wav = buf.getvalue()
     prompt = (
-        f"The speaker is trying to pronounce the English word \"{word}\" "
-        f"(IPA: {ipa}). Listen to the audio and give brief, specific "
-        f"feedback on the pronunciation. Address the speaker directly "
-        f"as \"you\". What sounds are wrong and how to fix them? "
-        f"Don't use IPA symbols in your response, use plain English "
-        f"descriptions of sounds instead. Be concise - 2-3 sentences max."
+        f"You are a pronunciation coach for American English. "
+        f"The speaker is trying to say \"{word}\" (IPA: {ipa}). "
+        f"Listen to the audio. Does it sound like \"{word}\"? "
+        f"If yes, respond ONLY with the word \"Good\" and nothing "
+        f"else. Homophones of \"{word}\" count as correct. "
+        f"Accent variations are acceptable. "
+        f"Only if a clearly different word is spoken, say what you "
+        f"heard and how to fix it in 2-3 sentences. "
+        f"Address the speaker as \"you\". No IPA symbols."
     )
     r = model.generate_content([
         prompt,
@@ -1003,6 +998,90 @@ def test_vu():
     print()
 
 
+def _ref_raw(word):
+    """Get raw audio bytes from gTTS reference."""
+    ref = ensure_ref(word)
+    seg = AudioSegment.from_wav(str(ref))
+    return seg.set_channels(1).set_frame_rate(
+        SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH).raw_data
+
+
+def _test_good():
+    """Test on correct audio, returns (pass, total)."""
+    words = [
+        ("sit", "/sɪt/"), ("leaf", "/liːf/"),
+        ("twelfth", "/twɛlfθ/"), ("vision", "/ˈvɪʒən/"),
+        ("bird", "/bɜːrd/"), ("splash", "/splæʃ/"),
+        ("heir", "/ɛr/"), ("hat", "/hæt/"),
+        ("prize", "/praɪz/"), ("work", "/wɜːrk/"),
+        ("thought", "/θɔːt/"), ("church", "/tʃɜːrtʃ/"),
+        ("comfortable", "/ˈkʌmftərbəl/"), ("island", "/ˈaɪlənd/"),
+        ("strength", "/strɛŋθ/"), ("cough", "/kɔːf/"),
+        ("measure", "/ˈmɛʒər/"), ("vehicle", "/ˈviːɪkəl/"),
+        ("kernel", "/ˈkɜːrnəl/"), ("particular", "/pərˈtɪkjələr/"),
+    ]
+    ok = 0
+    for word, ipa in words:
+        raw = _ref_raw(word)
+        fb = get_feedback(raw, word, ipa)
+        good = fb.lower().startswith("good")
+        ok += good
+        mark = GRN + "ok" + RST if good else RED + "FAIL" + RST
+        print(f"  {mark}  {word} {ipa}\n       {fb}")
+    print(f"\n  etalon accuracy: {ok}/{len(words)} ({ok * 100 // len(words)}%)\n")
+    return ok, len(words)
+
+
+def _test_bad():
+    """Test on wrong audio, returns (pass, total)."""
+    pairs = [
+        ("sit", "seat", "/siːt/"),
+        ("leaf", "leave", "/liːv/"),
+        ("bat", "bet", "/bɛt/"),
+        ("ship", "chip", "/tʃɪp/"),
+        ("right", "light", "/laɪt/"),
+        ("price", "prize", "/praɪz/"),
+        ("hat", "hot", "/hɑːt/"),
+        ("cat", "bird", "/bɜːrd/"),
+        ("dog", "vision", "/ˈvɪʒən/"),
+        ("hello", "twelfth", "/twɛlfθ/"),
+        ("thin", "this", "/ðɪs/"),
+        ("fan", "van", "/væn/"),
+        ("west", "vest", "/vɛst/"),
+        ("sing", "thing", "/θɪŋ/"),
+        ("pool", "pull", "/pʊl/"),
+        ("wine", "vine", "/vaɪn/"),
+        ("tree", "three", "/θriː/"),
+        ("run", "church", "/tʃɜːrtʃ/"),
+        ("table", "strength", "/strɛŋθ/"),
+        ("water", "kernel", "/ˈkɜːrnəl/"),
+    ]
+    ok = 0
+    for said, expected, ipa in pairs:
+        raw = _ref_raw(said)
+        fb = get_feedback(raw, expected, ipa)
+        caught = not fb.lower().startswith("good")
+        ok += caught
+        mark = GRN + "ok" + RST if caught else RED + "FAIL" + RST
+        print(f"  {mark}  said: {said}  expected: {expected} {ipa}\n       {fb}")
+    print(f"\n  error detection: {ok}/{len(pairs)} ({ok * 100 // len(pairs)}%)\n")
+    return ok, len(pairs)
+
+
+def test_feedback(mode):
+    """Test Gemini feedback on gTTS reference pronunciation."""
+    if mode == "good":
+        _test_good()
+    elif mode == "bad":
+        _test_bad()
+    else:
+        g_ok, g_n = _test_good()
+        b_ok, b_n = _test_bad()
+        total = g_ok + b_ok
+        n = g_n + b_n
+        print(f"  overall: {total}/{n} ({total * 100 // n}%)")
+
+
 def main():
     p = argparse.ArgumentParser(
         description="English pronunciation trainer")
@@ -1024,6 +1103,9 @@ def main():
                    help="practice a specific word or phrase")
     p.add_argument("--vu", action="store_true",
                    help="test VU meter (mic level)")
+    p.add_argument("--test-feedback", nargs="?", const="both",
+                   choices=["good", "bad", "both"],
+                   help="test Gemini feedback: good=etalon, bad=wrong word")
     a = p.parse_args()
 
     if a.vu:
@@ -1034,6 +1116,10 @@ def main():
     data = load_words()
     build_ipa_map(data)
     h = load_history()
+
+    if a.test_feedback:
+        test_feedback(a.test_feedback)
+        return
 
     if a.list:
         list_groups(data)
