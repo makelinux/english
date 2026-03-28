@@ -59,13 +59,16 @@ CAL_WORDS = ["test", "sip", "one", "two", "three", "four", "five"]
 
 # calibration state - loaded at startup
 cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
+calibrated = False
 
 
 def load_calibration():
+    global calibrated
     if CAL_FILE.exists():
         with open(CAL_FILE) as f:
             cal.update(json.load(f))
         cal.pop("gain", None)
+        calibrated = True
 
 
 def save_calibration():
@@ -470,8 +473,8 @@ def record_word(word, rec, prefix=""):
         dur = len(samples) / SAMPLE_RATE
         play_raw(raw)
         print(f"\r\033[K{prefix}Processing...", end="", flush=True)
-        # audio similarity
-        if ref.exists():
+        # audio similarity (only meaningful with calibration)
+        if calibrated and ref.exists():
             sim, seg_s, seg_m, seg_e = audio_similarity(ref, raw)
         else:
             sim, seg_s, seg_m, seg_e = 0, 0, 0, 0
@@ -626,30 +629,75 @@ def list_groups(data):
         print(f"  {gid:20s} - {g.name} ({n} words)")
 
 
+GROUP_KEYS = {
+    "th_voiced": "t", "th_voiceless": "t", "sh_ch": "s",
+    "r_l": "r", "vowel_pairs": "v", "silent_letters": "i",
+    "word_stress": "w", "v_w": "a", "s_z": "z",
+    "diphthongs": "d", "consonant_clusters": "c",
+    "ed_endings": "e", "schwa": "e", "ng_sound": "n",
+    "j_dj": "j", "ei_ai": "y", "ough_spellings": "o",
+    "r_vowels": "l", "zh_sound": "k", "h_sound": "h",
+    "tion_sion": "g", "f_v": "f",
+}
+
+
 def select_group(data, h):
     """Let user select a phoneme group or pick weakest."""
     groups = list(data.keys())
+    # build key -> [gid, ...] mapping (supports submenus)
+    keys = {}
+    for gid in groups:
+        k = GROUP_KEYS.get(gid)
+        if not k:
+            used = set(GROUP_KEYS.values()) | {'?'}
+            for ch in gid:
+                if ch.isalpha() and ch not in used:
+                    k = ch
+                    break
+        if k:
+            keys.setdefault(k, []).append(gid)
+
     print("\nPhoneme groups:\n")
-    for i, gid in enumerate(groups):
-        g = data[gid]
-        acc = group_accuracy(h, gid)
-        tag = f" {acc:.0%}" if acc >= 0 else " new"
-        print(f"  {i + 1}. {g.name}{tag}")
-    print(f"  {len(groups) + 1}. Weakest group (auto-select)")
+    sorted_keys = sorted(keys.keys())
+    for k in sorted_keys:
+        gids = keys[k]
+        names = []
+        for gid in gids:
+            g = data[gid]
+            acc = group_accuracy(h, gid)
+            tag = f" {acc:.0%}" if acc >= 0 else " new"
+            names.append(f"{g.name}{tag}")
+        print(f"  {k} - {' / '.join(names)}")
+    print(f"  ? - weakest group (auto-select)")
     print()
 
     while True:
-        try:
-            c = input("Pick a group (number): ").strip()
-            n = int(c)
-        except (ValueError, EOFError):
-            continue
-        if n == len(groups) + 1:
+        print(f"{DIM}Pick a group:{RST} ", end="", flush=True)
+        c = wait_key(None)
+        clear_line()
+        if c == '?':
             accs = [(gid, group_accuracy(h, gid)) for gid in groups]
             accs.sort(key=lambda x: x[1])
             return accs[0][0]
-        if 1 <= n <= len(groups):
-            return groups[n - 1]
+        if c in keys:
+            gids = keys[c]
+            if len(gids) == 1:
+                return gids[0]
+            # submenu
+            for i, gid in enumerate(gids):
+                g = data[gid]
+                acc = group_accuracy(h, gid)
+                tag = f" {acc:.0%}" if acc >= 0 else " new"
+                print(f"  {i + 1} - {g.name}{tag}")
+            print(f"{DIM}Pick:{RST} ", end="", flush=True)
+            c2 = wait_key(None)
+            clear_line()
+            try:
+                n = int(c2)
+                if 1 <= n <= len(gids):
+                    return gids[n - 1]
+            except ValueError:
+                pass
 
 
 def _do_feedback(raw, word, ipa):
@@ -703,11 +751,11 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
 
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
-        score = (f"{pct_bar(pct)} {pct}%{heard_s}"
-                 f"  {pct_block(sim)}{sim:2d}%:"
+        sim_s = (f"  {pct_block(sim)}{sim:2d}%:"
                  f" {pct_block(seg_s)}{seg_s:2d}%"
                  f" {pct_block(seg_m)}{seg_m:2d}%"
-                 f" {pct_block(seg_e)}{seg_e:2d}%{dbg}")
+                 f" {pct_block(seg_e)}{seg_e:2d}%") if sim else ""
+        score = f"{pct_bar(pct)} {pct}%{heard_s}{sim_s}{dbg}"
         print(f"\r\033[K{prefix}{score}")
 
         if pct >= 80:
@@ -727,15 +775,15 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
                 wait_key(None)
                 clear_line()
         else:
-            try:
-                c = input("  [Enter] retry, [s] skip, [f] feedback: ").strip()
-                clear_line()
-                print("\033[A\033[K", end="", flush=True)
-            except EOFError:
+            print(f"  {DIM}[Enter] retry [s] skip [f] feedback{RST}",
+                  end="", flush=True)
+            c = wait_key(None)
+            clear_line()
+            if c in ('\r', '\n', None):
+                pass
+            elif c == "s":
                 break
-            if c == "s":
-                break
-            if c == "f" and last_raw:
+            elif c == "f" and last_raw:
                 _do_feedback(last_raw, w.word, w.ipa)
 
     return best, last_raw
@@ -779,12 +827,10 @@ def practice(data, gid, h, cont=False, debug=False):
                         wait_key(None)
                         clear_line()
                 else:
-                    try:
-                        c = input("  [Enter] next word, [q] quit: ").strip()
-                        clear_line()
-                        print("\033[A\033[K", end="", flush=True)
-                    except EOFError:
-                        break
+                    print(f"  {DIM}[Enter] next [q] quit{RST}",
+                          end="", flush=True)
+                    c = wait_key(None)
+                    clear_line()
                     if c == "q":
                         break
     finally:
@@ -1015,6 +1061,8 @@ def main():
 
     print("English pronunciation trainer")
     print("The app will say each word, then you repeat it.")
+    if not calibrated:
+        print(f"{DIM}Run --calibrate for audio similarity scoring{RST}")
     if a.continuous:
         print(f"{DIM}Keys: [s] skip  [f] feedback  [p] pause  [q] quit{RST}")
         print(f"{DIM}Keys work during recording and between words{RST}")
