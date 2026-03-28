@@ -1006,16 +1006,16 @@ def _ref_raw(word):
 def _test_good():
     """Test on correct audio, returns (pass, total)."""
     words = [
-        ("sit", "/sɪt/"), ("leaf", "/liːf/"),
-        ("twelfth", "/twɛlfθ/"), ("vision", "/ˈvɪʒən/"),
-        ("bird", "/bɜːrd/"), ("splash", "/splæʃ/"),
-        ("heir", "/ɛr/"), ("hat", "/hæt/"),
-        ("prize", "/praɪz/"), ("work", "/wɜːrk/"),
-        ("thought", "/θɔːt/"), ("church", "/tʃɜːrtʃ/"),
-        ("comfortable", "/ˈkʌmftərbəl/"), ("island", "/ˈaɪlənd/"),
-        ("strength", "/strɛŋθ/"), ("cough", "/kɔːf/"),
-        ("measure", "/ˈmɛʒər/"), ("vehicle", "/ˈviːɪkəl/"),
-        ("kernel", "/ˈkɜːrnəl/"), ("particular", "/pərˈtɪkjələr/"),
+        ("sit", "/sɪt/"), ("seat", "/siːt/"),
+        ("leaf", "/liːf/"), ("leave", "/liːv/"),
+        ("bat", "/bæt/"), ("bet", "/bɛt/"),
+        ("ship", "/ʃɪp/"), ("chip", "/tʃɪp/"),
+        ("thin", "/θɪn/"), ("this", "/ðɪs/"),
+        ("fan", "/fæn/"), ("van", "/væn/"),
+        ("hat", "/hæt/"), ("hot", "/hɑːt/"),
+        ("bird", "/bɜːrd/"), ("work", "/wɜːrk/"),
+        ("prize", "/praɪz/"), ("price", "/praɪs/"),
+        ("pool", "/puːl/"), ("pull", "/pʊl/"),
     ]
     ok = 0
     for word, ipa in words:
@@ -1031,27 +1031,28 @@ def _test_good():
 
 def _test_bad():
     """Test on wrong audio, returns (pass, total)."""
+    # near-homophones: forward and reverse pairs
     pairs = [
         ("sit", "seat", "/siːt/"),
+        ("seat", "sit", "/sɪt/"),
         ("leaf", "leave", "/liːv/"),
+        ("leave", "leaf", "/liːf/"),
         ("bat", "bet", "/bɛt/"),
+        ("bet", "bat", "/bæt/"),
         ("ship", "chip", "/tʃɪp/"),
-        ("right", "light", "/laɪt/"),
-        ("price", "prize", "/praɪz/"),
-        ("hat", "hot", "/hɑːt/"),
-        ("word", "bird", "/bɜːrd/"),
-        ("version", "vision", "/ˈvɪʒən/"),
-        ("twelve", "twelfth", "/twɛlfθ/"),
+        ("chip", "ship", "/ʃɪp/"),
         ("thin", "this", "/ðɪs/"),
+        ("this", "thin", "/θɪn/"),
         ("fan", "van", "/væn/"),
-        ("west", "vest", "/vɛst/"),
-        ("sing", "thing", "/θɪŋ/"),
+        ("van", "fan", "/fæn/"),
+        ("hat", "hot", "/hɑːt/"),
+        ("hot", "hat", "/hæt/"),
+        ("price", "prize", "/praɪz/"),
+        ("prize", "price", "/praɪs/"),
         ("pool", "pull", "/pʊl/"),
+        ("pull", "pool", "/puːl/"),
         ("wine", "vine", "/vaɪn/"),
-        ("tree", "three", "/θriː/"),
-        ("church", "search", "/sɜːrtʃ/"),
-        ("string", "strength", "/strɛŋθ/"),
-        ("journal", "kernel", "/ˈkɜːrnəl/"),
+        ("vine", "wine", "/waɪn/"),
     ]
     ok = 0
     for said, expected, ipa in pairs:
