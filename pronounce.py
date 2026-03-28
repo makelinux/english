@@ -524,9 +524,9 @@ def get_feedback(raw, word, ipa):
         import google.generativeai as genai
     except ImportError:
         return "Install google-generativeai: pip install google-generativeai"
-    key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    key = os.environ.get("GEMINI_API_KEY")
     if not key:
-        return "Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable"
+        return "Set GEMINI_API_KEY environment variable"
     genai.configure(api_key=key)
     model = genai.GenerativeModel("gemini-flash-latest")
     # convert raw to wav bytes

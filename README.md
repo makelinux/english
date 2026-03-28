@@ -68,8 +68,7 @@ Groups and words are defined in `words.yaml`.
 
 Press `f` to get pronunciation feedback from Google Gemini
 (gemini-flash-latest). Evaluates against standard American
-accent. Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY`
-environment variable.
+accent. Requires `GEMINI_API_KEY` environment variable.
 
 Use `--test-feedback` to verify Gemini accuracy on gTTS
 reference audio. Tests correct pronunciation (should say
