@@ -528,7 +528,7 @@ def get_feedback(raw, word, ipa):
     if not key:
         return "Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable"
     genai.configure(api_key=key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    model = genai.GenerativeModel("gemini-flash-latest")
     # convert raw to wav bytes
     buf = BytesIO()
     with wave.open(buf, "wb") as w:
