@@ -29,6 +29,8 @@ try:
 except OSError:
     pass
 
+import threading
+import time
 import wave
 
 import librosa
@@ -41,9 +43,6 @@ from box import Box
 from gtts import gTTS
 from pydub import AudioSegment
 from scipy.spatial.distance import cdist
-
-import threading
-import time
 
 DATA = Path(__file__).parent / "words.yaml"
 CONF_DIR = Path.home() / ".english-pronounce"
@@ -88,7 +87,9 @@ def load_words():
 def load_history():
     if HIST.exists():
         with open(HIST) as f:
-            return yaml.safe_load(f)
+            h = yaml.safe_load(f)
+        if h:
+            return h
     return {"words": {}, "groups": {}}
 
 
@@ -187,7 +188,6 @@ def dtw_distance(a, b):
             d[i, j] = cost[i - 1, j - 1] + min(
                 d[i - 1, j], d[i, j - 1], d[i - 1, j - 1])
     return d[n, m] / (n + m)
-
 
 
 def normalize_volume(samples):
@@ -442,8 +442,6 @@ def record_word(word, rec, prefix=""):
     """Record, recognize, and score.
     Returns (heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key).
     key is set if user pressed a key during recording."""
-    hint = f" {DIM}[s] [f] [q]{RST}" if _term_saved else ""
-
     def on_chunk(peak):
         print(_VU_BLOCKS[min(8, int(peak * 40))], end="", flush=True)
 
@@ -451,7 +449,6 @@ def record_word(word, rec, prefix=""):
         ref = get_ref_path(word)
         key = None
         while True:
-            print("", end="", flush=True)
             raw, spoke, key = record_audio(on_chunk=on_chunk)
             if key in ('s', 'q', 'f'):
                 print()
@@ -1042,9 +1039,9 @@ def _test_bad():
         ("right", "light", "/laɪt/"),
         ("price", "prize", "/praɪz/"),
         ("hat", "hot", "/hɑːt/"),
-        ("cat", "bird", "/bɜːrd/"),
-        ("dog", "vision", "/ˈvɪʒən/"),
-        ("hello", "twelfth", "/twɛlfθ/"),
+        ("word", "bird", "/bɜːrd/"),
+        ("version", "vision", "/ˈvɪʒən/"),
+        ("twelve", "twelfth", "/twɛlfθ/"),
         ("thin", "this", "/ðɪs/"),
         ("fan", "van", "/væn/"),
         ("west", "vest", "/vɛst/"),
@@ -1052,9 +1049,9 @@ def _test_bad():
         ("pool", "pull", "/pʊl/"),
         ("wine", "vine", "/vaɪn/"),
         ("tree", "three", "/θriː/"),
-        ("run", "church", "/tʃɜːrtʃ/"),
-        ("table", "strength", "/strɛŋθ/"),
-        ("water", "kernel", "/ˈkɜːrnəl/"),
+        ("church", "search", "/sɜːrtʃ/"),
+        ("string", "strength", "/strɛŋθ/"),
+        ("journal", "kernel", "/ˈkɜːrnəl/"),
     ]
     ok = 0
     for said, expected, ipa in pairs:
