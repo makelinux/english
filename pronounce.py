@@ -1023,8 +1023,9 @@ def _test_good():
         fb = get_feedback(raw, word, ipa)
         good = fb.lower().startswith("good")
         ok += good
-        mark = GRN + "ok" + RST if good else RED + "FAIL" + RST
-        print(f"  {mark}  {word} {ipa}\n       {fb}")
+        mark = GRN + "pass" + RST if good else RED + "FAIL" + RST
+        sep = " -> "
+        print(f"  {mark}  {word} {ipa}{sep}{fb}")
     print(f"\n  etalon accuracy: {ok}/{len(words)} ({ok * 100 // len(words)}%)\n")
     return ok, len(words)
 
@@ -1060,8 +1061,9 @@ def _test_bad():
         fb = get_feedback(raw, expected, ipa)
         caught = not fb.lower().startswith("good")
         ok += caught
-        mark = GRN + "ok" + RST if caught else RED + "FAIL" + RST
-        print(f"  {mark}  said: {said}  expected: {expected} {ipa}\n       {fb}")
+        mark = GRN + "pass" + RST if caught else RED + "FAIL" + RST
+        sep = " -> "
+        print(f"  {mark}  said: {said}  labeled: {expected} {ipa}{sep}{fb}")
     print(f"\n  error detection: {ok}/{len(pairs)} ({ok * 100 // len(pairs)}%)\n")
     return ok, len(pairs)
 
