@@ -23,6 +23,9 @@ similarity and Google Speech-to-Text.
 ./pronounce.py --calibrate  # calibrate mic/speaker
 ./pronounce.py --vu         # test mic levels
 ./pronounce.py -d           # show debug info (duration, peak)
+./pronounce.py --test-feedback       # test Gemini accuracy (both)
+./pronounce.py --test-feedback good  # test on etalon audio
+./pronounce.py --test-feedback bad   # test on wrong words
 ```
 
 ### Keys
@@ -41,11 +44,14 @@ Between attempts:
 ### Scoring
 
 Each attempt shows two scores:
-- **STT score** - did Google Speech-to-Text hear the right word
-- **Audio similarity** - MFCC/DTW comparison with gTTS reference,
-  broken down into start/middle/end segments
+- STT score - did Google Speech-to-Text hear the right word
+- Audio similarity - MFCC/DTW comparison with gTTS reference,
+  broken down into start/middle/end segments (requires
+  `--calibrate`)
 
 The bar shows the best of the two. 80%+ is a pass.
+Audio similarity is hidden without calibration to avoid
+false positives.
 
 ### Phoneme groups
 
@@ -60,9 +66,14 @@ Groups and words are defined in `words.yaml`.
 
 ### AI feedback
 
-Press `f` to get pronunciation feedback from Google Gemini.
-Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY` environment
-variable.
+Press `f` to get pronunciation feedback from Google Gemini
+(gemini-flash-latest). Evaluates against standard American
+accent. Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY`
+environment variable.
+
+Use `--test-feedback` to verify Gemini accuracy on gTTS
+reference audio. Tests correct pronunciation (should say
+"Good") and mismatched words (should detect errors).
 
 ### Calibration
 
@@ -111,7 +122,7 @@ python3 -c "import nltk; nltk.download('wordnet')"
 
 - `pronounce.py` - pronunciation trainer
 - `vocab.py` - vocabulary size estimator
-- `words.yaml` - phoneme groups and word definitions
+- `words.yaml` - phoneme groups, words, STT equivalences
 - `requirements.txt` - Python dependencies
 - `~/.english-pronounce/` - user data directory
   - `history.yaml` - practice history
