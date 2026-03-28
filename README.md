@@ -69,7 +69,7 @@ variable.
 Run `--calibrate` to measure your mic/speaker channel. This
 plays reference words through the speaker, records them, and
 computes bias/scale for more accurate audio similarity scoring.
-Settings are saved to `~/.english-pronounce/calibration.json`.
+Settings are saved to `~/.english-pronounce/calibration.yaml`.
 
 ## vocab.py
 
@@ -114,7 +114,7 @@ python3 -c "import nltk; nltk.download('wordnet')"
 - `words.yaml` - phoneme groups and word definitions
 - `requirements.txt` - Python dependencies
 - `~/.english-pronounce/` - user data directory
-  - `history.json` - practice history
-  - `calibration.json` - mic/speaker calibration
+  - `history.yaml` - practice history
+  - `calibration.yaml` - mic/speaker calibration
   - `ref/` - cached gTTS reference audio
-  - `vocab_cache.json` - cached lemmatized word list
+  - `vocab_cache.yaml` - cached lemmatized word list

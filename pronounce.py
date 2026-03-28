@@ -3,7 +3,6 @@
 
 import argparse
 import ctypes
-import json
 import logging
 import os
 import re
@@ -48,9 +47,9 @@ import time
 
 DATA = Path(__file__).parent / "words.yaml"
 CONF_DIR = Path.home() / ".english-pronounce"
-HIST = CONF_DIR / "history.json"
+HIST = CONF_DIR / "history.yaml"
 REF_DIR = CONF_DIR / "ref"
-CAL_FILE = CONF_DIR / "calibration.json"
+CAL_FILE = CONF_DIR / "calibration.yaml"
 SAMPLE_RATE = 16000
 SAMPLE_WIDTH = 2
 CHANNELS = 1
@@ -66,7 +65,7 @@ def load_calibration():
     global calibrated
     if CAL_FILE.exists():
         with open(CAL_FILE) as f:
-            cal.update(json.load(f))
+            cal.update(yaml.safe_load(f))
         cal.pop("gain", None)
         calibrated = True
 
@@ -74,7 +73,7 @@ def load_calibration():
 def save_calibration():
     CONF_DIR.mkdir(parents=True, exist_ok=True)
     with open(CAL_FILE, "w") as f:
-        json.dump(cal, f, indent=2)
+        yaml.dump(cal, f)
 
 
 def load_words():
@@ -85,14 +84,14 @@ def load_words():
 def load_history():
     if HIST.exists():
         with open(HIST) as f:
-            return json.load(f)
+            return yaml.safe_load(f)
     return {"words": {}, "groups": {}}
 
 
 def save_history(h):
     HIST.parent.mkdir(parents=True, exist_ok=True)
     with open(HIST, "w") as f:
-        json.dump(h, f, indent=2)
+        yaml.dump(h, f)
 
 
 def get_ref_path(word):

@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 """Estimate English vocabulary size using binary search."""
 
-import json
 import os
 import random
 import sys
 import termios
 import tty
 
+import yaml
+
 BATCH = 5
 ROUNDS = 14
-_CACHE = os.path.expanduser("~/.english-pronounce/vocab_cache.json")
+_CACHE = os.path.expanduser("~/.english-pronounce/vocab_cache.yaml")
 
 
 def _load_words():
     """Load word list, using cache if available."""
     if os.path.exists(_CACHE):
         with open(_CACHE) as f:
-            return json.load(f)
+            return yaml.safe_load(f)
 
     from wordfreq import top_n_list
     from nltk.corpus import wordnet as wn
@@ -41,7 +42,7 @@ def _load_words():
 
     os.makedirs(os.path.dirname(_CACHE), exist_ok=True)
     with open(_CACHE, 'w') as f:
-        json.dump(words, f)
+        yaml.dump(words, f)
     print(f" {len(words):,} words cached.")
     return words
 
