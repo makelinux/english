@@ -203,24 +203,8 @@ def dist_to_pct(dist):
     return max(0, min(100, int(100 * (1 - d / (cal["scale"] * 3)))))
 
 
-def segment_similarity(mfcc_ref, mfcc_rec):
-    """Compare start/middle/end thirds, return (start, mid, end) pcts."""
-    n3 = len(mfcc_ref) // 3
-    m3 = len(mfcc_rec) // 3
-    parts = []
-    for i in range(3):
-        r = mfcc_ref[i * n3:(i + 1) * n3] if i < 2 else mfcc_ref[i * n3:]
-        c = mfcc_rec[i * m3:(i + 1) * m3] if i < 2 else mfcc_rec[i * m3:]
-        if len(r) < 2 or len(c) < 2:
-            parts.append(0)
-        else:
-            parts.append(dist_to_pct(dtw_distance(r, c)))
-    return tuple(parts)
-
-
 def audio_similarity(ref_path, rec_raw):
-    """Compare reference WAV with recorded raw bytes.
-    Returns (total_pct, start_pct, mid_pct, end_pct)."""
+    """Compare reference WAV with recorded raw bytes. Returns pct 0-100."""
     ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
     rec = np.frombuffer(rec_raw, dtype=np.int16).astype(np.float32) / 32768.0
     ref = normalize_volume(ref)
@@ -228,12 +212,8 @@ def audio_similarity(ref_path, rec_raw):
     ref, _ = librosa.effects.trim(ref, top_db=cal["top_db"])
     rec, _ = librosa.effects.trim(rec, top_db=cal["top_db"])
     if len(ref) < 1600 or len(rec) < 1600:
-        return 0, 0, 0, 0
-    mfcc_ref = extract_mfcc(ref)
-    mfcc_rec = extract_mfcc(rec)
-    total = dist_to_pct(dtw_distance(mfcc_ref, mfcc_rec))
-    s, m, e = segment_similarity(mfcc_ref, mfcc_rec)
-    return total, s, m, e
+        return 0
+    return dist_to_pct(dtw_distance(extract_mfcc(ref), extract_mfcc(rec)))
 
 
 STT_ALIASES = {}
@@ -463,7 +443,7 @@ def record_word(word, rec, prefix=""):
         print(f"\r\033[K{prefix}Processing...", end="", flush=True)
         # audio similarity (only meaningful with calibration)
         if calibrated and ref.exists():
-            sim = audio_similarity(ref, raw)[0]
+            sim = audio_similarity(ref, raw)
         else:
             sim = 0
         # STT
@@ -951,11 +931,8 @@ def calibrate():
         time.sleep(cal["delay"])
         speak(w)
         t.join()
-        sim, s, m, e = audio_similarity(ref_path, raw[0])
-        print(f"    {w:10s} {pct_block(sim)}{sim:3d}%:"
-              f" {pct_block(s)}{s:2d}%"
-              f" {pct_block(m)}{m:2d}%"
-              f" {pct_block(e)}{e:2d}%")
+        sim = audio_similarity(ref_path, raw[0])
+        print(f"    {w:10s} {pct_block(sim)}{sim:3d}%")
 
     print(f"\n  Saved to {CAL_FILE}")
 
