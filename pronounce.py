@@ -746,7 +746,8 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
                  f" {pct_block(seg_s)}{seg_s:2d}%"
                  f" {pct_block(seg_m)}{seg_m:2d}%"
                  f" {pct_block(seg_e)}{seg_e:2d}%") if sim else ""
-        score = f"{pct_bar(pct)} {pct}%{heard_s}{sim_s}{dbg}"
+        bar_s = f"{pct_bar(pct)} {pct}%" if sim else ""
+        score = f"{bar_s}{heard_s}{sim_s}{dbg}"
         print(f"\r\033[K{prefix}{score}")
 
         if pct >= 80:
