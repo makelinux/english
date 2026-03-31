@@ -440,7 +440,7 @@ def play_raw(raw, volume=0.3):
 
 def record_word(word, rec, prefix=""):
     """Record, recognize, and score.
-    Returns (heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key).
+    Returns (heard, pct, sim, stt, peak, dur, raw, key).
     key is set if user pressed a key during recording."""
     def on_chunk(peak):
         print(_VU_BLOCKS[min(8, int(peak * 40))], end="", flush=True)
@@ -452,7 +452,7 @@ def record_word(word, rec, prefix=""):
             raw, spoke, key = record_audio(on_chunk=on_chunk)
             if key in ('s', 'q', 'f'):
                 print()
-                return None, 0, 0, 0, 0, 0, 0, 0, 0, None, key
+                return None, 0, 0, 0, 0, 0, None, key
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
             if spoke and peak_raw > 1000:
                 break
@@ -463,9 +463,9 @@ def record_word(word, rec, prefix=""):
         print(f"\r\033[K{prefix}Processing...", end="", flush=True)
         # audio similarity (only meaningful with calibration)
         if calibrated and ref.exists():
-            sim, seg_s, seg_m, seg_e = audio_similarity(ref, raw)
+            sim = audio_similarity(ref, raw)[0]
         else:
-            sim, seg_s, seg_m, seg_e = 0, 0, 0, 0
+            sim = 0
         # STT
         try:
             heard = rec.recognize_google(raw_to_sr_audio(raw))
@@ -475,10 +475,10 @@ def record_word(word, rec, prefix=""):
             heard = None
         stt = stt_score(word, heard)
         pct = max(sim, stt)
-        return heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key
+        return heard, pct, sim, stt, peak, dur, raw, key
     except Exception as e:
         print(f"\r\033[K{prefix}Recording error: {e}")
-        return None, 0, 0, 0, 0, 0, 0, 0, 0, None, None
+        return None, 0, 0, 0, 0, 0, None, None
 
 
 def group_accuracy(h, gid):
@@ -715,7 +715,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
         print(f"{prefix}Listening", end="", flush=True)
         speak(w.word)
 
-        heard, pct, sim, stt, seg_s, seg_m, seg_e, peak, dur, raw, key = \
+        heard, pct, sim, stt, peak, dur, raw, key = \
             record_word(w.word, rec, prefix)
         if raw:
             last_raw = raw
@@ -742,11 +742,8 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
 
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
-        sim_s = (f"  {pct_block(sim)}{sim:2d}%:"
-                 f" {pct_block(seg_s)}{seg_s:2d}%"
-                 f" {pct_block(seg_m)}{seg_m:2d}%"
-                 f" {pct_block(seg_e)}{seg_e:2d}%") if sim else ""
-        bar_s = f"{pct_bar(pct)} {pct}%" if sim else ""
+        sim_s = f"  {pct_block(sim)}{sim:2d}%" if sim else ""
+        bar_s = f"{pct_bar(pct)} {pct}%" if sim and not cont else ""
         score = f"{bar_s}{heard_s}{sim_s}{dbg}"
         print(f"\r\033[K{prefix}{score}")
 
