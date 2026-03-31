@@ -133,12 +133,10 @@ def speak(text):
         ) as pa:
             pa.write(seg.raw_data)
             pa.drain()
-        return
     except Exception:
-        pass
-    subprocess.run(
-        ["espeak-ng", "-s", "130", "-v", "en-us", text],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            ["espeak-ng", "-s", "130", "-v", "en-us", text],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def speak_text(text):
@@ -420,7 +418,7 @@ def play_raw(raw, volume=0.3):
 
 def record_word(word, rec, prefix=""):
     """Record, recognize, and score.
-    Returns (heard, pct, sim, stt, peak, dur, raw, key).
+    Returns (heard, pct, sim, peak, dur, raw, key).
     key is set if user pressed a key during recording."""
     def on_chunk(peak):
         print(_VU_BLOCKS[min(8, int(peak * 40))], end="", flush=True)
@@ -432,7 +430,7 @@ def record_word(word, rec, prefix=""):
             raw, spoke, key = record_audio(on_chunk=on_chunk)
             if key in ('s', 'q', 'f'):
                 print()
-                return None, 0, 0, 0, 0, 0, None, key
+                return None, 0, 0, 0, 0, None, key
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
             if spoke and peak_raw > 1000:
                 break
@@ -453,12 +451,11 @@ def record_word(word, rec, prefix=""):
             heard = None
         except sr.RequestError:
             heard = None
-        stt = stt_score(word, heard)
-        pct = max(sim, stt)
-        return heard, pct, sim, stt, peak, dur, raw, key
+        pct = max(sim, stt_score(word, heard))
+        return heard, pct, sim, peak, dur, raw, key
     except Exception as e:
         print(f"\r\033[K{prefix}Recording error: {e}")
-        return None, 0, 0, 0, 0, 0, None, None
+        return None, 0, 0, 0, 0, None, None
 
 
 def group_accuracy(h, gid):
@@ -695,7 +692,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
         print(f"{prefix}Listening", end="", flush=True)
         speak(w.word)
 
-        heard, pct, sim, stt, peak, dur, raw, key = \
+        heard, pct, sim, peak, dur, raw, key = \
             record_word(w.word, rec, prefix)
         if raw:
             last_raw = raw
@@ -999,8 +996,7 @@ def _test_good():
         good = fb.lower().startswith("good")
         ok += good
         mark = GRN + "pass" + RST if good else RED + "FAIL" + RST
-        sep = " -> "
-        print(f"  {mark}  {word} {ipa}{sep}{fb}")
+        print(f"  {mark}  {word} {ipa} -> {fb}")
     print(f"\n  etalon accuracy: {ok}/{len(words)} ({ok * 100 // len(words)}%)\n")
     return ok, len(words)
 
@@ -1037,8 +1033,7 @@ def _test_bad():
         caught = not fb.lower().startswith("good")
         ok += caught
         mark = GRN + "pass" + RST if caught else RED + "FAIL" + RST
-        sep = " -> "
-        print(f"  {mark}  said: {said}  labeled: {expected} {ipa}{sep}{fb}")
+        print(f"  {mark}  said: {said}  labeled: {expected} {ipa} -> {fb}")
     print(f"\n  error detection: {ok}/{len(pairs)} ({ok * 100 // len(pairs)}%)\n")
     return ok, len(pairs)
 
