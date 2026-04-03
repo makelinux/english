@@ -61,12 +61,13 @@ calibrated = False
 
 
 def load_calibration():
-    global calibrated
+    global calibrated, _vu_max
     if CAL_FILE.exists():
         with open(CAL_FILE) as f:
             cal.update(yaml.safe_load(f))
         cal.pop("gain", None)
         calibrated = True
+        _vu_max = cal.get("vu_peak", 0.2) * 0.5
 
 
 def save_calibration():
@@ -416,14 +417,22 @@ def play_raw(raw, volume=0.3):
         pa.drain()
 
 
+_vu_max = 0.2
+
+
 def record_word(word, rec, prefix=""):
     """Record, recognize, and score.
     Returns (heard, pct, sim, peak, dur, raw, key).
     key is set if user pressed a key during recording."""
+    global _vu_max
     vu = []
 
     def on_chunk(peak):
-        vu.append(_VU_BLOCKS[min(8, int(peak * 40))])
+        global _vu_max
+        if peak > _vu_max:
+            _vu_max = peak
+        mx = _vu_max if _vu_max > 1e-6 else 1.0
+        vu.append(_VU_BLOCKS[min(8, int(peak / mx * 8))])
         print(f"\r\033[K{prefix}Listening{''.join(vu)}🎤",
               end="", flush=True)
 
@@ -897,6 +906,7 @@ def calibrate():
     # measure baseline distances
     print("  Measuring channel bias...\n")
     dists = []
+    peak_max = 0.0
     for w in CAL_WORDS:
         ref_path = get_ref_path(w)
         raw = [None]
@@ -906,8 +916,11 @@ def calibrate():
         speak(w)
         t.join()
 
-        ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
         rec = np.frombuffer(raw[0], dtype=np.int16).astype(np.float32) / 32768.0
+        p = float(np.max(np.abs(rec)))
+        if p > peak_max:
+            peak_max = p
+        ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
         ref = normalize_volume(ref)
         rec = normalize_volume(rec)
         ref, _ = librosa.effects.trim(ref, top_db=cal["top_db"])
@@ -927,6 +940,7 @@ def calibrate():
     # scale so that bias distance -> ~95%, and 2x bias -> ~0%
     cal["bias"] = round(float(bias), 1)
     cal["scale"] = round(float(np.mean(dists) * 0.6), 1)
+    cal["vu_peak"] = round(float(peak_max), 3)
 
     save_calibration()
 
