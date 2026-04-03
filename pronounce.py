@@ -550,11 +550,21 @@ YEL = "\033[33m"
 GRN = "\033[32m"
 RST = "\033[0m"
 
+sim_threshold = 60
+
 
 def pct_color(pct):
     if pct >= 70:
         return GRN
     if pct >= 40:
+        return YEL
+    return RED
+
+
+def sim_color(pct):
+    if pct >= sim_threshold:
+        return GRN
+    if pct >= sim_threshold // 2:
         return YEL
     return RED
 
@@ -712,7 +722,8 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
             time.sleep(cal["delay"])
             speak(w.word)
             t.join()
-            lb_s = f"selfcheck={audio_similarity(get_ref_path(w.word), lb[0])}%  "
+            s = audio_similarity(get_ref_path(w.word), lb[0])
+            lb_s = f"selfcheck={sim_color(s)}{s}%{RST}  "
             print(f"\r\033[K{prefix}{lb_s}Listening", end="", flush=True)
         else:
             print(f"{prefix}Listening", end="", flush=True)
@@ -745,12 +756,14 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
 
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
-        sim_s = f"  {pct_block(sim)}{sim:2d}%" if sim else ""
+        sim_s = f"  {sim_color(sim)}{sim:2d}%{RST}" if sim else ""
         bar_s = f"{pct_bar(pct)} {pct}%" if sim and not cont else ""
         score = f"{bar_s}{heard_s}{sim_s}{dbg}"
         print(f"\r\033[K{prefix}{lb_s}{score}")
 
-        if pct >= 80:
+        if sim >= sim_threshold \
+                or sim >= sim_threshold // 2 and pct == 100 \
+                or not sim and pct >= 80:
             break
 
         if cont:
@@ -1100,6 +1113,8 @@ def main():
                    help="continuous mode, no Enter between words")
     p.add_argument("--debug", "-d", action="store_true",
                    help="show audio debug info")
+    p.add_argument("--sim-threshold", type=int, default=60,
+                   help="audio similarity threshold %% (default 60)")
     p.add_argument("--text", "-t",
                    help="practice a specific word or phrase")
     p.add_argument("--vu", action="store_true",
@@ -1113,6 +1128,8 @@ def main():
         test_vu()
         return
 
+    global sim_threshold
+    sim_threshold = a.sim_threshold
     load_calibration()
     data = load_words()
     build_ipa_map(data)
