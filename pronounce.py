@@ -420,8 +420,12 @@ def record_word(word, rec, prefix=""):
     """Record, recognize, and score.
     Returns (heard, pct, sim, peak, dur, raw, key).
     key is set if user pressed a key during recording."""
+    vu = []
+
     def on_chunk(peak):
-        print(_VU_BLOCKS[min(8, int(peak * 40))], end="", flush=True)
+        vu.append(_VU_BLOCKS[min(8, int(peak * 40))])
+        print(f"\r\033[K{prefix}Listening{''.join(vu)}🎤",
+              end="", flush=True)
 
     try:
         ref = get_ref_path(word)
