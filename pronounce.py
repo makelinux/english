@@ -687,10 +687,23 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
     prefix = f"{num}{w.word}  {w.ipa}  "
     best = 0
     last_raw = None
+    lb_s = ""
     while True:
         clear_line()
-        print(f"{prefix}Listening", end="", flush=True)
-        speak(w.word)
+        if debug:
+            lb = [None]
+            t = threading.Thread(
+                target=lambda: lb.__setitem__(0, record_audio(3)[0]))
+            print(f"{prefix} selfcheck, Wait! ", end="", flush=True)
+            t.start()
+            time.sleep(cal["delay"])
+            speak(w.word)
+            t.join()
+            lb_s = f"selfcheck={audio_similarity(get_ref_path(w.word), lb[0])}%  "
+            print(f"\r\033[K{prefix}{lb_s}Listening", end="", flush=True)
+        else:
+            print(f"{prefix}Listening", end="", flush=True)
+            speak(w.word)
 
         heard, pct, sim, peak, dur, raw, key = \
             record_word(w.word, rec, prefix)
@@ -722,7 +735,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
         sim_s = f"  {pct_block(sim)}{sim:2d}%" if sim else ""
         bar_s = f"{pct_bar(pct)} {pct}%" if sim and not cont else ""
         score = f"{bar_s}{heard_s}{sim_s}{dbg}"
-        print(f"\r\033[K{prefix}{score}")
+        print(f"\r\033[K{prefix}{lb_s}{score}")
 
         if pct >= 80:
             break
