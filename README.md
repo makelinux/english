@@ -85,11 +85,15 @@ reference audio. Tests correct pronunciation (should say
 
 ### Calibration
 
-Run `--calibrate` to measure your mic/speaker channel. This
-plays reference words through the speaker, records them, and
-computes bias/scale for more accurate audio similarity scoring.
-Also measures VU peak for steady histogram scaling.
+Audio similarity requires calibration. Calibration requires
+speakers - it plays reference words aloud and records them
+through the mic to measure channel characteristics.
+
+On first run, the app does a quick one-word auto-calibration.
+Run `--calibrate` for more precise tuning with multiple words.
 Settings are saved to `~/.english-pronounce/calibration.yaml`.
+With headphones only (no speakers), audio similarity is
+unavailable and scoring falls back to speech recognition.
 
 ### Debug mode
 
