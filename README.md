@@ -6,8 +6,9 @@ vocabulary size.
 ## pronounce.py
 
 Practice words grouped by phoneme. The app plays each word via
-gTTS, records your attempt, then scores it using MFCC/DTW audio
-similarity and Google Speech-to-Text.
+gTTS, records your attempt, then scores it using audio
+similarity and Google speech recognition. Press `f` anytime for
+AI feedback and mentoring from Google Gemini.
 
 ### Usage
 
@@ -45,8 +46,8 @@ Between attempts:
 ### Scoring
 
 Each attempt shows two scores:
-- STT score - did Google Speech-to-Text hear the right word
-- Audio similarity - MFCC/DTW comparison with gTTS reference
+- Speech recognition - did Google hear the right word
+- Audio similarity - comparison with gTTS reference
   (requires `--calibrate`)
 
 Pass conditions (with calibration):
@@ -69,11 +70,14 @@ Without calibration, only STT is used (80%+ to pass).
 
 Groups and words are defined in `words.yaml`.
 
-### AI feedback
+### AI feedback and mentoring
 
-Press `f` to get pronunciation feedback from Google Gemini
-(gemini-flash-latest). Evaluates against standard American
-accent. Requires `GEMINI_API_KEY` environment variable.
+Press `f` during practice to get pronunciation feedback from
+Google Gemini. The AI coach listens to your recording,
+evaluates it against standard American accent, and tells you
+what to fix. If your pronunciation is good, it just says
+"Good". Feedback is spoken aloud via gTTS so you can keep
+practicing hands-free. Requires `GEMINI_API_KEY`.
 
 Use `--test-feedback` to verify Gemini accuracy on gTTS
 reference audio. Tests correct pronunciation (should say
