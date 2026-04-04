@@ -22,7 +22,8 @@ similarity and Google Speech-to-Text.
 ./pronounce.py --stats      # show performance stats
 ./pronounce.py --calibrate  # calibrate mic/speaker
 ./pronounce.py --vu         # test mic levels
-./pronounce.py -d           # show debug info (duration, peak)
+./pronounce.py -d           # debug info (duration, peak, selfcheck)
+./pronounce.py --sim-threshold 50  # set audio similarity pass threshold
 ./pronounce.py --test-feedback       # test Gemini accuracy (both)
 ./pronounce.py --test-feedback good  # test on etalon audio
 ./pronounce.py --test-feedback bad   # test on wrong words
@@ -45,13 +46,17 @@ Between attempts:
 
 Each attempt shows two scores:
 - STT score - did Google Speech-to-Text hear the right word
-- Audio similarity - MFCC/DTW comparison with gTTS reference,
-  broken down into start/middle/end segments (requires
-  `--calibrate`)
+- Audio similarity - MFCC/DTW comparison with gTTS reference
+  (requires `--calibrate`)
 
-The bar shows the best of the two. 80%+ is a pass.
-Audio similarity is hidden without calibration to avoid
-false positives.
+Pass conditions (with calibration):
+- sim >= threshold (default 60%), or
+- sim >= half threshold and perfect STT, or
+- pct >= 80% when sim is disabled
+
+Audio similarity is colored by `--sim-threshold` (default 60%):
+green above, yellow above half, red below.
+Without calibration, only STT is used (80%+ to pass).
 
 ### Phoneme groups
 
@@ -79,7 +84,15 @@ reference audio. Tests correct pronunciation (should say
 Run `--calibrate` to measure your mic/speaker channel. This
 plays reference words through the speaker, records them, and
 computes bias/scale for more accurate audio similarity scoring.
+Also measures VU peak for steady histogram scaling.
 Settings are saved to `~/.english-pronounce/calibration.yaml`.
+
+### Debug mode
+
+`-d` shows duration, peak amplitude, and loopback selfcheck.
+Selfcheck plays the reference word through the speaker while
+recording via mic, then computes audio_similarity on the
+recording to verify the scoring pipeline.
 
 ## vocab.py
 
