@@ -11,7 +11,7 @@ import yaml
 
 BATCH = 5
 ROUNDS = 14
-_CACHE = os.path.expanduser("~/.english-pronounce/vocab_cache.yaml")
+_CACHE = os.path.expanduser("~/.config/english-pronounce/vocab_cache.yaml")
 
 
 def _load_words():

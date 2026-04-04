@@ -48,16 +48,14 @@ Between attempts:
 Each attempt shows two scores:
 - Speech recognition - did Google hear the right word
 - Audio similarity - comparison with gTTS reference
-  (requires `--calibrate`)
 
-Pass conditions (with calibration):
+Pass conditions:
 - sim >= threshold (default 60%), or
-- sim >= half threshold and perfect STT, or
-- pct >= 80% when sim is disabled
+- sim >= half threshold and perfect speech recognition, or
+- speech recognition >= 80% if audio similarity unavailable
 
 Audio similarity is colored by `--sim-threshold` (default 60%):
 green above, yellow above half, red below.
-Without calibration, only STT is used (80%+ to pass).
 
 ### Phoneme groups
 
@@ -91,7 +89,7 @@ through the mic to measure channel characteristics.
 
 On first run, the app does a quick one-word auto-calibration.
 Run `--calibrate` for more precise tuning with multiple words.
-Settings are saved to `~/.english-pronounce/calibration.yaml`.
+Settings are saved to `~/.config/english-pronounce/calibration.yaml`.
 With headphones only (no speakers), audio similarity is
 unavailable and scoring falls back to speech recognition.
 
@@ -125,7 +123,7 @@ your estimated vocabulary size.
 
 - Python 3
 - PulseAudio (for recording/playback via pasimple)
-- Internet connection (Google STT, gTTS, Gemini)
+- Internet connection (Google speech recognition, gTTS, Gemini)
 
 ```sh
 pip install -r requirements.txt
@@ -144,7 +142,7 @@ python3 -c "import nltk; nltk.download('wordnet')"
 - `vocab.py` - vocabulary size estimator
 - `words.yaml` - phoneme groups, words, STT equivalences
 - `requirements.txt` - Python dependencies
-- `~/.english-pronounce/` - user data directory
+- `~/.config/english-pronounce/` - user data directory
   - `history.yaml` - practice history
   - `calibration.yaml` - mic/speaker calibration
   - `ref/` - cached gTTS reference audio

@@ -45,7 +45,7 @@ from pydub import AudioSegment
 from scipy.spatial.distance import cdist
 
 DATA = Path(__file__).parent / "words.yaml"
-CONF_DIR = Path.home() / ".english-pronounce"
+CONF_DIR = Path.home() / ".config" / "english-pronounce"
 HIST = CONF_DIR / "history.yaml"
 REF_DIR = CONF_DIR / "ref"
 CAL_FILE = CONF_DIR / "calibration.yaml"
