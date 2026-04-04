@@ -215,6 +215,35 @@ def audio_similarity(ref_path, rec_raw):
     return dist_to_pct(dtw_distance(extract_mfcc(ref), extract_mfcc(rec)))
 
 
+def quick_calibrate():
+    """Auto-calibrate from one loopback recording."""
+    global calibrated, _vu_max
+    w = "test"
+    ref_path = ensure_ref(w)
+    raw = [None]
+    t = threading.Thread(
+        target=lambda: raw.__setitem__(0, record_audio(3)[0]))
+    t.start()
+    time.sleep(cal["delay"])
+    speak(w)
+    t.join()
+    ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
+    rec = np.frombuffer(raw[0], dtype=np.int16).astype(np.float32) / 32768.0
+    ref = normalize_volume(ref)
+    rec = normalize_volume(rec)
+    ref, _ = librosa.effects.trim(ref, top_db=cal["top_db"])
+    rec, _ = librosa.effects.trim(rec, top_db=cal["top_db"])
+    if len(ref) < 1600 or len(rec) < 1600:
+        return
+    d = dtw_distance(extract_mfcc(ref), extract_mfcc(rec))
+    cal["bias"] = d * 0.9
+    cal["scale"] = d * 0.6
+    p = float(np.max(np.abs(rec)))
+    if p > _vu_max:
+        _vu_max = p
+    calibrated = True
+
+
 STT_ALIASES = {}
 STT_EQUIV = []
 
@@ -453,7 +482,7 @@ def record_word(word, rec, prefix=""):
         play_raw(raw)
         print(f"\r\033[K{prefix}Processing...", end="", flush=True)
         # audio similarity (only meaningful with calibration)
-        if calibrated and ref.exists():
+        if ref.exists():
             sim = audio_similarity(ref, raw)
         else:
             sim = 0
@@ -1165,7 +1194,9 @@ def main():
     print("English pronunciation trainer")
     print("The app will say each word, then you repeat it.")
     if not calibrated:
-        print(f"{DIM}Run --calibrate for audio similarity scoring{RST}")
+        print(f"{DIM}Quick calibrating...{RST}", end="", flush=True)
+        quick_calibrate()
+        print(f"\r\033[K", end="")
     if a.continuous:
         print(f"{DIM}Keys: [s] skip  [f] feedback  [p] pause  [q] quit{RST}")
         print(f"{DIM}Keys work during recording and between words{RST}")
