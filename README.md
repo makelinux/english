@@ -21,7 +21,7 @@ similarity and Google Speech-to-Text.
 ./pronounce.py --list       # list all phoneme groups
 ./pronounce.py --stats      # show performance stats
 ./pronounce.py --calibrate  # calibrate mic/speaker
-./pronounce.py --vu         # test mic levels
+./pronounce.py --test-rec   # test recording histogram
 ./pronounce.py -d           # debug info (duration, peak, selfcheck)
 ./pronounce.py --sim-threshold 50  # set audio similarity pass threshold
 ./pronounce.py --test-feedback       # test Gemini accuracy (both)

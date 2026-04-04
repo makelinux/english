@@ -978,9 +978,9 @@ def calibrate():
     print(f"\n  Saved to {CAL_FILE}")
 
 
-def test_vu():
-    """Test VU meter - show live mic levels."""
-    print("VU meter test - speak into mic, Ctrl+C to stop\n")
+def test_rec():
+    """Test recording histogram - show live mic levels."""
+    print("Recording test - speak into mic, Ctrl+C to stop\n")
     chunk_ms = 30
     chunk_bytes = int(SAMPLE_RATE * SAMPLE_WIDTH * chunk_ms / 1000)
     pa = pasimple.PaSimple(
@@ -1117,15 +1117,15 @@ def main():
                    help="audio similarity threshold %% (default 60)")
     p.add_argument("--text", "-t",
                    help="practice a specific word or phrase")
-    p.add_argument("--vu", action="store_true",
-                   help="test VU meter (mic level)")
+    p.add_argument("--test-rec", action="store_true",
+                   help="test recording histogram")
     p.add_argument("--test-feedback", nargs="?", const="both",
                    choices=["good", "bad", "both"],
                    help="test Gemini feedback: good=etalon, bad=wrong word")
     a = p.parse_args()
 
-    if a.vu:
-        test_vu()
+    if a.test_rec:
+        test_rec()
         return
 
     global sim_threshold
