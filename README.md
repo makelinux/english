@@ -34,8 +34,9 @@ Practice words grouped by phoneme:
 ```
 1/10: foot  /fʊt/  ######.............. 30%  heard: food  30%
 1/10: foot  /fʊt/  #######............. 39%  heard: food  39%
-  You said "food". Try to make the vowel sound shorter and more relaxed, like the 'oo' in "book" or "good".
-Also, make sure the final sound is a crisp 't' sound, not a 'd'.
+  You said "food". Try to make the vowel sound shorter and more relaxed,
+like the 'oo' in "book" or "good". Also, make sure the final sound
+is a crisp 't' sound, not a 'd'.
 1/10: foot  /fʊt/  #################### 100%  heard: foot  44%
 
 ```
