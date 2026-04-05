@@ -5,10 +5,11 @@ vocabulary size.
 
 ## pronounce.py
 
-Practice words grouped by phoneme. The app plays each word via
-gTTS, records your attempt, then scores it using audio
-similarity and Google speech recognition. Press `f` anytime for
-AI feedback and mentoring from Google Gemini.
+Practice words grouped by phoneme:
+- Speaks each word via gTTS
+- Records and replays your attempt so you hear yourself
+- Scores using audio similarity and speech recognition
+- AI feedback
 
 ### Usage
 
@@ -25,23 +26,31 @@ AI feedback and mentoring from Google Gemini.
 ./pronounce.py --test-rec   # test recording histogram
 ./pronounce.py -d           # debug info (duration, peak, selfcheck)
 ./pronounce.py --sim-threshold 50  # set audio similarity pass threshold
-./pronounce.py --test-feedback       # test Gemini accuracy (both)
+./pronounce.py --test-feedback       # test AI accuracy (both)
 ./pronounce.py --test-feedback good  # test on etalon audio
 ./pronounce.py --test-feedback bad   # test on wrong words
+```
+
+### Sample output
+
+```
+1/10: foot  /fʊt/  ######.............. 30%  heard: food  30%
+1/10: foot  /fʊt/  #######............. 39%  heard: food  39%
+  You said "food". Try to make the vowel sound shorter and more relaxed, like the 'oo' in "book" or "good".
+Also, make sure the final sound is a crisp 't' sound, not a 'd'.
+1/10: foot  /fʊt/  #################### 100%  heard: foot  44%
+
 ```
 
 ### Keys
 
 During recording (continuous mode):
-- `s` - skip word
-- `f` - get AI feedback (Gemini)
-- `q` - quit
-
-Between attempts:
 - `Enter` - retry
-- `s` - skip
-- `f` - feedback
 - `p` - pause (continuous mode)
+- `s` - skip word
+- `f` - get AI feedback
+- `s` - skip
+- `q` - quit
 
 ### Scoring
 
@@ -68,18 +77,30 @@ green above, yellow above half, red below.
 
 Groups and words are defined in `words.yaml`.
 
-### AI feedback and mentoring
+### AI feedback
 
-Press `f` during practice to get pronunciation feedback from
-Google Gemini. The AI coach listens to your recording,
-evaluates it against standard American accent, and tells you
-what to fix. If your pronunciation is good, it just says
-"Good". Feedback is spoken aloud via gTTS so you can keep
-practicing hands-free. Requires `GEMINI_API_KEY`.
+Press `f` to get pronunciation feedback. The AI listens to
+your recording, compares it to standard American accent, and
+tells you what to fix. Good pronunciation gets just "Good".
+Feedback is spoken aloud via gTTS for hands-free practice.
 
-Use `--test-feedback` to verify Gemini accuracy on gTTS
-reference audio. Tests correct pronunciation (should say
-"Good") and mismatched words (should detect errors).
+Backends:
+- Gemini (default) - set `GEMINI_API_KEY` env variable
+- OpenAI-compatible (llama-stack, etc) - configure in
+  `~/.config/english-pronounce/config.yaml`:
+
+```yaml
+openai:
+  base_url: http://localhost:8321/v1/
+  api_key: none
+  api_type: responses  # or completions
+  model: gemini/gemini-2.5-flash
+  audio_format: image_url  # or input_audio, input_file
+```
+
+Use `--test-feedback` to verify accuracy on gTTS reference
+audio. Tests correct pronunciation (should say "Good") and
+mismatched words (should detect errors).
 
 ### Calibration
 
@@ -123,7 +144,8 @@ your estimated vocabulary size.
 
 - Python 3
 - PulseAudio (for recording/playback via pasimple)
-- Internet connection (Google speech recognition, gTTS, Gemini)
+- Internet connection (Google speech recognition, gTTS)
+- AI feedback: Gemini API key or OpenAI-compatible server
 
 ```sh
 pip install -r requirements.txt
@@ -146,4 +168,5 @@ python3 -c "import nltk; nltk.download('wordnet')"
   - `history.yaml` - practice history
   - `calibration.yaml` - mic/speaker calibration
   - `ref/` - cached gTTS reference audio
+  - `config.yaml` - OpenAI-compatible API settings
   - `vocab_cache.yaml` - cached lemmatized word list

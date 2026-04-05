@@ -49,6 +49,7 @@ CONF_DIR = Path.home() / ".config" / "english-pronounce"
 HIST = CONF_DIR / "history.yaml"
 REF_DIR = CONF_DIR / "ref"
 CAL_FILE = CONF_DIR / "calibration.yaml"
+CFG_FILE = CONF_DIR / "config.yaml"
 SAMPLE_RATE = 16000
 SAMPLE_WIDTH = 2
 CHANNELS = 1
@@ -58,6 +59,7 @@ CAL_WORDS = ["test", "sip", "one", "two", "three", "four", "five"]
 # calibration state - loaded at startup
 cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 calibrated = False
+cfg = {}
 
 
 def load_calibration():
@@ -68,6 +70,11 @@ def load_calibration():
         cal.pop("gain", None)
         calibrated = True
         _vu_max = cal.get("vu_peak", 0.2) * 0.5
+    if CFG_FILE.exists():
+        with open(CFG_FILE) as f:
+            c = yaml.safe_load(f)
+        if c:
+            cfg.update(c)
 
 
 def save_calibration():
@@ -537,26 +544,8 @@ def update_history(h, gid, word, pct):
 DIM = "\033[2m"
 
 
-def get_feedback(raw, word, ipa):
-    """Ask Gemini for pronunciation feedback on recorded audio."""
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        return "Install google-generativeai: pip install google-generativeai"
-    key = os.environ.get("GEMINI_API_KEY")
-    if not key:
-        return "Set GEMINI_API_KEY environment variable"
-    genai.configure(api_key=key)
-    model = genai.GenerativeModel("gemini-flash-latest")
-    # convert raw to wav bytes
-    buf = BytesIO()
-    with wave.open(buf, "wb") as w:
-        w.setnchannels(CHANNELS)
-        w.setsampwidth(SAMPLE_WIDTH)
-        w.setframerate(SAMPLE_RATE)
-        w.writeframes(normalize_raw(raw))
-    wav = buf.getvalue()
-    prompt = (
+def _feedback_prompt(word, ipa):
+    return (
         f"You are a pronunciation coach for American English. "
         f"The speaker is trying to say \"{word}\" (IPA: {ipa}). "
         f"Listen to the audio. Does it sound like \"{word}\"? "
@@ -567,11 +556,82 @@ def get_feedback(raw, word, ipa):
         f"heard and how to fix it in 2-3 sentences. "
         f"Address the speaker as \"you\". No IPA symbols."
     )
+
+
+def _raw_to_wav(raw):
+    buf = BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(CHANNELS)
+        w.setsampwidth(SAMPLE_WIDTH)
+        w.setframerate(SAMPLE_RATE)
+        w.writeframes(normalize_raw(raw))
+    return buf.getvalue()
+
+
+def _feedback_gemini(wav, word, ipa):
+    import google.generativeai as genai
+    key = os.environ.get("GEMINI_API_KEY")
+    if not key:
+        return "Set GEMINI_API_KEY environment variable"
+    genai.configure(api_key=key)
+    model = genai.GenerativeModel("gemini-flash-latest")
     r = model.generate_content([
-        prompt,
+        _feedback_prompt(word, ipa),
         {"mime_type": "audio/wav", "data": wav},
     ])
     return r.text.strip()
+
+
+def _feedback_openai(wav, word, ipa):
+    import base64
+    from openai import OpenAI
+    oc = cfg.get("openai", {})
+    c = OpenAI(
+        base_url=oc.get("base_url", "http://localhost:8321/v1/"),
+        api_key=oc.get("api_key", "none"),
+    )
+    b64 = base64.b64encode(wav).decode()
+    prompt = _feedback_prompt(word, ipa)
+    model = oc.get("model", os.getenv("INFERENCE_MODEL",
+                                      "gemini/gemini-2.5-flash"))
+    uri = f"data:audio/wav;base64,{b64}"
+    af = oc.get("audio_format", "image_url")
+    if oc.get("api_type", "completions") == "responses":
+        if af == "input_audio":
+            part = {"type": "input_audio",
+                    "input_audio": {"data": b64, "format": "wav"}}
+        elif af == "input_file":
+            part = {"type": "input_file", "filename": "audio.wav",
+                    "file_data": uri}
+        else:
+            part = {"type": "input_image", "image_url": uri}
+        r = c.responses.create(
+            model=model,
+            input=[{"type": "message", "role": "user", "content": [
+                {"type": "input_text", "text": prompt}, part,
+            ]}],
+        )
+        return r.output_text.strip()
+    if af == "input_audio":
+        part = {"type": "input_audio",
+                "input_audio": {"data": b64, "format": "wav"}}
+    else:
+        part = {"type": "image_url", "image_url": {"url": uri}}
+    r = c.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": [
+            {"type": "text", "text": prompt}, part,
+        ]}],
+    )
+    return r.choices[0].message.content.strip()
+
+
+def get_feedback(raw, word, ipa):
+    """Get pronunciation feedback via OpenAI-compatible or Gemini API."""
+    wav = _raw_to_wav(raw)
+    if cfg.get("openai"):
+        return _feedback_openai(wav, word, ipa)
+    return _feedback_gemini(wav, word, ipa)
 
 
 RED = "\033[31m"
