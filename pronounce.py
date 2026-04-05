@@ -1108,32 +1108,6 @@ def _ref_raw(word):
         SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH).raw_data
 
 
-def _test_good():
-    """Test on correct audio, returns (pass, total)."""
-    words = [
-        ("sit", "/sɪt/"), ("seat", "/siːt/"),
-        ("leaf", "/liːf/"), ("leave", "/liːv/"),
-        ("bat", "/bæt/"), ("bet", "/bɛt/"),
-        ("ship", "/ʃɪp/"), ("chip", "/tʃɪp/"),
-        ("thin", "/θɪn/"), ("this", "/ðɪs/"),
-        ("fan", "/fæn/"), ("van", "/væn/"),
-        ("hat", "/hæt/"), ("hot", "/hɑːt/"),
-        ("bird", "/bɜːrd/"), ("work", "/wɜːrk/"),
-        ("prize", "/praɪz/"), ("price", "/praɪs/"),
-        ("pool", "/puːl/"), ("pull", "/pʊl/"),
-    ]
-    ok = 0
-    for word, ipa in words:
-        raw = _ref_raw(word)
-        fb = get_feedback(raw, word, ipa)
-        good = fb.lower().startswith("good")
-        ok += good
-        mark = GRN + "pass" + RST if good else RED + "FAIL" + RST
-        print(f"  {mark}  {word} {ipa} -> {fb}")
-    print(f"\n  etalon accuracy: {ok}/{len(words)} ({ok * 100 // len(words)}%)\n")
-    return ok, len(words)
-
-
 def _test_bad():
     """Test on wrong audio, returns (pass, total)."""
     # near-homophones: forward and reverse pairs
@@ -1171,18 +1145,9 @@ def _test_bad():
     return ok, len(pairs)
 
 
-def test_feedback(mode):
-    """Test Gemini feedback on gTTS reference pronunciation."""
-    if mode == "good":
-        _test_good()
-    elif mode == "bad":
-        _test_bad()
-    else:
-        g_ok, g_n = _test_good()
-        b_ok, b_n = _test_bad()
-        total = g_ok + b_ok
-        n = g_n + b_n
-        print(f"  overall: {total}/{n} ({total * 100 // n}%)")
+def test_feedback():
+    """Test AI feedback on mismatched words."""
+    _test_bad()
 
 
 def main():
@@ -1208,9 +1173,8 @@ def main():
                    help="practice a specific word or phrase")
     p.add_argument("--test-rec", action="store_true",
                    help="test recording histogram")
-    p.add_argument("--test-feedback", nargs="?", const="both",
-                   choices=["good", "bad", "both"],
-                   help="test Gemini feedback: good=etalon, bad=wrong word")
+    p.add_argument("--test-feedback", action="store_true",
+                   help="test AI feedback on mismatched words")
     a = p.parse_args()
 
     if a.test_rec:
@@ -1225,7 +1189,7 @@ def main():
     h = load_history()
 
     if a.test_feedback:
-        test_feedback(a.test_feedback)
+        test_feedback()
         return
 
     if a.list:

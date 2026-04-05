@@ -26,9 +26,7 @@ Practice words grouped by phoneme:
 ./pronounce.py --test-rec   # test recording histogram
 ./pronounce.py -d           # debug info (duration, peak, selfcheck)
 ./pronounce.py --sim-threshold 50  # set audio similarity pass threshold
-./pronounce.py --test-feedback       # test AI accuracy (both)
-./pronounce.py --test-feedback good  # test on etalon audio
-./pronounce.py --test-feedback bad   # test on wrong words
+./pronounce.py --test-feedback       # test AI feedback accuracy
 ```
 
 ### Sample output
@@ -98,9 +96,8 @@ openai:
   audio_format: image_url  # or input_audio, input_file
 ```
 
-Use `--test-feedback` to verify accuracy on gTTS reference
-audio. Tests correct pronunciation (should say "Good") and
-mismatched words (should detect errors).
+Use `--test-feedback` to verify accuracy - plays mismatched
+words and checks that the AI detects errors.
 
 ### Calibration
 
