@@ -630,8 +630,10 @@ def get_feedback(raw, word, ipa):
     """Get pronunciation feedback via OpenAI-compatible or Gemini API."""
     wav = _raw_to_wav(raw)
     if cfg.get("openai"):
-        return _feedback_openai(wav, word, ipa)
-    return _feedback_gemini(wav, word, ipa)
+        fb = _feedback_openai(wav, word, ipa)
+    else:
+        fb = _feedback_gemini(wav, word, ipa)
+    return re.sub(r'"(\w+)\."', r'"\1".', fb)
 
 
 RED = "\033[31m"
