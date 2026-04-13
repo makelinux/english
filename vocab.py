@@ -1,59 +1,121 @@
 #!/usr/bin/env python3
 """Estimate English vocabulary size using binary search."""
 
+import json
 import os
 import random
 import sys
 import termios
+import threading
+import time
 import tty
 
 import yaml
+import urllib.parse
+import urllib.request
 
-BATCH = 5
-ROUNDS = 14
-_CACHE = os.path.expanduser("~/.config/english-pronounce/vocab_cache.yaml")
+from cefrpy import CEFRAnalyzer
+from wordfreq import top_n_list, zipf_frequency
+from nltk.stem import WordNetLemmatizer
 
-
-def _load_words():
-    """Load word list, using cache if available."""
-    if os.path.exists(_CACHE):
-        with open(_CACHE) as f:
-            return yaml.safe_load(f)
-
-    from wordfreq import top_n_list
-    from nltk.corpus import wordnet as wn
-    from nltk.stem import WordNetLemmatizer
-
-    print("Building word list (first run)...", end="", flush=True)
-    lem = WordNetLemmatizer()
-    seen = set()
-    words = []
-    for w in top_n_list('en', 100000):
-        if not w.isalpha() or len(w) < 3 or not wn.synsets(w):
-            continue
-        b = w
-        for pos in ('n', 'v', 'a', 'r'):
-            b = lem.lemmatize(b, pos)
-        if len(b) < 3 or b in seen:
-            continue
-        seen.add(b)
-        seen.add(w)
-        words.append(b)
-
-    os.makedirs(os.path.dirname(_CACHE), exist_ok=True)
-    with open(_CACHE, 'w') as f:
-        yaml.dump(words, f)
-    print(f" {len(words):,} words cached.")
-    return words
+_cefr = CEFRAnalyzer()
+_lang = None
 
 
-WORDS = _load_words()
-N = len(WORDS)
+def translate(word):
+    if not _lang:
+        return ""
+    u = (f"https://translate.google.com/translate_a/single"
+         f"?client=gtx&sl=en&tl={_lang}&dt=t"
+         f"&q={urllib.parse.quote(word)}")
+    try:
+        r = urllib.request.urlopen(u, timeout=3)
+        return json.loads(r.read())[0][0][0]
+    except Exception:
+        return ""
 
 GRN = "\033[32m"
 RED = "\033[31m"
 DIM = "\033[2m"
 RST = "\033[0m"
+
+
+_CACHE = os.path.expanduser("~/.config/english-pronounce/vocab_cache.yaml")
+
+
+def _load_words():
+    """Load lemmatized words sorted by frequency, with definitions."""
+    if os.path.exists(_CACHE):
+        with open(_CACHE) as f:
+            return [tuple(w) for w in yaml.safe_load(f)]
+    from nltk.corpus import wordnet as wn
+    lem = WordNetLemmatizer()
+    seen = set()
+    words = []
+    wl = top_n_list('en', 100000)
+    for i, w in enumerate(wl):
+        if i % 5000 == 0:
+            print(f"\rLoading {i*100//len(wl)}%", end="", flush=True)
+        if not w.isalpha() or len(w) < 3:
+            continue
+        b = w
+        for pos in ('n', 'v', 'a', 'r'):
+            b = lem.lemmatize(b, pos)
+        ss = wn.synsets(b)
+        if len(b) < 3 or b in seen or not ss:
+            continue
+        if all(l[0].isupper() for s in ss for l in s.lemma_names()):
+            continue
+        # skip words where all definitions repeat the word
+        good = [x for x in ss
+                if any(l[0].islower() for l in x.lemma_names())
+                and b not in x.definition().lower().split()]
+        if not good:
+            continue
+        seen.add(b)
+        seen.add(w)
+        words.append((i, b))
+    # remove derived forms when base exists
+    bases = {w for _, w in words}
+    _sfx = [('ness', 4), ('ly', 2), ('ment', 4), ('ful', 3),
+            ('less', 4), ('ity', 3), ('ism', 3), ('ist', 3),
+            ('able', 3), ('ible', 3), ('ive', 3), ('ous', 3),
+            ('tion', 3), ('sion', 3), ('er', 3), ('al', 3),
+            ('ic', 5), ('ical', 5)]
+    _pfx = ['un', 'dis', 'mis', 'non', 'over',
+            'out', 'sub', 'super', 'anti', 'semi']
+    def has_base(s):
+        return s in bases or s + 'e' in bases or s + 'y' in bases \
+            or s[:-1] + 'y' in bases
+    def is_derived(w):
+        for sfx, mn in _sfx:
+            if w.endswith(sfx) and len(w) - len(sfx) >= mn:
+                if has_base(w[:-len(sfx)]):
+                    return True
+        for pfx in _pfx:
+            if w.startswith(pfx) and len(w) - len(pfx) >= 3:
+                if w[len(pfx):] in bases:
+                    return True
+        # combined: prefix + base + suffix
+        for pfx in _pfx:
+            if not w.startswith(pfx):
+                continue
+            rest = w[len(pfx):]
+            for sfx, mn in _sfx:
+                if rest.endswith(sfx) and len(rest) - len(sfx) >= mn:
+                    if has_base(rest[:-len(sfx)]):
+                        return True
+        return False
+    words = [(i, w) for i, w in words if not is_derived(w)]
+    print("\r\033[K", end="", flush=True)
+    os.makedirs(os.path.dirname(_CACHE), exist_ok=True)
+    with open(_CACHE, 'w') as f:
+        yaml.dump([list(w) for w in words], f)
+    return words
+
+
+WORDS = _load_words()
+N = len(WORDS)
 
 
 def read_key():
@@ -66,18 +128,53 @@ def read_key():
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old)
 
 
-def word_info(word):
-    """Get definition and synonyms from WordNet."""
-    from nltk.corpus import wordnet as wn
-    s = wn.synsets(word)[0]
-    defn = s.definition()
-    related = [l.replace('_', ' ') for l in s.lemma_names() if l != word][:3]
-    return defn, related
+def word_info(w):
+    """Get definition, CEFR level, and frequency for a word."""
+    wn = _wn
+    parts = []
+    s = wn.synsets(w)
+    if s:
+        # prefer non-circular synsets with lowercase lemmas
+        good = [x for x in s
+                if any(l[0].islower() for l in x.lemma_names())
+                and w not in x.definition().lower().split()]
+        syn = good[0] if good else s[0]
+        cat = syn.lexname().split('.', 1)[-1]
+        defn = syn.definition()
+        if cat in ("all", "ppl"):
+            cat = ""
+        elif cat == "pert":
+            cat = ""
+            for l in syn.lemmas():
+                for p in l.pertainyms():
+                    cat = p.synset().lexname().split('.', 1)[-1]
+                    break
+                if cat:
+                    break
+        related = [l.replace('_', ' ') for l in syn.lemma_names()
+                   if l.lower() != w][:3]
+        desc = f"{cat}: {defn}" if cat else defn
+        if related:
+            desc += f" ({', '.join(related)})"
+        parts.append(desc)
+    lvl = _cefr.get_average_word_level_float(w)
+    freq = zipf_frequency(w, 'en')
+    # hide CEFR when it looks wrong (easy level for rare words)
+    if lvl and not (lvl <= 2 and freq < 4):
+        parts.append(str(_cefr.get_average_word_level_CEFR(w)))
+    return "  ".join(parts) or "?"
 
 
-def ask_word(w):
+from pronounce import speak
+from nltk.corpus import wordnet as _wn
+_wn.synsets('test')  # preload
+
+
+def ask_word(w, norm=0):
     """Ask about one word. Returns True if known."""
-    print(f"  {w} ", end="", flush=True)
+    pct = norm * 100 // N
+    print(f"  {norm:,} {pct}%  {w} ", end="", flush=True)
+    threading.Thread(target=speak, args=(w,), daemon=True).start()
     while True:
         k = read_key()
         if k == '\x1b':
@@ -100,53 +197,61 @@ def ask_word(w):
         if k == 'q':
             raise KeyboardInterrupt
 
-    if known:
-        print(f"{GRN}yes{RST}")
-    else:
-        defn, related = word_info(w)
-        hint = f" - {defn}"
-        if related:
-            hint += f" ({', '.join(related)})"
-        print(f"{RED}no{RST}  {DIM}{hint}{RST}")
+    clr = GRN + "yes" if known else RED + "no"
+    print(f"{clr}{RST}  {DIM}{word_info(w)}{RST}", end="", flush=True)
+    t = translate(w)
+    if t and t.lower() != w.lower():
+        print(f"  {DIM}{t}{RST}", end="")
+    print()
     return known
 
 
-def ask_batch(words):
-    """Ask user about a batch of words. Return fraction known."""
-    known = sum(ask_word(w) for w in words)
-    return known / len(words)
-
-
 def estimate():
-    """Binary search for vocabulary boundary."""
+    """Pure bisection search for vocabulary boundary."""
     lo, hi = 0, N
-    print(f"Vocabulary size estimator ({N:,} words)")
-    print(f"{DIM}right/left arrow or y/n{RST}\n")
+    glob = WORDS[-1][0]
+    print(f"Vocabulary size estimator ({N:,} normalized, {glob:,} global)")
+    print(f"{DIM}y/right = know, n/left = don't, q = quit{RST}\n")
 
-    for r in range(ROUNDS):
+    pts = []
+    while hi - lo > 25:
         mid = (lo + hi) // 2
-        start = max(0, mid - N // 20)
-        end = min(N, mid + N // 20)
-        sample = random.sample(WORDS[start:end], min(BATCH, end - start))
-
-        print(f"Round {r + 1}/{ROUNDS}  {DIM}({lo:,}-{hi:,}){RST}")
-        frac = ask_batch(sample)
-
-        if frac >= 0.5:
-            lo = mid
+        spread = (hi - lo) // 6
+        mid = random.randint(mid - spread, mid + spread)
+        rank, w = WORDS[mid]
+        if pts:
+            time.sleep(1)
+        known = ask_word(w, mid)
+        pts.append((mid, known))
+        if known:
+            lo = mid + 1
         else:
             hi = mid
-        print()
 
-        if hi - lo < 500:
-            break
-
-    result = (lo + hi) // 2
-    print(f"Estimated vocabulary: ~{result:,} words")
+    # robust estimate: skip outliers by taking 2nd extremes
+    yes_pts = sorted((p for p, k in pts if k), reverse=True)
+    no_pts = sorted(p for p, k in pts if not k)
+    y = yes_pts[min(1, len(yes_pts) - 1)] if yes_pts else 0
+    n = no_pts[min(1, len(no_pts) - 1)] if no_pts else N
+    if not yes_pts:
+        n = no_pts[0]
+    if not no_pts:
+        y = yes_pts[0]
+    result = (y + n) // 2
+    _, w = WORDS[result]
+    pct = result * 100 // N
+    lvl = _cefr.get_average_word_level_CEFR(w)
+    lvl = str(lvl) if lvl else "?"
+    print(f"\nEstimated vocabulary: ~{result:,} / {N:,}, {pct}%, level {lvl}")
     return result
 
 
 if __name__ == "__main__":
+    import argparse
+    p = argparse.ArgumentParser(description="Vocabulary size estimator")
+    p.add_argument("--lang", help="translate to language (e.g. ru, de, fr)")
+    a = p.parse_args()
+    _lang = a.lang
     try:
         estimate()
     except (KeyboardInterrupt, EOFError):

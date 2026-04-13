@@ -121,22 +121,21 @@ recording to verify the scoring pipeline.
 
 ## vocab.py
 
-Estimate your English vocabulary size using binary search over
-a frequency-sorted word list (~35k words from wordfreq,
-lemmatized to base forms, filtered to words with WordNet
-definitions).
+Estimate your English vocabulary size via bisection over
+~30k frequency-sorted words. About 10 questions.
 
 ### Usage
 
 ```sh
-./vocab.py
+./vocab.py             # basic test
+./vocab.py --lang ru   # with translation
 ```
 
-The app shows words one at a time. Press right arrow or `y` if
-you know the word, left arrow or `n` if you don't. Unknown
-words show their WordNet definition and synonyms. After 14
-rounds (or when the range narrows to <500 words), it prints
-your estimated vocabulary size.
+One word at a time - spoken aloud, press right/`y` if you
+know it, left/`n` if you don't. Each word shows definition,
+domain, CEFR level, synonyms, and optional translation.
+Tolerates occasional wrong answers. Converges in ~10
+questions.
 
 ## Requirements
 
@@ -152,7 +151,7 @@ pip install -r requirements.txt
 For vocab.py, also install:
 
 ```sh
-pip install wordfreq nltk
+pip install cefrpy wordfreq nltk
 python3 -c "import nltk; nltk.download('wordnet')"
 ```
 
@@ -167,4 +166,3 @@ python3 -c "import nltk; nltk.download('wordnet')"
   - `calibration.yaml` - mic/speaker calibration
   - `ref/` - cached gTTS reference audio
   - `config.yaml` - OpenAI-compatible API settings
-  - `vocab_cache.yaml` - cached lemmatized word list
