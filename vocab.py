@@ -187,7 +187,9 @@ def ask_word(w, norm=0):
                 if k3 == 'C':
                     known = True
                     break
-            continue
+                continue
+            print()
+            raise KeyboardInterrupt
         if k in ('n', 'h'):
             known = False
             break
@@ -214,19 +216,25 @@ def estimate():
     print(f"{DIM}y/right = know, n/left = don't, q = quit{RST}\n")
 
     pts = []
-    while hi - lo > 25:
-        mid = (lo + hi) // 2
-        spread = (hi - lo) // 6
-        mid = random.randint(mid - spread, mid + spread)
-        rank, w = WORDS[mid]
-        if pts:
-            time.sleep(1)
-        known = ask_word(w, mid)
-        pts.append((mid, known))
-        if known:
-            lo = mid + 1
-        else:
-            hi = mid
+    try:
+        while hi - lo > 25:
+            mid = (lo + hi) // 2
+            spread = (hi - lo) // 6
+            mid = random.randint(mid - spread, mid + spread)
+            rank, w = WORDS[mid]
+            if pts:
+                time.sleep(1)
+            known = ask_word(w, mid)
+            pts.append((mid, known))
+            if known:
+                lo = mid + 1
+            else:
+                hi = mid
+    except KeyboardInterrupt:
+        if not pts:
+            print("\nAborted.")
+            return
+        print()
 
     # robust estimate: skip outliers by taking 2nd extremes
     yes_pts = sorted((p for p, k in pts if k), reverse=True)
@@ -252,7 +260,4 @@ if __name__ == "__main__":
     p.add_argument("--lang", help="translate to language (e.g. ru, de, fr)")
     a = p.parse_args()
     _lang = a.lang
-    try:
-        estimate()
-    except (KeyboardInterrupt, EOFError):
-        print("\nAborted.")
+    estimate()

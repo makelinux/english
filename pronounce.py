@@ -1241,7 +1241,11 @@ def main():
         accs.sort(key=lambda x: x[1])
         gid = accs[0][0]
     else:
-        gid = select_group(data, h)
+        try:
+            gid = select_group(data, h)
+        except KeyboardInterrupt:
+            print()
+            return
 
     try:
         practice(data, gid, h, a.continuous, a.debug)
