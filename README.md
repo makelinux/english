@@ -26,6 +26,7 @@ Practice words grouped by phoneme:
 ./pronounce.py --test-rec   # test recording histogram
 ./pronounce.py -d           # debug info (duration, peak, selfcheck)
 ./pronounce.py --sim-threshold 50  # set audio similarity pass threshold
+./pronounce.py --test-services       # test API connectivity
 ./pronounce.py --test-feedback       # test AI feedback accuracy
 ```
 
@@ -81,10 +82,11 @@ Groups and words are defined in `words.yaml`.
 Press `f` to get pronunciation feedback. The AI listens to
 your recording, compares it to standard American accent, and
 tells you what to fix. Good pronunciation gets just "Good".
-Feedback is spoken aloud via gTTS for hands-free practice.
+Feedback is spoken aloud via Gemini TTS (gTTS fallback).
+Shows model name while waiting for API response.
 
 Backends:
-- Gemini (default) - set `GEMINI_API_KEY` env variable
+- Gemini (default) - set `GOOGLE_API_KEY` env variable
 - OpenAI-compatible (llama-stack, etc) - configure in
   `~/.config/english-pronounce/config.yaml`:
 
@@ -97,6 +99,7 @@ openai:
   audio_format: image_url  # or input_audio, input_file
 ```
 
+Use `--test-services` to check API connectivity.\
 Use `--test-feedback` to verify accuracy - plays mismatched
 words and checks that the AI detects errors.
 
@@ -142,7 +145,7 @@ questions.
 - Python 3
 - PulseAudio (for recording/playback via pasimple)
 - Internet connection (Google speech recognition, gTTS)
-- AI feedback: Gemini API key or OpenAI-compatible server
+- AI feedback: `GOOGLE_API_KEY` or OpenAI-compatible server
 
 ```sh
 pip install -r requirements.txt

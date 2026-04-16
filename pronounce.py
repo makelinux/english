@@ -147,9 +147,53 @@ def speak(text):
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+def _play_gemini_pcm(data):
+    """Play raw PCM 24kHz 16-bit mono from Gemini."""
+    seg = AudioSegment(data=data, sample_width=2, frame_rate=24000, channels=1)
+    seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
+    seg -= 10
+    with pasimple.PaSimple(
+        pasimple.PA_STREAM_PLAYBACK,
+        pasimple.PA_SAMPLE_S16LE,
+        1, SAMPLE_RATE,
+        app_name="pronounce",
+    ) as pa:
+        pa.write(seg.raw_data)
+        pa.drain()
+
+
+def _speak_gemini(text):
+    """Speak text via Gemini TTS (high quality)."""
+    from google import genai
+    from google.genai import types
+    c = genai.Client()
+    status(f"  {DIM}gemini-3.1-flash-tts ...{RST}")
+    r = c.models.generate_content(
+        model="gemini-3.1-flash-tts-preview",
+        contents=text,
+        config=types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name="Kore"
+                    )
+                )
+            )
+        )
+    )
+    status()
+    _play_gemini_pcm(r.candidates[0].content.parts[0].inline_data.data)
+
+
 def speak_text(text):
-    """Speak arbitrary text via gTTS, no caching."""
+    """Speak arbitrary text via Gemini TTS, gTTS fallback."""
     try:
+        try:
+            _speak_gemini(text)
+            return
+        except Exception:
+            pass
         buf = BytesIO()
         gTTS(text, lang="en").write_to_fp(buf)
         buf.seek(0)
@@ -544,6 +588,14 @@ def update_history(h, gid, word, pct):
 DIM = "\033[2m"
 
 
+def status(msg=''):
+    """Show status on current line, wipe with empty call."""
+    if msg:
+        print(f"\r{msg}\033[K", end='', flush=True, file=sys.stderr)
+    else:
+        print(f"\r\033[K", end='', flush=True, file=sys.stderr)
+
+
 def _feedback_prompt(word, ipa):
     return (
         f"You are a pronunciation coach for American English. "
@@ -570,15 +622,13 @@ def _raw_to_wav(raw):
 
 def _feedback_gemini(wav, word, ipa):
     import google.generativeai as genai
-    key = os.environ.get("GEMINI_API_KEY")
-    if not key:
-        return "Set GEMINI_API_KEY environment variable"
-    genai.configure(api_key=key)
+    status(f"  {DIM}gemini-flash-latest ...{RST}")
     model = genai.GenerativeModel("gemini-flash-latest")
     r = model.generate_content([
         _feedback_prompt(word, ipa),
         {"mime_type": "audio/wav", "data": wav},
     ])
+    status()
     return r.text.strip()
 
 
@@ -594,6 +644,7 @@ def _feedback_openai(wav, word, ipa):
     prompt = _feedback_prompt(word, ipa)
     model = oc.get("model", os.getenv("INFERENCE_MODEL",
                                       "gemini/gemini-2.5-flash"))
+    status(f"  {DIM}{model} ...{RST}")
     uri = f"data:audio/wav;base64,{b64}"
     af = oc.get("audio_format", "image_url")
     if oc.get("api_type", "completions") == "responses":
@@ -611,6 +662,7 @@ def _feedback_openai(wav, word, ipa):
                 {"type": "input_text", "text": prompt}, part,
             ]}],
         )
+        status()
         return r.output_text.strip()
     if af == "input_audio":
         part = {"type": "input_audio",
@@ -623,6 +675,7 @@ def _feedback_openai(wav, word, ipa):
             {"type": "text", "text": prompt}, part,
         ]}],
     )
+    status()
     return r.choices[0].message.content.strip()
 
 
@@ -787,6 +840,7 @@ def _do_feedback(raw, word, ipa):
     try:
         fb = get_feedback(raw, word, ipa)
     except Exception as e:
+        status()
         print(f"  {DIM}Feedback error: {e}{RST}")
         return
     print(f"  {DIM}{fb}{RST}")
@@ -852,7 +906,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
         score = f"{bar_s}{heard_s}{sim_s}{dbg}"
         print(f"\r\033[K{prefix}{lb_s}{score}")
 
-        if sim >= sim_threshold \
+        if sim >= sim_threshold and pct > 0 \
                 or sim >= sim_threshold // 2 and pct == 100 \
                 or not sim and pct >= 80:
             break
@@ -1152,6 +1206,36 @@ def test_feedback():
     _test_bad()
 
 
+def test_services():
+    """Test available services."""
+    wav = _raw_to_wav(_ref_raw("hello"))
+    word, ipa = "hello", "/hɛˈloʊ/"
+
+    svcs = [
+        ("gemini-flash-latest feedback", lambda:
+         _feedback_gemini(wav, word, ipa)),
+        ("gemini-3.1-flash-tts TTS", lambda:
+         _speak_gemini("test")),
+    ]
+    if cfg.get("openai"):
+        oc = cfg.get("openai", {})
+        m = oc.get("model", "gemini/gemini-2.5-flash")
+        svcs.append((f"openai {m} feedback", lambda:
+                     _feedback_openai(wav, word, ipa)))
+    svcs.append(("gTTS", lambda: speak_text("test")))
+
+    for name, fn in svcs:
+        print(f"  {name} ... ", end="", flush=True)
+        try:
+            r = fn()
+            if isinstance(r, str):
+                print(f"\r  {name} ... {GRN}ok{RST}  {DIM}{r[:60]}{RST}")
+            else:
+                print(f"\r  {name} ... {GRN}ok{RST}")
+        except Exception as e:
+            print(f"\r  {name} ... {RED}fail{RST}  {e}")
+
+
 def main():
     p = argparse.ArgumentParser(
         description="English pronunciation trainer")
@@ -1177,6 +1261,8 @@ def main():
                    help="test recording histogram")
     p.add_argument("--test-feedback", action="store_true",
                    help="test AI feedback on mismatched words")
+    p.add_argument("--test-services", action="store_true",
+                   help="test available services")
     a = p.parse_args()
 
     if a.test_rec:
@@ -1190,6 +1276,9 @@ def main():
     build_ipa_map(data)
     h = load_history()
 
+    if a.test_services:
+        test_services()
+        return
     if a.test_feedback:
         test_feedback()
         return
