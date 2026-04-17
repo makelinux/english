@@ -61,4 +61,18 @@ for w in a.words:
             if syn.lower() != w:
                 print(f"    {word_header(syn, a.lang)}")
     if not ss:
-        print("  no definition found")
+        try:
+            u = f"https://api.dictionaryapi.dev/api/v2/entries/en/{urllib.parse.quote(w)}"
+            req = urllib.request.Request(u, headers={"User-Agent": "word.py"})
+            r = json.loads(urllib.request.urlopen(req, timeout=3).read())
+            for entry in r:
+                for m in entry.get("meanings", []):
+                    pos = m["partOfSpeech"]
+                    for d in m.get("definitions", []):
+                        print(f"  {pos}: {d['definition']}")
+                    syns = m.get("synonyms", [])
+                    if syns:
+                        print(f"    synonyms: {', '.join(syns)}")
+            print(f"  (dictionaryapi.dev / Wiktionary)")
+        except Exception as e:
+            print(f"  no definition found ({e})")
