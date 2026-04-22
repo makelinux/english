@@ -3,6 +3,18 @@
 CLI tools for practicing English pronunciation and estimating
 vocabulary size.
 
+### Why not just AI voice chat?
+
+- Replays your recording so you hear yourself - builds
+  self-awareness and self-correction habits
+- Objective scoring via speech recognition and audio
+  similarity, not subjective AI judgment
+- AI feedback is direct and specific, not sycophantic -
+  good pronunciation gets just "Good", not praise
+- No cliches like "Great job!" or "Keep it up!"
+- Targets specific phonemes you struggle with, not
+  free-form conversation
+
 ## pronounce.py
 
 Practice words grouped by phoneme:
