@@ -131,12 +131,11 @@ def save_history(h):
 
 
 def get_ref_path(word):
-    """Path to cached reference WAV for a word."""
     return REF_DIR / f"{word}.wav"
 
 
 def _gemini_tts_wav(text):
-    """Generate WAV bytes via Gemini TTS. Returns AudioSegment or None."""
+    """Returns AudioSegment or None."""
     try:
         from google import genai
         from google.genai import types
@@ -165,8 +164,7 @@ def _gemini_tts_wav(text):
 
 
 def ensure_ref(word):
-    """Generate and cache reference audio as 16kHz mono WAV.
-    Tries Gemini TTS first, falls back to gTTS."""
+    """Cache reference audio - Gemini TTS first, gTTS fallback."""
     p = get_ref_path(word)
     if p.exists():
         return p
@@ -184,7 +182,6 @@ def ensure_ref(word):
 
 
 def speak(text):
-    """Say the word aloud from cached reference, espeak-ng fallback."""
     try:
         ref = ensure_ref(text)
         seg = AudioSegment.from_wav(str(ref))
@@ -204,7 +201,6 @@ def speak(text):
 
 
 def _play_seg(seg, vol=-10):
-    """Play an AudioSegment via PulseAudio."""
     seg = seg + vol
     with pasimple.PaSimple(
         pasimple.PA_STREAM_PLAYBACK,
@@ -217,7 +213,6 @@ def _play_seg(seg, vol=-10):
 
 
 def speak_text(text):
-    """Speak arbitrary text via Gemini TTS, gTTS fallback."""
     try:
         status(f"  {DIM}gemini-3.1-flash-tts ...{RST}")
         seg = _gemini_tts_wav(text)
@@ -228,17 +223,9 @@ def speak_text(text):
         buf = BytesIO()
         gTTS(text, lang="en").write_to_fp(buf)
         buf.seek(0)
-        seg = AudioSegment.from_mp3(buf)
-        seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
-        seg -= 10
-        with pasimple.PaSimple(
-            pasimple.PA_STREAM_PLAYBACK,
-            pasimple.PA_SAMPLE_S16LE,
-            1, SAMPLE_RATE,
-            app_name="pronounce",
-        ) as pa:
-            pa.write(seg.raw_data)
-            pa.drain()
+        seg = AudioSegment.from_mp3(buf).set_channels(1) \
+            .set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
+        _play_seg(seg)
     except Exception:
         subprocess.run(
             ["espeak-ng", "-s", "150", "-v", "en-us", text],
@@ -246,7 +233,6 @@ def speak_text(text):
 
 
 def extract_mfcc(samples, sr_rate=SAMPLE_RATE):
-    """Extract MFCC + delta features, skip c0, mean-centered."""
     m = librosa.feature.mfcc(y=samples, sr=sr_rate, n_mfcc=N_MFCC)
     w = min(9, m.shape[1])
     if w >= 3:
@@ -259,7 +245,6 @@ def extract_mfcc(samples, sr_rate=SAMPLE_RATE):
 
 
 def dtw_distance(a, b):
-    """DTW distance between two MFCC sequences."""
     cost = cdist(a, b, metric="euclidean")
     n, m = cost.shape
     d = np.full((n + 1, m + 1), np.inf)
@@ -272,7 +257,6 @@ def dtw_distance(a, b):
 
 
 def normalize_volume(samples):
-    """Normalize audio to peak amplitude."""
     peak = np.max(np.abs(samples))
     if peak < 1e-6:
         return samples
@@ -285,7 +269,7 @@ def dist_to_pct(dist):
 
 
 def audio_similarity(ref_path, rec_raw):
-    """Compare reference WAV with recorded raw bytes. Returns pct 0-100."""
+    """Returns 0-100."""
     ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
     rec = np.frombuffer(rec_raw, dtype=np.int16).astype(np.float32) / 32768.0
     ref = normalize_volume(ref)
@@ -298,7 +282,6 @@ def audio_similarity(ref_path, rec_raw):
 
 
 def quick_calibrate():
-    """Auto-calibrate from one loopback recording."""
     global calibrated, _vu_max
     w = "test"
     ref_path = ensure_ref(w)
@@ -329,12 +312,11 @@ def quick_calibrate():
 STT_ALIASES = {}
 STT_EQUIV = []
 
-# IPA-based homophone lookup, built from words.yaml
+# IPA-based homophone lookup
 ipa_to_words = {}  # "/raɪt/" -> {"right", "write"}
 
 
 def build_ipa_map(data):
-    """Build IPA -> words mapping for homophone detection."""
     for g in data.values():
         for w in g.words:
             for ipa in re.findall(r'/[^/]+/', w.ipa):
@@ -342,7 +324,7 @@ def build_ipa_map(data):
 
 
 def stt_score(expected, heard):
-    """Score based on speech-to-text match, return 0-100."""
+    """Return 0-100 based on speech-to-text match."""
     if not heard:
         return 0
     e = expected.lower().strip()
@@ -406,7 +388,6 @@ def record_audio(duration=5, pause=0.8, on_chunk=None):
                     on_chunk(vu_peak)
                     vu_peak = 0.0
                     vu_count = 0
-            # check for keypress (works in cbreak mode)
             if _term_saved and select.select([sys.stdin], [], [], 0)[0]:
                 key = sys.stdin.read(1)
                 if speech_started:
@@ -436,7 +417,6 @@ def record_audio(duration=5, pause=0.8, on_chunk=None):
 
 
 def normalize_raw(raw):
-    """Normalize raw int16 bytes to ~50% peak amplitude."""
     a = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
     peak = np.max(np.abs(a))
     if peak < 100:
@@ -446,7 +426,6 @@ def normalize_raw(raw):
 
 
 def raw_to_sr_audio(raw):
-    """Convert raw bytes to sr.AudioData for Google recognition."""
     pad = b'\x00' * (SAMPLE_RATE * SAMPLE_WIDTH)  # 1s silence
     norm = normalize_raw(raw)
     buf = BytesIO()
@@ -466,14 +445,12 @@ _term_saved = None
 
 
 def set_cbreak():
-    """Set terminal to cbreak mode for immediate key reads."""
     global _term_saved
     _term_saved = termios.tcgetattr(sys.stdin)
     tty.setcbreak(sys.stdin.fileno())
 
 
 def restore_term():
-    """Restore terminal to original mode."""
     global _term_saved
     if _term_saved:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, _term_saved)
@@ -481,9 +458,8 @@ def restore_term():
 
 
 def wait_key(timeout=2):
-    """Wait up to timeout for keypress. Returns last key pressed or None."""
+    """Returns key pressed or None."""
     if _term_saved:
-        # already in cbreak - just read
         key = None
         while select.select([sys.stdin], [], [], 0)[0]:
             key = sys.stdin.read(1)
@@ -494,7 +470,6 @@ def wait_key(timeout=2):
         if select.select([sys.stdin], [], [], timeout)[0]:
             return sys.stdin.read(1)
         return None
-    # set cbreak temporarily
     old = termios.tcgetattr(sys.stdin)
     try:
         tty.setcbreak(sys.stdin.fileno())
@@ -511,7 +486,6 @@ def wait_key(timeout=2):
 
 
 def play_raw(raw, volume=0.3):
-    """Play back raw recorded audio at normalized volume."""
     a = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
     peak = np.max(np.abs(a))
     if peak < 500:
@@ -532,9 +506,7 @@ _vu_max = 0.2
 
 
 def record_word(word, rec, prefix=""):
-    """Record, recognize, and score.
-    Returns (heard, pct, sim, peak, dur, raw, key).
-    key is set if user pressed a key during recording."""
+    """Returns (heard, pct, sim, peak, dur, raw, key)."""
     global _vu_max
     vu = []
 
@@ -564,12 +536,7 @@ def record_word(word, rec, prefix=""):
         dur = len(samples) / SAMPLE_RATE
         play_raw(raw)
         print(f"\r\033[K{prefix}Processing...", end="", flush=True)
-        # audio similarity (only meaningful with calibration)
-        if ref.exists():
-            sim = audio_similarity(ref, raw)
-        else:
-            sim = 0
-        # STT
+        sim = audio_similarity(ref, raw) if ref.exists() else 0
         try:
             heard = rec.recognize_google(raw_to_sr_audio(raw))
         except sr.UnknownValueError:
@@ -584,7 +551,7 @@ def record_word(word, rec, prefix=""):
 
 
 def group_accuracy(h, gid):
-    """Get accuracy for a phoneme group from history."""
+    """Returns -1 if no history."""
     g = h["groups"].get(gid)
     if not g or g["attempts"] == 0:
         return -1
@@ -592,7 +559,6 @@ def group_accuracy(h, gid):
 
 
 def pick_words(words, h, count=10):
-    """Prioritize words with low accuracy or not yet practiced."""
     scored = []
     for w in words:
         s = h["words"].get(w.word)
@@ -605,7 +571,6 @@ def pick_words(words, h, count=10):
 
 
 def update_history(h, gid, word, pct):
-    """Update history with attempt result (percentage 0-100)."""
     if word not in h["words"]:
         h["words"][word] = {"attempts": 0, "correct": 0, "last": ""}
     h["words"][word]["attempts"] += 1
@@ -621,19 +586,11 @@ DIM = "\033[2m"
 
 
 def status(msg=''):
-    """Show status on current line, wipe with empty call."""
-    if msg:
-        print(f"\r{msg}\033[K", end='', flush=True, file=sys.stderr)
-    else:
-        print(f"\r\033[K", end='', flush=True, file=sys.stderr)
+    print(f"\r{msg}\033[K", end='', flush=True, file=sys.stderr)
 
 
 def _no_ipa():
     return "" if os.getenv("GOOGLE_API_KEY") else " No IPA symbols."
-
-
-def _feedback_prompt(word, ipa):
-    return pmt.feedback.format(word=word, ipa=ipa)
 
 
 def _raw_to_wav(raw):
@@ -646,19 +603,27 @@ def _raw_to_wav(raw):
     return buf.getvalue()
 
 
-def _feedback_gemini(wav, word, ipa):
+def _ask_ai(raw, prompt):
+    """Send audio + prompt to Gemini or OpenAI, return response text."""
+    wav = _raw_to_wav(raw)
+    if cfg.get("openai"):
+        return _ask_openai(wav, prompt)
+    return _ask_gemini(wav, prompt)
+
+
+def _ask_gemini(wav, prompt):
     import google.generativeai as genai
     status(f"  {DIM}gemini-flash-latest ...{RST}")
-    model = genai.GenerativeModel("gemini-flash-latest", system_instruction=SYSPROMPT)
-    r = model.generate_content([
-        _feedback_prompt(word, ipa),
-        {"mime_type": "audio/wav", "data": wav},
+    m = genai.GenerativeModel("gemini-flash-latest",
+                              system_instruction=SYSPROMPT)
+    r = m.generate_content([
+        prompt, {"mime_type": "audio/wav", "data": wav},
     ])
     status()
     return r.text.strip()
 
 
-def _feedback_openai(wav, word, ipa):
+def _ask_openai(wav, prompt):
     import base64
     from openai import OpenAI
     oc = cfg.get("openai", {})
@@ -667,10 +632,9 @@ def _feedback_openai(wav, word, ipa):
         api_key=oc.get("api_key", "none"),
     )
     b64 = base64.b64encode(wav).decode()
-    prompt = _feedback_prompt(word, ipa)
-    model = oc.get("model", os.getenv("INFERENCE_MODEL",
-                                      "gemini/gemini-2.5-flash"))
-    status(f"  {DIM}{model} ...{RST}")
+    mdl = oc.get("model", os.getenv("INFERENCE_MODEL",
+                                     "gemini/gemini-2.5-flash"))
+    status(f"  {DIM}{mdl} ...{RST}")
     uri = f"data:audio/wav;base64,{b64}"
     af = oc.get("audio_format", "image_url")
     if oc.get("api_type", "completions") == "responses":
@@ -683,7 +647,7 @@ def _feedback_openai(wav, word, ipa):
         else:
             part = {"type": "input_image", "image_url": uri}
         r = c.responses.create(
-            model=model,
+            model=mdl,
             input=[{"type": "message", "role": "user", "content": [
                 {"type": "input_text", "text": prompt}, part,
             ]}],
@@ -696,7 +660,7 @@ def _feedback_openai(wav, word, ipa):
     else:
         part = {"type": "image_url", "image_url": {"url": uri}}
     r = c.chat.completions.create(
-        model=model,
+        model=mdl,
         messages=[
             {"role": "system", "content": SYSPROMPT},
             {"role": "user", "content": [
@@ -709,86 +673,14 @@ def _feedback_openai(wav, word, ipa):
 
 
 def get_feedback(raw, word, ipa):
-    """Get pronunciation feedback via OpenAI-compatible or Gemini API."""
-    wav = _raw_to_wav(raw)
-    if cfg.get("openai"):
-        fb = _feedback_openai(wav, word, ipa)
-    else:
-        fb = _feedback_gemini(wav, word, ipa)
+    p = pmt.feedback.format(word=word, ipa=ipa)
+    fb = _ask_ai(raw, p)
     return re.sub(r'"(\w+)\."', r'"\1".', fb)
 
 
-def _assess_prompt(data, text):
-    return pmt.assess.format(text=text, groups=", ".join(data.keys()))
-
-
-def _assess_gemini(wav, data, text):
-    import google.generativeai as genai
-    status(f"  {DIM}gemini-flash-latest ...{RST}")
-    m = genai.GenerativeModel("gemini-flash-latest", system_instruction=SYSPROMPT)
-    r = m.generate_content([
-        _assess_prompt(data, text),
-        {"mime_type": "audio/wav", "data": wav},
-    ])
-    status()
-    return r.text.strip()
-
-
-def _assess_openai(wav, data, text):
-    import base64
-    from openai import OpenAI
-    oc = cfg.get("openai", {})
-    c = OpenAI(
-        base_url=oc.get("base_url", "http://localhost:8321/v1/"),
-        api_key=oc.get("api_key", "none"),
-    )
-    b64 = base64.b64encode(wav).decode()
-    prompt = _assess_prompt(data, text)
-    model = oc.get("model", os.getenv("INFERENCE_MODEL",
-                                      "gemini/gemini-2.5-flash"))
-    status(f"  {DIM}{model} ...{RST}")
-    uri = f"data:audio/wav;base64,{b64}"
-    af = oc.get("audio_format", "image_url")
-    if oc.get("api_type", "completions") == "responses":
-        if af == "input_audio":
-            part = {"type": "input_audio",
-                    "input_audio": {"data": b64, "format": "wav"}}
-        elif af == "input_file":
-            part = {"type": "input_file", "filename": "audio.wav",
-                    "file_data": uri}
-        else:
-            part = {"type": "input_image", "image_url": uri}
-        r = c.responses.create(
-            model=model,
-            input=[{"type": "message", "role": "user", "content": [
-                {"type": "input_text", "text": prompt}, part,
-            ]}],
-        )
-        status()
-        return r.output_text.strip()
-    if af == "input_audio":
-        part = {"type": "input_audio",
-                "input_audio": {"data": b64, "format": "wav"}}
-    else:
-        part = {"type": "image_url", "image_url": {"url": uri}}
-    r = c.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": SYSPROMPT},
-            {"role": "user", "content": [
-                {"type": "text", "text": prompt}, part,
-            ]},
-        ],
-    )
-    status()
-    return r.choices[0].message.content.strip()
-
-
 def get_assessment(raw, data, text):
-    wav = _raw_to_wav(raw)
-    if cfg.get("openai"):
-        return _assess_openai(wav, data, text)
-    return _assess_gemini(wav, data, text)
+    p = pmt.assess.format(text=text, groups=", ".join(data.keys()))
+    return _ask_ai(raw, p)
 
 
 def parse_assessment(text, data):
@@ -827,14 +719,12 @@ def sim_color(pct):
 
 
 def pct_bar(pct, width=20):
-    """Render percentage as colored #/. bar."""
     n = pct * width // 100
     c = pct_color(pct)
     return f"{c}{'#' * n}{'.' * (width - n)}{RST}"
 
 
 def pct_block(pct):
-    """Single colored unicode block character for percentage."""
     c = pct_color(pct)
     if pct >= 70:
         return f"{c}\u2588{RST}"
@@ -846,7 +736,6 @@ def pct_block(pct):
 
 
 def show_stats(h):
-    """Display performance statistics."""
     if not h["groups"]:
         print("No practice history yet.")
         return
@@ -870,7 +759,6 @@ def show_stats(h):
 
 
 def list_groups(data):
-    """Show available phoneme groups."""
     print("\nPhoneme groups:\n")
     for gid, g in data.items():
         n = len(g.words)
@@ -890,9 +778,7 @@ GROUP_KEYS = {
 
 
 def select_group(data, h):
-    """Let user select a phoneme group or pick weakest."""
     groups = list(data.keys())
-    # build key -> [gid, ...] mapping (supports submenus)
     keys = {}
     for gid in groups:
         k = GROUP_KEYS.get(gid)
@@ -931,7 +817,6 @@ def select_group(data, h):
             gids = keys[c]
             if len(gids) == 1:
                 return gids[0]
-            # submenu
             for i, gid in enumerate(gids):
                 g = data[gid]
                 acc = group_accuracy(h, gid)
@@ -949,7 +834,6 @@ def select_group(data, h):
 
 
 def _do_feedback(raw, word, ipa):
-    """Get and display feedback, speak it."""
     try:
         fb = get_feedback(raw, word, ipa)
     except Exception as e:
@@ -1060,7 +944,7 @@ def _assess_one(data, text, ipa):
     print()
     print(f"  {DIM}Listen first...{RST}", end="", flush=True)
     speak_text(text)
-    print(f"\r\033[K", end="")
+    print("\r\033[K", end="")
     dur = 30
     pw = len(text.split())
     while True:
@@ -1072,7 +956,7 @@ def _assess_one(data, text, ipa):
             print(f"\r  Recording... {left}s \033[K", end="", flush=True)
         print(f"  Your turn. Recording... {dur}s ", end="", flush=True)
         raw, spoke, _ = record_audio(duration=dur, on_chunk=countdown)
-        print(f"\r\033[K", end="")
+        print("\r\033[K", end="")
         if not spoke:
             print("  No speech detected.")
             return []
@@ -1090,7 +974,7 @@ def _assess_one(data, text, ipa):
         break
     print(f"  {DIM}Playing back...{RST}", end="", flush=True)
     play_raw(raw)
-    print(f"\r\033[K", end="")
+    print("\r\033[K", end="")
     ref = ensure_ref(text)
     sim = audio_similarity(ref, raw) if ref.exists() else 0
     if sim:
@@ -1104,7 +988,6 @@ def _assess_one(data, text, ipa):
 
 
 def assess(data, h, cont=False, debug=False):
-    """Assess pronunciation with phonetic pangrams."""
     print(f"\n--- Pronunciation assessment ---\n")
     print(f"  Read each sentence aloud:\n")
     weak = []
@@ -1136,68 +1019,21 @@ def assess(data, h, cont=False, debug=False):
     practice(data, gid, h, cont, debug)
 
 
-def _twister_prompt(text):
-    return pmt.twister.format(text=text)
-
-
-def _twister_feedback(raw, text):
-    wav = _raw_to_wav(raw)
-    if cfg.get("openai"):
-        import base64
-        from openai import OpenAI
-        oc = cfg["openai"]
-        c = OpenAI(
-            base_url=oc.get("base_url", "http://localhost:8321/v1/"),
-            api_key=oc.get("api_key", "none"),
-        )
-        b64 = base64.b64encode(wav).decode()
-        prompt = _twister_prompt(text)
-        model = oc.get("model", os.getenv("INFERENCE_MODEL",
-                                          "gemini/gemini-2.5-flash"))
-        status(f"  {DIM}{model} ...{RST}")
-        uri = f"data:audio/wav;base64,{b64}"
-        af = oc.get("audio_format", "image_url")
-        part = {"type": "image_url", "image_url": {"url": uri}}
-        if af == "input_audio":
-            part = {"type": "input_audio",
-                    "input_audio": {"data": b64, "format": "wav"}}
-        r = c.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": SYSPROMPT},
-                {"role": "user", "content": [
-                    {"type": "text", "text": prompt}, part,
-            ]}],
-        )
-        status()
-        return r.choices[0].message.content.strip()
-    import google.generativeai as genai
-    status(f"  {DIM}gemini-flash-latest ...{RST}")
-    m = genai.GenerativeModel("gemini-flash-latest", system_instruction=SYSPROMPT)
-    r = m.generate_content([
-        _twister_prompt(text),
-        {"mime_type": "audio/wav", "data": wav},
-    ])
-    status()
-    return r.text.strip()
-
-
 def practice_twisters(data, h):
-    """Practice tongue twisters with AI feedback."""
     print(f"\n--- Tongue twisters ---\n")
     for i, tw in enumerate(twisters):
         text = tw["text"]
         gid = tw.get("group", "")
-        gname = data[gid].name if gid in data else ""
-        label = f"  {i + 1}/{len(twisters)}"
-        if gname:
-            label += f"  ({gname})"
-        print(f"{label}")
+        gn = data[gid].name if gid in data else ""
+        lbl = f"  {i + 1}/{len(twisters)}"
+        if gn:
+            lbl += f"  ({gn})"
+        print(lbl)
         print(f"  {text}")
         print()
         print(f"  {DIM}Listen...{RST}", end="", flush=True)
         speak_text(text)
-        print(f"\r\033[K", end="")
+        print("\r\033[K", end="")
         dur = 15
         t = [0]
         def countdown(peak, t=t):
@@ -1206,19 +1042,19 @@ def practice_twisters(data, h):
             print(f"\r  Recording... {left}s \033[K", end="", flush=True)
         print(f"  Your turn. Recording... {dur}s ", end="", flush=True)
         raw, spoke, _ = record_audio(duration=dur, on_chunk=countdown)
-        print(f"\r\033[K", end="")
+        print("\r\033[K", end="")
         if not spoke:
             print("  No speech detected.")
             continue
         print(f"  {DIM}Playing back...{RST}", end="", flush=True)
         play_raw(raw)
-        print(f"\r\033[K", end="")
+        print("\r\033[K", end="")
         ref = ensure_ref(text)
         sim = audio_similarity(ref, raw) if ref.exists() else 0
         if sim:
             print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
         try:
-            fb = _twister_feedback(raw, text)
+            fb = _ask_ai(raw, pmt.twister.format(text=text))
         except Exception as e:
             print(f"  Feedback error: {e}")
             continue
@@ -1236,7 +1072,6 @@ def practice_twisters(data, h):
 
 
 def practice(data, gid, h, cont=False, debug=False):
-    """Run a practice session for a phoneme group."""
     g = data[gid]
     print(f"\n--- {g.name} ---")
     print(f"  {g.description}")
@@ -1283,7 +1118,6 @@ def practice(data, gid, h, cont=False, debug=False):
         if cont:
             restore_term()
 
-    # session summary
     total = len(results)
     if not total:
         return
@@ -1309,7 +1143,6 @@ def practice(data, gid, h, cont=False, debug=False):
 
 
 def calibrate():
-    """Play words through speaker, record via mic, find bias and scale."""
     print("Calibration - measuring your mic/speaker channel.")
     print("Keep quiet, the app will play and record.\n")
 
@@ -1420,7 +1253,6 @@ def calibrate():
 
 
 def test_rec():
-    """Test recording histogram - show live mic levels."""
     print("Recording test - speak into mic, Ctrl+C to stop\n")
     chunk_ms = 30
     chunk_bytes = int(SAMPLE_RATE * SAMPLE_WIDTH * chunk_ms / 1000)
@@ -1453,7 +1285,6 @@ def test_rec():
 
 
 def _ref_raw(word):
-    """Get raw audio bytes from gTTS reference."""
     ref = ensure_ref(word)
     seg = AudioSegment.from_wav(str(ref))
     return seg.set_channels(1).set_frame_rate(
@@ -1461,7 +1292,6 @@ def _ref_raw(word):
 
 
 def _test_bad():
-    """Test on wrong audio, returns (pass, total)."""
     # near-homophones: forward and reverse pairs
     pairs = [
         ("sit", "seat", "/siːt/"),
@@ -1498,26 +1328,23 @@ def _test_bad():
 
 
 def test_feedback():
-    """Test AI feedback on mismatched words."""
     _test_bad()
 
 
 def test_services():
-    """Test available services."""
-    wav = _raw_to_wav(_ref_raw("hello"))
-    word, ipa = "hello", "/hɛˈloʊ/"
-
+    raw = _ref_raw("hello")
+    p = pmt.feedback.format(word="hello", ipa="/hɛˈloʊ/")
     svcs = [
         ("gemini-flash-latest feedback", lambda:
-         _feedback_gemini(wav, word, ipa)),
+         _ask_gemini(_raw_to_wav(raw), p)),
         ("gemini-3.1-flash-tts TTS", lambda:
-         _speak_gemini("test")),
+         _gemini_tts_wav("test")),
     ]
     if cfg.get("openai"):
-        oc = cfg.get("openai", {})
+        oc = cfg["openai"]
         m = oc.get("model", "gemini/gemini-2.5-flash")
         svcs.append((f"openai {m} feedback", lambda:
-                     _feedback_openai(wav, word, ipa)))
+                     _ask_openai(_raw_to_wav(raw), p)))
     svcs.append(("gTTS", lambda: speak_text("test")))
 
     for name, fn in svcs:
@@ -1628,7 +1455,6 @@ def main():
         return
 
     if a.text:
-        # find word in data for IPA, or use empty
         ipa = ""
         for g in data.values():
             for wd in g.words:
@@ -1645,7 +1471,7 @@ def main():
     if not calibrated:
         print(f"{DIM}Quick calibrating...{RST}", end="", flush=True)
         quick_calibrate()
-        print(f"\r\033[K", end="")
+        print("\r\033[K", end="")
     if a.continuous:
         print(f"{DIM}Keys: [s]kip  [f]eedback  [p]ause  [q]uit{RST}")
         print(f"{DIM}Keys work during recording and between words{RST}")
