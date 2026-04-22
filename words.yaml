@@ -312,6 +312,10 @@ word_stress:
       ipa: /ˈvɛdʒtəbəl/
       example: Eat your vegetables every day.
       difficulty: 2
+    - word: accidentally
+      ipa: /ˌæksɪˈdɛntəli/
+      example: I accidentally deleted the file.
+      difficulty: 3
 
 v_w:
   name: v and w contrast
@@ -492,6 +496,18 @@ consonant_clusters:
       ipa: /ɡlɪmps/
       example: I caught a glimpse of the sunset.
       difficulty: 2
+    - word: glass
+      ipa: /ɡlæs/
+      example: Pour me a glass of water.
+      difficulty: 1
+    - word: class
+      ipa: /klæs/
+      example: The class starts at nine.
+      difficulty: 1
+    - word: grass
+      ipa: /ɡræs/
+      example: The grass is green after the rain.
+      difficulty: 1
 
 ed_endings:
   name: -ed endings (t/d/ɪd)
