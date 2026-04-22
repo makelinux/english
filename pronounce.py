@@ -23,7 +23,7 @@ from box import Box
 import audio
 from audio import (
     SAMPLE_RATE, CONF_DIR, CAL_WORDS,
-    VOICES_MALE, VOICES_FEMALE, VOICES_ALL, _VU_BLOCKS,
+    VOICES_MALE, VOICES_FEMALE, VOICES_ALL, _BARS,
     cal, DIM, RST,
     load_calibration, save_calibration, quick_calibrate,
     status, record_audio, play_raw, speak, speak_text,
@@ -157,25 +157,26 @@ def stt_score(expected, heard):
     return 0
 
 
-def record_word(word, rec, prefix=""):
+def record_word(word, rec, prefix="", duration=5):
     """Returns (heard, pct, sim, peak, dur, raw, key)."""
-    vu = []
+    bars = []
 
     def on_chunk(peak):
-        if peak > audio._vu_max:
-            audio._vu_max = peak
-        mx = audio._vu_max if audio._vu_max > 1e-6 else 1.0
-        vu.append(_VU_BLOCKS[min(8, int(peak / mx * 8))])
+        if peak > audio._peak_max:
+            audio._peak_max = peak
+        mx = audio._peak_max if audio._peak_max > 1e-6 else 1.0
+        bars.append(_BARS[min(8, int(peak / mx * 8))])
         print(f"\r\033[K{prefix}"
               f"{DIM}[s]kip [f]eedback [q]uit{RST} "
-              f"Listening{''.join(vu)}🎤", end="", flush=True)
+              f"Listening{''.join(bars)}🎤", end="", flush=True)
 
     try:
         ref = get_ref_path(word)
         key = None
         while True:
             raw, spoke, key = record_audio(
-                on_chunk=on_chunk, check_keys=bool(_term_saved))
+                duration=duration, on_chunk=on_chunk,
+                check_keys=bool(_term_saved))
             if key in ('s', 'q', 'f'):
                 print()
                 return None, 0, 0, 0, 0, None, key
@@ -201,12 +202,22 @@ def record_word(word, rec, prefix=""):
         return None, 0, 0, 0, 0, None, None
 
 
+EMA_ALPHA = 0.2
+
+
+def _ema(entry):
+    """Return EMA if present, else fall back to all-time average."""
+    if "ema" in entry:
+        return entry["ema"]
+    return entry["correct"] / entry["attempts"]
+
+
 def group_accuracy(h, gid):
     """Returns -1 if no history."""
     g = h["groups"].get(gid)
     if not g or g["attempts"] == 0:
         return -1
-    return g["correct"] / g["attempts"]
+    return _ema(g)
 
 
 def pick_words(words, h, count=10):
@@ -216,21 +227,26 @@ def pick_words(words, h, count=10):
         if not s or s["attempts"] == 0:
             scored.append((w, -1))
         else:
-            scored.append((w, s["correct"] / s["attempts"]))
+            scored.append((w, _ema(s)))
     scored.sort(key=lambda x: x[1])
     return [w for w, _ in scored[:count]]
 
 
 def update_history(h, gid, word, pct):
+    s = pct / 100
     if word not in h["words"]:
         h["words"][word] = {"attempts": 0, "correct": 0, "last": ""}
-    h["words"][word]["attempts"] += 1
-    h["words"][word]["correct"] += pct / 100
-    h["words"][word]["last"] = str(date.today())
+    w = h["words"][word]
+    w["attempts"] += 1
+    w["correct"] += s
+    w["ema"] = w.get("ema", s) * (1 - EMA_ALPHA) + s * EMA_ALPHA
+    w["last"] = str(date.today())
     if gid not in h["groups"]:
         h["groups"][gid] = {"attempts": 0, "correct": 0}
-    h["groups"][gid]["attempts"] += 1
-    h["groups"][gid]["correct"] += pct / 100
+    g = h["groups"][gid]
+    g["attempts"] += 1
+    g["correct"] += s
+    g["ema"] = g.get("ema", s) * (1 - EMA_ALPHA) + s * EMA_ALPHA
 
 
 def _no_ipa():
@@ -349,7 +365,7 @@ def show_stats(h):
         return
     print("\nPerformance by phoneme group:\n")
     for gid, g in sorted(h["groups"].items()):
-        acc = g["correct"] / g["attempts"] if g["attempts"] else 0
+        acc = _ema(g)
         print(f"  {gid:20s} {acc:.0%}"
               f"  ({g['attempts']} attempts)")
 
@@ -357,8 +373,7 @@ def show_stats(h):
     weak = []
     for w, s in h["words"].items():
         if s["attempts"] >= 2:
-            acc = s["correct"] / s["attempts"]
-            weak.append((w, acc, s["attempts"]))
+            weak.append((w, _ema(s), s["attempts"]))
     weak.sort(key=lambda x: x[1])
     for w, acc, att in weak[:10]:
         print(f"  {w:20s} {acc:.0%}  ({att} attempts)")
@@ -429,7 +444,7 @@ def select_group(h):
                 pass
 
 
-def _do_feedback(raw, word, ipa):
+def _do_feedback(raw, word, ipa, h=None):
     try:
         fb = get_feedback(raw, word, ipa)
     except Exception as e:
@@ -438,9 +453,11 @@ def _do_feedback(raw, word, ipa):
         return
     print(f"  {DIM}{fb}{RST}")
     speak_text(re.sub(r'[\"\'()"/]', '', fb))
+    if h and word in h["words"]:
+        h["words"][word]["feedback"] = fb
 
 
-def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
+def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
     """Practice one word with retries. Returns (best_pct, last_raw).
     best_pct=-1 means quit. prev=(raw, word, ipa) for feedback fallback."""
     ensure_ref(w.word)
@@ -486,7 +503,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
                 fb_raw, fb_word, fb_ipa = prev
             else:
                 continue
-            _do_feedback(fb_raw, fb_word, fb_ipa)
+            _do_feedback(fb_raw, fb_word, fb_ipa, h)
             continue
 
         if pct > best:
@@ -511,7 +528,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
             if k == 's':
                 break
             if k == 'f' and last_raw:
-                _do_feedback(last_raw, w.word, w.ipa)
+                _do_feedback(last_raw, w.word, w.ipa, h)
             elif k == 'p':
                 print(f"  {DIM}Paused. Any key...{RST}",
                       end="", flush=True)
@@ -527,7 +544,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
             elif c == "s":
                 break
             elif c == "f" and last_raw:
-                _do_feedback(last_raw, w.word, w.ipa)
+                _do_feedback(last_raw, w.word, w.ipa, h)
 
     return best, last_raw
 
@@ -541,38 +558,22 @@ def _assess_one(text, ipa):
     print(f"  {DIM}Listen first...{RST}", end="", flush=True)
     speak_text(text)
     print("\r\033[K", end="")
-    dur = 30
+    ensure_ref(text)
+    rec = sr.Recognizer()
     pw = len(text.split())
     while True:
-        print()
-        t = [0]
-        def countdown(peak, t=t):
-            t[0] += 0.3
-            left = max(0, int(dur - t[0]))
-            print(f"\r  Recording... {left}s \033[K", end="", flush=True)
-        print(f"  Your turn. Recording... {dur}s ", end="", flush=True)
-        raw, spoke, _ = record_audio(duration=dur, on_chunk=countdown)
-        print("\r\033[K", end="")
-        if not spoke:
-            print("  No speech detected.")
+        heard, pct, sim, peak, dur, raw, key = record_word(
+            text, rec, "  ", duration=30)
+        if key == 'q' or not raw:
             return []
-        rec = sr.Recognizer()
-        try:
-            heard = rec.recognize_google(raw_to_sr_audio(raw))
-        except (sr.UnknownValueError, sr.RequestError):
-            heard = None
-        if heard:
-            print(f"  Heard: {heard}")
         hw = len(heard.split()) if heard else 0
         if hw < pw * 0.5:
             print(f"  Incomplete ({hw}/{pw} words). Try again.")
             continue
         break
-    print(f"  {DIM}Playing back...{RST}", end="", flush=True)
-    play_raw(raw)
-    print("\r\033[K", end="")
-    ref = ensure_ref(text)
-    sim = audio_similarity(ref, raw) if ref.exists() else 0
+    clear_line()
+    if heard:
+        print(f"  Heard: {heard}")
     if sim:
         print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
     try:
@@ -617,6 +618,7 @@ def assess(h, cont=False, debug=False):
 
 def practice_twisters(h):
     print(f"\n--- Tongue twisters ---\n")
+    rec = sr.Recognizer()
     for i, tw in enumerate(data.twisters):
         text = tw["text"]
         gid = tw.get("group", "")
@@ -630,40 +632,41 @@ def practice_twisters(h):
         print(f"  {DIM}Listen...{RST}", end="", flush=True)
         speak_text(text)
         print("\r\033[K", end="")
-        dur = 15
-        t = [0]
-        def countdown(peak, t=t):
-            t[0] += 0.3
-            left = max(0, int(dur - t[0]))
-            print(f"\r  Recording... {left}s \033[K", end="", flush=True)
-        print(f"  Your turn. Recording... {dur}s ", end="", flush=True)
-        raw, spoke, _ = record_audio(duration=dur, on_chunk=countdown)
-        print("\r\033[K", end="")
-        if not spoke:
-            print("  No speech detected.")
-            continue
-        print(f"  {DIM}Playing back...{RST}", end="", flush=True)
-        play_raw(raw)
-        print("\r\033[K", end="")
-        ref = ensure_ref(text)
-        sim = audio_similarity(ref, raw) if ref.exists() else 0
+        ensure_ref(text)
+        pw = len(text.split())
+        while True:
+            heard, pct, sim, peak, dur, raw, key = record_word(
+                text, rec, "  ", duration=15)
+            if key == 'q':
+                return
+            if not raw:
+                continue
+            hw = len(heard.split()) if heard else 0
+            if hw < pw * 0.5:
+                print(f"  Too short ({hw}/{pw} words). Try again.")
+                continue
+            break
+        clear_line()
+        if heard:
+            print(f"  Heard: {heard}")
         if sim:
             print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
-        try:
-            fb = _ask_ai(raw, data.prompts.twister.format(text=text))
-        except Exception as e:
-            print(f"  Feedback error: {e}")
-            continue
-        print(f"  {fb}")
-        if fb.strip() != "Good":
-            speak_text(re.sub(r'[\"\'()"/]', '', fb))
-        if i < len(data.twisters) - 1:
-            print(f"\n  {DIM}[Enter] next  [q]uit{RST}", end="",
-                  flush=True)
-            c = wait_key(None)
-            print()
-            if c == 'q':
-                break
+        nxt = f"[Enter] next  " if i < len(data.twisters) - 1 else ""
+        print(f"\n  {DIM}{nxt}[f]eedback  [q]uit{RST}", end="",
+              flush=True)
+        c = wait_key(None)
+        print()
+        if c == 'q':
+            break
+        if c == 'f':
+            try:
+                fb = _ask_ai(raw, data.prompts.twister.format(text=text))
+            except Exception as e:
+                print(f"  Feedback error: {e}")
+                continue
+            print(f"  {fb}")
+            if fb.strip() != "Good":
+                speak_text(re.sub(r'[\"\'()"/]', '', fb))
         print()
 
 
@@ -685,7 +688,7 @@ def practice_phonemes(gid, h, cont=False, debug=False):
     try:
         for i, w in enumerate(words):
             best, raw = practice_word(
-                w, rec, f"{i + 1}/{len(words)}: ", cont, debug, prev)
+                w, rec, f"{i + 1}/{len(words)}: ", cont, debug, prev, h)
             if raw:
                 prev = (raw, w.word, w.ipa)
             if best == -1:

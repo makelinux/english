@@ -60,12 +60,12 @@ VOICES_ALL = VOICES_MALE + VOICES_FEMALE
 # state
 cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 calibrated = False
-_vu_max = 0.2
+_peak_max = 0.2
 voice = "Kore"
 
 DIM = "\033[2m"
 RST = "\033[0m"
-_VU_BLOCKS = ".▁▂▃▄▅▆▇█"
+_BARS = ".▁▂▃▄▅▆▇█"
 
 
 def status(msg=''):
@@ -73,13 +73,13 @@ def status(msg=''):
 
 
 def load_calibration():
-    global calibrated, _vu_max
+    global calibrated, _peak_max
     if CAL_FILE.exists():
         with open(CAL_FILE) as f:
             cal.update(yaml.safe_load(f))
         cal.pop("gain", None)
         calibrated = True
-        _vu_max = cal.get("vu_peak", 0.2) * 0.5
+        _peak_max = cal.get("vu_peak", 0.2) * 0.5
 
 
 def save_calibration():
@@ -291,8 +291,8 @@ def record_audio(duration=5, pause=0.8, on_chunk=None, check_keys=False):
     speech_run = 0
     silence = 0
     key = None
-    vu_peak = 0.0
-    vu_count = 0
+    pk = 0.0
+    pk_n = 0
     try:
         for _ in range(max_chunks):
             c = pa.read(chunk_bytes)
@@ -301,13 +301,13 @@ def record_audio(duration=5, pause=0.8, on_chunk=None, check_keys=False):
             if on_chunk:
                 p = float(np.max(np.abs(
                     np.frombuffer(c, dtype=np.int16)))) / 32768.0
-                if p > vu_peak:
-                    vu_peak = p
-                vu_count += 1
-                if vu_count >= 10:
-                    on_chunk(vu_peak)
-                    vu_peak = 0.0
-                    vu_count = 0
+                if p > pk:
+                    pk = p
+                pk_n += 1
+                if pk_n >= 10:
+                    on_chunk(pk)
+                    pk = 0.0
+                    pk_n = 0
             if check_keys and select.select([sys.stdin], [], [], 0)[0]:
                 key = sys.stdin.read(1)
                 if speech_started:
@@ -354,7 +354,7 @@ def play_raw(raw, volume=0.3):
 
 
 def quick_calibrate():
-    global calibrated, _vu_max
+    global calibrated, _peak_max
     w = "test"
     ref_path = ensure_ref(w)
     raw = [None]
@@ -376,8 +376,8 @@ def quick_calibrate():
     cal["bias"] = d * 0.9
     cal["scale"] = d * 0.6
     p = float(np.max(np.abs(rec)))
-    if p > _vu_max:
-        _vu_max = p
+    if p > _peak_max:
+        _peak_max = p
     calibrated = True
 
 
@@ -410,7 +410,7 @@ def test_rec():
                 peak = p
             count += 1
             if count >= 10:
-                print(_VU_BLOCKS[min(8, int(peak * 40))], end="", flush=True)
+                print(_BARS[min(8, int(peak * 40))], end="", flush=True)
                 peak = 0.0
                 count = 0
     except KeyboardInterrupt:
