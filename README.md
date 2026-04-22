@@ -38,6 +38,7 @@ Practice words grouped by phoneme:
 ./pronounce.py --test-rec   # test recording histogram
 ./pronounce.py -d           # debug info (duration, peak, selfcheck)
 ./pronounce.py --sim-threshold 50  # set audio similarity pass threshold
+./pronounce.py --assess              # pangram pronunciation assessment
 ./pronounce.py --test-services       # test API connectivity
 ./pronounce.py --test-feedback       # test AI feedback accuracy
 ```

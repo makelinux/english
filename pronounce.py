@@ -55,11 +55,24 @@ SAMPLE_WIDTH = 2
 CHANNELS = 1
 N_MFCC = 13
 CAL_WORDS = ["test", "sip", "one", "two", "three", "four", "five"]
+VOICES_MALE = [
+    "Achird", "Algenib", "Algieba", "Alnilam", "Charon",
+    "Enceladus", "Fenrir", "Iapetus", "Orus", "Puck",
+    "Rasalgethi", "Sadachbia", "Sadaltager", "Schedar",
+    "Umbriel", "Zubenelgenubi",
+]
+VOICES_FEMALE = [
+    "Achernar", "Aoede", "Autonoe", "Callirrhoe", "Despina",
+    "Erinome", "Gacrux", "Kore", "Laomedeia", "Leda",
+    "Pulcherrima", "Sulafat", "Vindemiatrix", "Zephyr",
+]
+VOICES_ALL = VOICES_MALE + VOICES_FEMALE
 
 # calibration state - loaded at startup
 cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 calibrated = False
 cfg = {}
+voice = "Kore"
 
 
 def load_calibration():
@@ -86,6 +99,11 @@ def save_calibration():
 def load_words():
     with open(DATA) as f:
         raw = yaml.safe_load(f)
+    global pangrams
+    pangrams = raw.pop("pangrams", [])
+    if not pangrams:
+        p = raw.pop("pangram", {})
+        pangrams = [p] if p else []
     STT_ALIASES.update(raw.pop("stt_aliases", {}))
     for group in raw.pop("stt_equiv", []):
         STT_EQUIV.append(set(group))
@@ -176,7 +194,7 @@ def _speak_gemini(text):
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name="Kore"
+                        voice_name=voice
                     )
                 )
             )
@@ -513,8 +531,9 @@ def record_word(word, rec, prefix=""):
             _vu_max = peak
         mx = _vu_max if _vu_max > 1e-6 else 1.0
         vu.append(_VU_BLOCKS[min(8, int(peak / mx * 8))])
-        print(f"\r\033[K{prefix}Listening{''.join(vu)}🎤",
-              end="", flush=True)
+        print(f"\r\033[K{prefix}"
+              f"{DIM}[s]kip [f]eedback [q]uit{RST} "
+              f"Listening{''.join(vu)}🎤", end="", flush=True)
 
     try:
         ref = get_ref_path(word)
@@ -687,6 +706,96 @@ def get_feedback(raw, word, ipa):
     else:
         fb = _feedback_gemini(wav, word, ipa)
     return re.sub(r'"(\w+)\."', r'"\1".', fb)
+
+
+def _assess_prompt(data, text):
+    groups = ", ".join(data.keys())
+    return (
+        f"You are a pronunciation coach for American English. "
+        f"The speaker read this sentence aloud: \"{text}\" "
+        f"Listen to the audio and identify pronunciation weaknesses. "
+        f"Here are the phoneme group IDs: {groups}. "
+        f"Return ONLY the group IDs where you detected problems, "
+        f"one per line, most significant first. "
+        f"If pronunciation is good overall, return just: GOOD"
+    )
+
+
+def _assess_gemini(wav, data, text):
+    import google.generativeai as genai
+    status(f"  {DIM}gemini-flash-latest ...{RST}")
+    m = genai.GenerativeModel("gemini-flash-latest")
+    r = m.generate_content([
+        _assess_prompt(data, text),
+        {"mime_type": "audio/wav", "data": wav},
+    ])
+    status()
+    return r.text.strip()
+
+
+def _assess_openai(wav, data, text):
+    import base64
+    from openai import OpenAI
+    oc = cfg.get("openai", {})
+    c = OpenAI(
+        base_url=oc.get("base_url", "http://localhost:8321/v1/"),
+        api_key=oc.get("api_key", "none"),
+    )
+    b64 = base64.b64encode(wav).decode()
+    prompt = _assess_prompt(data, text)
+    model = oc.get("model", os.getenv("INFERENCE_MODEL",
+                                      "gemini/gemini-2.5-flash"))
+    status(f"  {DIM}{model} ...{RST}")
+    uri = f"data:audio/wav;base64,{b64}"
+    af = oc.get("audio_format", "image_url")
+    if oc.get("api_type", "completions") == "responses":
+        if af == "input_audio":
+            part = {"type": "input_audio",
+                    "input_audio": {"data": b64, "format": "wav"}}
+        elif af == "input_file":
+            part = {"type": "input_file", "filename": "audio.wav",
+                    "file_data": uri}
+        else:
+            part = {"type": "input_image", "image_url": uri}
+        r = c.responses.create(
+            model=model,
+            input=[{"type": "message", "role": "user", "content": [
+                {"type": "input_text", "text": prompt}, part,
+            ]}],
+        )
+        status()
+        return r.output_text.strip()
+    if af == "input_audio":
+        part = {"type": "input_audio",
+                "input_audio": {"data": b64, "format": "wav"}}
+    else:
+        part = {"type": "image_url", "image_url": {"url": uri}}
+    r = c.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": [
+            {"type": "text", "text": prompt}, part,
+        ]}],
+    )
+    status()
+    return r.choices[0].message.content.strip()
+
+
+def get_assessment(raw, data, text):
+    wav = _raw_to_wav(raw)
+    if cfg.get("openai"):
+        return _assess_openai(wav, data, text)
+    return _assess_gemini(wav, data, text)
+
+
+def parse_assessment(text, data):
+    if text.strip().upper() == "GOOD":
+        return []
+    groups = []
+    for line in text.strip().splitlines():
+        g = line.strip().lower()
+        if g in data:
+            groups.append(g)
+    return groups
 
 
 RED = "\033[31m"
@@ -925,7 +1034,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
                 wait_key(None)
                 clear_line()
         else:
-            print(f"  {DIM}[Enter] retry [s] skip [f] feedback{RST}",
+            print(f"  {DIM}[Enter] retry [s]kip [f]eedback{RST}",
                   end="", flush=True)
             c = wait_key(None)
             clear_line()
@@ -937,6 +1046,89 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
                 _do_feedback(last_raw, w.word, w.ipa)
 
     return best, last_raw
+
+
+def _assess_one(data, text, ipa):
+    """Record and assess one pangram. Returns list of weak group IDs."""
+    print(f"  {text}")
+    if ipa:
+        print(f"  {DIM}{ipa}{RST}")
+    print()
+    print(f"  {DIM}Listen first...{RST}", end="", flush=True)
+    speak_text(text)
+    print(f"\r\033[K", end="")
+    dur = 30
+    pw = len(text.split())
+    while True:
+        print()
+        t = [0]
+        def countdown(peak, t=t):
+            t[0] += 0.3
+            left = max(0, int(dur - t[0]))
+            print(f"\r  Recording... {left}s \033[K", end="", flush=True)
+        print(f"  Your turn. Recording... {dur}s ", end="", flush=True)
+        raw, spoke, _ = record_audio(duration=dur, on_chunk=countdown)
+        print(f"\r\033[K", end="")
+        if not spoke:
+            print("  No speech detected.")
+            return []
+        rec = sr.Recognizer()
+        try:
+            heard = rec.recognize_google(raw_to_sr_audio(raw))
+        except (sr.UnknownValueError, sr.RequestError):
+            heard = None
+        if heard:
+            print(f"  Heard: {heard}")
+        hw = len(heard.split()) if heard else 0
+        if hw < pw * 0.5:
+            print(f"  Incomplete ({hw}/{pw} words). Try again.")
+            continue
+        break
+    print(f"  {DIM}Playing back...{RST}", end="", flush=True)
+    play_raw(raw)
+    print(f"\r\033[K", end="")
+    ref = ensure_ref(text)
+    sim = audio_similarity(ref, raw) if ref.exists() else 0
+    if sim:
+        print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
+    try:
+        r = get_assessment(raw, data, text)
+    except Exception as e:
+        print(f"  Analysis error: {e}")
+        return []
+    return parse_assessment(r, data)
+
+
+def assess(data, h, cont=False, debug=False):
+    """Assess pronunciation with phonetic pangrams."""
+    print(f"\n--- Pronunciation assessment ---\n")
+    print(f"  Read each sentence aloud:\n")
+    weak = []
+    for p in pangrams:
+        text = p.get("text", p) if isinstance(p, dict) else p
+        ipa = p.get("ipa", "") if isinstance(p, dict) else ""
+        w = _assess_one(data, text, ipa)
+        for g in w:
+            if g not in weak:
+                weak.append(g)
+        if weak:
+            break
+    if not weak:
+        print("  Your pronunciation sounds good!")
+        return
+    print(f"\n  Areas to work on:\n")
+    for i, gid in enumerate(weak):
+        g = data[gid]
+        acc = group_accuracy(h, gid)
+        tag = f" ({acc:.0%})" if acc >= 0 else ""
+        print(f"  {i + 1}. {g.name}{tag}")
+    print(f"\n  {DIM}[Enter] practice  [q]uit{RST}", end="", flush=True)
+    c = input().strip().lower()
+    if c == 'q':
+        return
+    gid = weak[0]
+    print(f"\n  Starting practice: {data[gid].name}\n")
+    practice(data, gid, h, cont, debug)
 
 
 def practice(data, gid, h, cont=False, debug=False):
@@ -977,7 +1169,7 @@ def practice(data, gid, h, cont=False, debug=False):
                         wait_key(None)
                         clear_line()
                 else:
-                    print(f"  {DIM}[Enter] next [q] quit{RST}",
+                    print(f"  {DIM}[Enter] next [q]uit{RST}",
                           end="", flush=True)
                     c = wait_key(None)
                     clear_line()
@@ -1263,7 +1455,26 @@ def main():
                    help="test AI feedback on mismatched words")
     p.add_argument("--test-services", action="store_true",
                    help="test available services")
+    p.add_argument("--assess", action="store_true",
+                   help="assess pronunciation with a pangram")
+    voice_choices = [v.lower() for v in VOICES_ALL] + [
+        "male", "female", "random"]
+    p.add_argument("--voice",
+                   help=f"TTS voice ({', '.join(voice_choices)})")
     a = p.parse_args()
+
+    if a.voice:
+        import random
+        global voice
+        v = a.voice.lower()
+        if v == "random":
+            voice = random.choice(VOICES_ALL)
+        elif v == "male":
+            voice = random.choice(VOICES_MALE)
+        elif v == "female":
+            voice = random.choice(VOICES_FEMALE)
+        else:
+            voice = next((x for x in VOICES_ALL if x.lower() == v), v)
 
     if a.test_rec:
         test_rec()
@@ -1292,6 +1503,15 @@ def main():
     if a.calibrate:
         calibrate()
         return
+    if a.assess:
+        try:
+            assess(data, h, a.continuous, a.debug)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            restore_term()
+            save_history(h)
+        return
 
     if a.text:
         # find word in data for IPA, or use empty
@@ -1313,10 +1533,10 @@ def main():
         quick_calibrate()
         print(f"\r\033[K", end="")
     if a.continuous:
-        print(f"{DIM}Keys: [s] skip  [f] feedback  [p] pause  [q] quit{RST}")
+        print(f"{DIM}Keys: [s]kip  [f]eedback  [p]ause  [q]uit{RST}")
         print(f"{DIM}Keys work during recording and between words{RST}")
     else:
-        print(f"{DIM}Keys: [Enter] retry  [s] skip  [f] feedback  [q] quit{RST}")
+        print(f"{DIM}Keys: [Enter] retry  [s]kip  [f]eedback  [q]uit{RST}")
     print()
 
     if a.group:

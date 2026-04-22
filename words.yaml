@@ -1004,6 +1004,20 @@ f_v:
       example: I believe in you.
       difficulty: 2
 
+pangrams:
+  - text: >-
+      The shy judge told her to bring five
+      thick wood chunks for Joe's new gazebo.
+    ipa: >-
+      /ðə ʃaɪ dʒʌdʒ toʊld hɜːr tə brɪŋ faɪv
+      θɪk wʊd tʃʌŋks fɔːr dʒoʊz nuː ɡəˈziːboʊ/
+  - text: >-
+      With tenure, Suzie'd have all the more leisure
+      for yachting, but her publications are no good.
+    ipa: >-
+      /wɪθ ˈtɛnjər, ˈsuːziz hæv ɔːl ðə mɔːr ˈlɛʒər
+      fɔːr ˈjɑːtɪŋ, bʌt hɜːr ˌpʌblɪˈkeɪʃənz ɑːr noʊ ɡʊd/
+
 stt_aliases:
   zero: "0"
   one: "1"
