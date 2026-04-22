@@ -88,7 +88,7 @@ green above, yellow above half, red below.
 - consonant clusters, ng sound, j/y, ough variations
 - vowel+r combinations, zh sound, h sound
 
-Groups and words are defined in `words.yaml`.
+Groups and words are defined in `english.yaml`.
 
 ### AI feedback
 
@@ -175,7 +175,7 @@ python3 -c "import nltk; nltk.download('wordnet')"
 
 - `pronounce.py` - pronunciation trainer
 - `vocab.py` - vocabulary size estimator
-- `words.yaml` - phoneme groups, words, STT equivalences
+- `english.yaml` - phoneme groups, words, STT equivalences
 - `requirements.txt` - Python dependencies
 - `~/.config/english-pronounce/` - user data directory
   - `history.yaml` - practice history

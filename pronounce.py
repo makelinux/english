@@ -44,7 +44,7 @@ from gtts import gTTS
 from pydub import AudioSegment
 from scipy.spatial.distance import cdist
 
-DATA = Path(__file__).parent / "words.yaml"
+DATA = Path(__file__).parent / "english.yaml"
 CONF_DIR = Path.home() / ".config" / "english-pronounce"
 HIST = CONF_DIR / "history.yaml"
 REF_DIR = CONF_DIR / "ref"
