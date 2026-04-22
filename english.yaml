@@ -1018,6 +1018,75 @@ pangrams:
       /wɪθ ˈtɛnjər, ˈsuːziz hæv ɔːl ðə mɔːr ˈlɛʒər
       fɔːr ˈjɑːtɪŋ, bʌt hɜːr ˌpʌblɪˈkeɪʃənz ɑːr noʊ ɡʊd/
 
+twisters:
+  - text: She sells seashells by the seashore.
+    group: sh_ch
+  - text: Red lorry, yellow lorry, red lorry, yellow lorry.
+    group: r_l
+  - text: >-
+      The thirty-three thieves thought that they
+      thrilled the throne throughout Thursday.
+    group: th_voiceless
+  - text: >-
+      Whether the weather is warm, whether the
+      weather is hot, we have to put up with the
+      weather, whether we like it or not.
+    group: th_voiced
+  - text: >-
+      Peter Piper picked a peck of pickled peppers.
+    group: consonant_clusters
+  - text: >-
+      How much wood would a woodchuck chuck
+      if a woodchuck could chuck wood?
+    group: v_w
+  - text: >-
+      Fuzzy Wuzzy was a bear, Fuzzy Wuzzy
+      had no hair, Fuzzy Wuzzy wasn't fuzzy, was he?
+    group: s_z
+  - text: >-
+      Unique New York, you know you need
+      unique New York.
+    group: vowel_pairs
+  - text: >-
+      Six slippery snails slid slowly seaward.
+    group: s_z
+  - text: >-
+      Fred fed Ted bread and Ted fed Fred bread.
+    group: ed_endings
+  - text: >-
+      A proper copper coffee pot.
+    group: consonant_clusters
+  - text: >-
+      The sixth sick sheik's sixth sheep's sick.
+    group: sh_ch
+
+prompts:
+  sysprompt: >-
+    You are a pronunciation coach for American English.
+    Don't flatter, be objective.
+    Address the speaker as "you".{no_ipa}
+  feedback: >-
+    The speaker is trying to say "{word}" (IPA: {ipa}).
+    Listen to the audio. Does it sound like "{word}"?
+    If yes, respond ONLY with the word "Good" and nothing
+    else. Homophones of "{word}" count as correct.
+    Accent variations are acceptable.
+    Only if a clearly different word is spoken, say what you
+    heard and how to fix it in 2-3 sentences.
+  assess: >-
+    The speaker read this sentence aloud: "{text}"
+    Listen to the audio and identify pronunciation weaknesses.
+    Here are the phoneme group IDs: {groups}.
+    Return ONLY the group IDs where you detected problems,
+    one per line, most significant first.
+    If pronunciation is good overall, return just: GOOD
+  twister: >-
+    The speaker is reading this tongue twister: "{text}"
+    Listen to the audio. If pronunciation is clear and
+    accurate, respond ONLY with "Good".
+    Otherwise describe what needs improvement in 2-3
+    sentences. Focus on the sounds this twister targets.
+
 stt_aliases:
   zero: "0"
   one: "1"

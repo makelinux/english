@@ -73,6 +73,8 @@ cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 calibrated = False
 cfg = {}
 voice = "Kore"
+SYSPROMPT = ""
+pmt = Box()
 
 
 def load_calibration():
@@ -99,11 +101,14 @@ def save_calibration():
 def load_words():
     with open(DATA) as f:
         raw = yaml.safe_load(f)
-    global pangrams
+    global pangrams, twisters, SYSPROMPT, pmt
     pangrams = raw.pop("pangrams", [])
     if not pangrams:
         p = raw.pop("pangram", {})
         pangrams = [p] if p else []
+    twisters = raw.pop("twisters", [])
+    pmt = Box(raw.pop("prompts", {}))
+    SYSPROMPT = pmt.sysprompt.format(no_ipa=_no_ipa())
     STT_ALIASES.update(raw.pop("stt_aliases", {}))
     for group in raw.pop("stt_equiv", []):
         STT_EQUIV.append(set(group))
@@ -130,17 +135,50 @@ def get_ref_path(word):
     return REF_DIR / f"{word}.wav"
 
 
+def _gemini_tts_wav(text):
+    """Generate WAV bytes via Gemini TTS. Returns AudioSegment or None."""
+    try:
+        from google import genai
+        from google.genai import types
+        c = genai.Client()
+        r = c.models.generate_content(
+            model="gemini-3.1-flash-tts-preview",
+            contents=text,
+            config=types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                            voice_name=voice
+                        )
+                    )
+                )
+            )
+        )
+        data = r.candidates[0].content.parts[0].inline_data.data
+        seg = AudioSegment(data=data, sample_width=2,
+                           frame_rate=24000, channels=1)
+        return seg.set_channels(1).set_frame_rate(SAMPLE_RATE) \
+                  .set_sample_width(SAMPLE_WIDTH)
+    except Exception:
+        return None
+
+
 def ensure_ref(word):
-    """Generate and cache gTTS reference audio as 16kHz mono WAV."""
+    """Generate and cache reference audio as 16kHz mono WAV.
+    Tries Gemini TTS first, falls back to gTTS."""
     p = get_ref_path(word)
     if p.exists():
         return p
     REF_DIR.mkdir(parents=True, exist_ok=True)
-    buf = BytesIO()
-    gTTS(word, lang="en").write_to_fp(buf)
-    buf.seek(0)
-    seg = AudioSegment.from_mp3(buf)
-    seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
+    seg = _gemini_tts_wav(word)
+    if not seg:
+        buf = BytesIO()
+        gTTS(word, lang="en").write_to_fp(buf)
+        buf.seek(0)
+        seg = AudioSegment.from_mp3(buf)
+        seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE) \
+                  .set_sample_width(SAMPLE_WIDTH)
     seg.export(str(p), format="wav")
     return p
 
@@ -165,11 +203,9 @@ def speak(text):
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def _play_gemini_pcm(data):
-    """Play raw PCM 24kHz 16-bit mono from Gemini."""
-    seg = AudioSegment(data=data, sample_width=2, frame_rate=24000, channels=1)
-    seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
-    seg -= 10
+def _play_seg(seg, vol=-10):
+    """Play an AudioSegment via PulseAudio."""
+    seg = seg + vol
     with pasimple.PaSimple(
         pasimple.PA_STREAM_PLAYBACK,
         pasimple.PA_SAMPLE_S16LE,
@@ -180,38 +216,15 @@ def _play_gemini_pcm(data):
         pa.drain()
 
 
-def _speak_gemini(text):
-    """Speak text via Gemini TTS (high quality)."""
-    from google import genai
-    from google.genai import types
-    c = genai.Client()
-    status(f"  {DIM}gemini-3.1-flash-tts ...{RST}")
-    r = c.models.generate_content(
-        model="gemini-3.1-flash-tts-preview",
-        contents=text,
-        config=types.GenerateContentConfig(
-            response_modalities=["AUDIO"],
-            speech_config=types.SpeechConfig(
-                voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name=voice
-                    )
-                )
-            )
-        )
-    )
-    status()
-    _play_gemini_pcm(r.candidates[0].content.parts[0].inline_data.data)
-
-
 def speak_text(text):
     """Speak arbitrary text via Gemini TTS, gTTS fallback."""
     try:
-        try:
-            _speak_gemini(text)
+        status(f"  {DIM}gemini-3.1-flash-tts ...{RST}")
+        seg = _gemini_tts_wav(text)
+        status()
+        if seg:
+            _play_seg(seg)
             return
-        except Exception:
-            pass
         buf = BytesIO()
         gTTS(text, lang="en").write_to_fp(buf)
         buf.seek(0)
@@ -615,18 +628,12 @@ def status(msg=''):
         print(f"\r\033[K", end='', flush=True, file=sys.stderr)
 
 
+def _no_ipa():
+    return "" if os.getenv("GOOGLE_API_KEY") else " No IPA symbols."
+
+
 def _feedback_prompt(word, ipa):
-    return (
-        f"You are a pronunciation coach for American English. "
-        f"The speaker is trying to say \"{word}\" (IPA: {ipa}). "
-        f"Listen to the audio. Does it sound like \"{word}\"? "
-        f"If yes, respond ONLY with the word \"Good\" and nothing "
-        f"else. Homophones of \"{word}\" count as correct. "
-        f"Accent variations are acceptable. "
-        f"Only if a clearly different word is spoken, say what you "
-        f"heard and how to fix it in 2-3 sentences. "
-        f"Address the speaker as \"you\". No IPA symbols."
-    )
+    return pmt.feedback.format(word=word, ipa=ipa)
 
 
 def _raw_to_wav(raw):
@@ -642,7 +649,7 @@ def _raw_to_wav(raw):
 def _feedback_gemini(wav, word, ipa):
     import google.generativeai as genai
     status(f"  {DIM}gemini-flash-latest ...{RST}")
-    model = genai.GenerativeModel("gemini-flash-latest")
+    model = genai.GenerativeModel("gemini-flash-latest", system_instruction=SYSPROMPT)
     r = model.generate_content([
         _feedback_prompt(word, ipa),
         {"mime_type": "audio/wav", "data": wav},
@@ -690,9 +697,12 @@ def _feedback_openai(wav, word, ipa):
         part = {"type": "image_url", "image_url": {"url": uri}}
     r = c.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": [
-            {"type": "text", "text": prompt}, part,
-        ]}],
+        messages=[
+            {"role": "system", "content": SYSPROMPT},
+            {"role": "user", "content": [
+                {"type": "text", "text": prompt}, part,
+            ]},
+        ],
     )
     status()
     return r.choices[0].message.content.strip()
@@ -709,22 +719,13 @@ def get_feedback(raw, word, ipa):
 
 
 def _assess_prompt(data, text):
-    groups = ", ".join(data.keys())
-    return (
-        f"You are a pronunciation coach for American English. "
-        f"The speaker read this sentence aloud: \"{text}\" "
-        f"Listen to the audio and identify pronunciation weaknesses. "
-        f"Here are the phoneme group IDs: {groups}. "
-        f"Return ONLY the group IDs where you detected problems, "
-        f"one per line, most significant first. "
-        f"If pronunciation is good overall, return just: GOOD"
-    )
+    return pmt.assess.format(text=text, groups=", ".join(data.keys()))
 
 
 def _assess_gemini(wav, data, text):
     import google.generativeai as genai
     status(f"  {DIM}gemini-flash-latest ...{RST}")
-    m = genai.GenerativeModel("gemini-flash-latest")
+    m = genai.GenerativeModel("gemini-flash-latest", system_instruction=SYSPROMPT)
     r = m.generate_content([
         _assess_prompt(data, text),
         {"mime_type": "audio/wav", "data": wav},
@@ -772,9 +773,12 @@ def _assess_openai(wav, data, text):
         part = {"type": "image_url", "image_url": {"url": uri}}
     r = c.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": [
-            {"type": "text", "text": prompt}, part,
-        ]}],
+        messages=[
+            {"role": "system", "content": SYSPROMPT},
+            {"role": "user", "content": [
+                {"type": "text", "text": prompt}, part,
+            ]},
+        ],
     )
     status()
     return r.choices[0].message.content.strip()
@@ -1123,12 +1127,112 @@ def assess(data, h, cont=False, debug=False):
         tag = f" ({acc:.0%})" if acc >= 0 else ""
         print(f"  {i + 1}. {g.name}{tag}")
     print(f"\n  {DIM}[Enter] practice  [q]uit{RST}", end="", flush=True)
-    c = input().strip().lower()
+    c = wait_key(None)
+    print()
     if c == 'q':
         return
     gid = weak[0]
     print(f"\n  Starting practice: {data[gid].name}\n")
     practice(data, gid, h, cont, debug)
+
+
+def _twister_prompt(text):
+    return pmt.twister.format(text=text)
+
+
+def _twister_feedback(raw, text):
+    wav = _raw_to_wav(raw)
+    if cfg.get("openai"):
+        import base64
+        from openai import OpenAI
+        oc = cfg["openai"]
+        c = OpenAI(
+            base_url=oc.get("base_url", "http://localhost:8321/v1/"),
+            api_key=oc.get("api_key", "none"),
+        )
+        b64 = base64.b64encode(wav).decode()
+        prompt = _twister_prompt(text)
+        model = oc.get("model", os.getenv("INFERENCE_MODEL",
+                                          "gemini/gemini-2.5-flash"))
+        status(f"  {DIM}{model} ...{RST}")
+        uri = f"data:audio/wav;base64,{b64}"
+        af = oc.get("audio_format", "image_url")
+        part = {"type": "image_url", "image_url": {"url": uri}}
+        if af == "input_audio":
+            part = {"type": "input_audio",
+                    "input_audio": {"data": b64, "format": "wav"}}
+        r = c.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": SYSPROMPT},
+                {"role": "user", "content": [
+                    {"type": "text", "text": prompt}, part,
+            ]}],
+        )
+        status()
+        return r.choices[0].message.content.strip()
+    import google.generativeai as genai
+    status(f"  {DIM}gemini-flash-latest ...{RST}")
+    m = genai.GenerativeModel("gemini-flash-latest", system_instruction=SYSPROMPT)
+    r = m.generate_content([
+        _twister_prompt(text),
+        {"mime_type": "audio/wav", "data": wav},
+    ])
+    status()
+    return r.text.strip()
+
+
+def practice_twisters(data, h):
+    """Practice tongue twisters with AI feedback."""
+    print(f"\n--- Tongue twisters ---\n")
+    for i, tw in enumerate(twisters):
+        text = tw["text"]
+        gid = tw.get("group", "")
+        gname = data[gid].name if gid in data else ""
+        label = f"  {i + 1}/{len(twisters)}"
+        if gname:
+            label += f"  ({gname})"
+        print(f"{label}")
+        print(f"  {text}")
+        print()
+        print(f"  {DIM}Listen...{RST}", end="", flush=True)
+        speak_text(text)
+        print(f"\r\033[K", end="")
+        dur = 15
+        t = [0]
+        def countdown(peak, t=t):
+            t[0] += 0.3
+            left = max(0, int(dur - t[0]))
+            print(f"\r  Recording... {left}s \033[K", end="", flush=True)
+        print(f"  Your turn. Recording... {dur}s ", end="", flush=True)
+        raw, spoke, _ = record_audio(duration=dur, on_chunk=countdown)
+        print(f"\r\033[K", end="")
+        if not spoke:
+            print("  No speech detected.")
+            continue
+        print(f"  {DIM}Playing back...{RST}", end="", flush=True)
+        play_raw(raw)
+        print(f"\r\033[K", end="")
+        ref = ensure_ref(text)
+        sim = audio_similarity(ref, raw) if ref.exists() else 0
+        if sim:
+            print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
+        try:
+            fb = _twister_feedback(raw, text)
+        except Exception as e:
+            print(f"  Feedback error: {e}")
+            continue
+        print(f"  {fb}")
+        if fb.strip() != "Good":
+            speak_text(re.sub(r'[\"\'()"/]', '', fb))
+        if i < len(twisters) - 1:
+            print(f"\n  {DIM}[Enter] next  [q]uit{RST}", end="",
+                  flush=True)
+            c = wait_key(None)
+            print()
+            if c == 'q':
+                break
+        print()
 
 
 def practice(data, gid, h, cont=False, debug=False):
@@ -1457,17 +1561,21 @@ def main():
                    help="test available services")
     p.add_argument("--assess", action="store_true",
                    help="assess pronunciation with a pangram")
-    voice_choices = [v.lower() for v in VOICES_ALL] + [
-        "male", "female", "random"]
+    p.add_argument("--twisters", action="store_true",
+                   help="practice tongue twisters with feedback")
     p.add_argument("--voice",
-                   help=f"TTS voice ({', '.join(voice_choices)})")
+                   help="TTS voice (list, male, female, random, or name)")
     a = p.parse_args()
 
     if a.voice:
         import random
         global voice
         v = a.voice.lower()
-        if v == "random":
+        if v == "list":
+            print("Male:  ", ", ".join(VOICES_MALE))
+            print("Female:", ", ".join(VOICES_FEMALE))
+            return
+        elif v == "random":
             voice = random.choice(VOICES_ALL)
         elif v == "male":
             voice = random.choice(VOICES_MALE)
@@ -1511,6 +1619,12 @@ def main():
         finally:
             restore_term()
             save_history(h)
+        return
+    if a.twisters:
+        try:
+            practice_twisters(data, h)
+        except KeyboardInterrupt:
+            pass
         return
 
     if a.text:
