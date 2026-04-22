@@ -2,99 +2,51 @@
 """English pronunciation trainer - practice words grouped by phoneme."""
 
 import argparse
-import ctypes
-import logging
 import os
 import re
 import select
-import subprocess
 import sys
 import termios
+import threading
+import time
 import tty
 from datetime import date
 from difflib import SequenceMatcher
-from io import BytesIO
 from pathlib import Path
-
-logging.disable(logging.CRITICAL)
-os.environ["LIBVA_MESSAGING_LEVEL"] = "0"
-
-# suppress ALSA errors printed by C libraries
-try:
-    asound = ctypes.cdll.LoadLibrary("libasound.so.2")
-    asound.snd_lib_error_set_handler(
-        ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_int,
-                         ctypes.c_char_p, ctypes.c_int,
-                         ctypes.c_char_p)(lambda *_: None))
-except OSError:
-    pass
-
-import threading
-import time
-import wave
 
 import librosa
 import numpy as np
-import pasimple
 import speech_recognition as sr
-import webrtcvad
 import yaml
 from box import Box
-from gtts import gTTS
-from pydub import AudioSegment
-from scipy.spatial.distance import cdist
+
+import audio
+from audio import (
+    SAMPLE_RATE, CONF_DIR, CAL_WORDS,
+    VOICES_MALE, VOICES_FEMALE, VOICES_ALL, _VU_BLOCKS,
+    cal, DIM, RST,
+    load_calibration, save_calibration, quick_calibrate,
+    status, record_audio, play_raw, speak, speak_text,
+    ensure_ref, get_ref_path, audio_similarity,
+    normalize_volume, extract_mfcc, dtw_distance,
+    raw_to_sr_audio, _raw_to_wav, _gemini_tts_wav, _ref_raw,
+    test_rec,
+)
 
 DATA = Path(__file__).parent / "english.yaml"
-CONF_DIR = Path.home() / ".config" / "english-pronounce"
 HIST = CONF_DIR / "history.yaml"
-REF_DIR = CONF_DIR / "ref"
-CAL_FILE = CONF_DIR / "calibration.yaml"
 CFG_FILE = CONF_DIR / "config.yaml"
-SAMPLE_RATE = 16000
-SAMPLE_WIDTH = 2
-CHANNELS = 1
-N_MFCC = 13
-CAL_WORDS = ["test", "sip", "one", "two", "three", "four", "five"]
-VOICES_MALE = [
-    "Achird", "Algenib", "Algieba", "Alnilam", "Charon",
-    "Enceladus", "Fenrir", "Iapetus", "Orus", "Puck",
-    "Rasalgethi", "Sadachbia", "Sadaltager", "Schedar",
-    "Umbriel", "Zubenelgenubi",
-]
-VOICES_FEMALE = [
-    "Achernar", "Aoede", "Autonoe", "Callirrhoe", "Despina",
-    "Erinome", "Gacrux", "Kore", "Laomedeia", "Leda",
-    "Pulcherrima", "Sulafat", "Vindemiatrix", "Zephyr",
-]
-VOICES_ALL = VOICES_MALE + VOICES_FEMALE
 
-# calibration state - loaded at startup
-cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
-calibrated = False
 cfg = Box(default_box=True)
-voice = "Kore"
 data = Box()
 
 
-def load_calibration():
-    global calibrated, _vu_max
-    if CAL_FILE.exists():
-        with open(CAL_FILE) as f:
-            cal.update(yaml.safe_load(f))
-        cal.pop("gain", None)
-        calibrated = True
-        _vu_max = cal.get("vu_peak", 0.2) * 0.5
+def load_cfg():
     if CFG_FILE.exists():
         with open(CFG_FILE) as f:
             c = yaml.safe_load(f)
         if c:
             cfg.update(c)
-
-
-def save_calibration():
-    CONF_DIR.mkdir(parents=True, exist_ok=True)
-    with open(CAL_FILE, "w") as f:
-        yaml.dump(cal, f)
 
 
 def load_data():
@@ -121,184 +73,52 @@ def save_history(h):
         yaml.dump(h, f)
 
 
-def get_ref_path(word):
-    return REF_DIR / f"{word}.wav"
+_term_saved = None
 
 
-def _gemini_tts_wav(text):
-    """Returns AudioSegment or None."""
-    try:
-        from google import genai
-        from google.genai import types
-        c = genai.Client()
-        r = c.models.generate_content(
-            model="gemini-3.1-flash-tts-preview",
-            contents=text,
-            config=types.GenerateContentConfig(
-                response_modalities=["AUDIO"],
-                speech_config=types.SpeechConfig(
-                    voice_config=types.VoiceConfig(
-                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name=voice
-                        )
-                    )
-                )
-            )
-        )
-        data = r.candidates[0].content.parts[0].inline_data.data
-        seg = AudioSegment(data=data, sample_width=2,
-                           frame_rate=24000, channels=1)
-        return seg.set_channels(1).set_frame_rate(SAMPLE_RATE) \
-                  .set_sample_width(SAMPLE_WIDTH)
-    except Exception:
+def set_cbreak():
+    global _term_saved
+    _term_saved = termios.tcgetattr(sys.stdin)
+    tty.setcbreak(sys.stdin.fileno())
+
+
+def restore_term():
+    global _term_saved
+    if _term_saved:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, _term_saved)
+        _term_saved = None
+
+
+def clear_line():
+    print("\r\033[K", end="", flush=True)
+
+
+def wait_key(timeout=2):
+    """Returns key pressed or None."""
+    if _term_saved:
+        key = None
+        while select.select([sys.stdin], [], [], 0)[0]:
+            key = sys.stdin.read(1)
+        if key:
+            return key
+        if timeout is None:
+            return sys.stdin.read(1)
+        if select.select([sys.stdin], [], [], timeout)[0]:
+            return sys.stdin.read(1)
         return None
-
-
-def ensure_ref(word):
-    """Cache reference audio - Gemini TTS first, gTTS fallback."""
-    p = get_ref_path(word)
-    if p.exists():
-        return p
-    REF_DIR.mkdir(parents=True, exist_ok=True)
-    seg = _gemini_tts_wav(word)
-    if not seg:
-        buf = BytesIO()
-        gTTS(word, lang="en").write_to_fp(buf)
-        buf.seek(0)
-        seg = AudioSegment.from_mp3(buf)
-        seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE) \
-                  .set_sample_width(SAMPLE_WIDTH)
-    seg.export(str(p), format="wav")
-    return p
-
-
-def speak(text):
+    old = termios.tcgetattr(sys.stdin)
     try:
-        ref = ensure_ref(text)
-        seg = AudioSegment.from_wav(str(ref))
-        with pasimple.PaSimple(
-            pasimple.PA_STREAM_PLAYBACK,
-            pasimple.PA_SAMPLE_S16LE,
-            seg.channels,
-            seg.frame_rate,
-            app_name="pronounce",
-        ) as pa:
-            pa.write(seg.raw_data)
-            pa.drain()
-    except Exception:
-        subprocess.run(
-            ["espeak-ng", "-s", "130", "-v", "en-us", text],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-
-def _play_seg(seg, vol=-10):
-    seg = seg + vol
-    with pasimple.PaSimple(
-        pasimple.PA_STREAM_PLAYBACK,
-        pasimple.PA_SAMPLE_S16LE,
-        1, SAMPLE_RATE,
-        app_name="pronounce",
-    ) as pa:
-        pa.write(seg.raw_data)
-        pa.drain()
-
-
-def speak_text(text):
-    try:
-        status(f"  {DIM}gemini-3.1-flash-tts ...{RST}")
-        seg = _gemini_tts_wav(text)
-        status()
-        if seg:
-            _play_seg(seg)
-            return
-        buf = BytesIO()
-        gTTS(text, lang="en").write_to_fp(buf)
-        buf.seek(0)
-        seg = AudioSegment.from_mp3(buf).set_channels(1) \
-            .set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
-        _play_seg(seg)
-    except Exception:
-        subprocess.run(
-            ["espeak-ng", "-s", "150", "-v", "en-us", text],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-
-def extract_mfcc(samples, sr_rate=SAMPLE_RATE):
-    m = librosa.feature.mfcc(y=samples, sr=sr_rate, n_mfcc=N_MFCC)
-    w = min(9, m.shape[1])
-    if w >= 3:
-        d = librosa.feature.delta(m, width=w if w % 2 else w - 1)
-        feat = np.vstack([m[1:], d[1:]]).T
-    else:
-        feat = m[1:].T
-    feat = feat - feat.mean(axis=0)
-    return feat
-
-
-def dtw_distance(a, b):
-    cost = cdist(a, b, metric="euclidean")
-    n, m = cost.shape
-    d = np.full((n + 1, m + 1), np.inf)
-    d[0, 0] = 0
-    for i in range(1, n + 1):
-        for j in range(1, m + 1):
-            d[i, j] = cost[i - 1, j - 1] + min(
-                d[i - 1, j], d[i, j - 1], d[i - 1, j - 1])
-    return d[n, m] / (n + m)
-
-
-def normalize_volume(samples):
-    peak = np.max(np.abs(samples))
-    if peak < 1e-6:
-        return samples
-    return samples / peak
-
-
-def dist_to_pct(dist):
-    d = max(0, dist - cal["bias"])
-    return max(0, min(100, int(100 * (1 - d / (cal["scale"] * 3)))))
-
-
-def audio_similarity(ref_path, rec_raw):
-    """Returns 0-100."""
-    ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
-    rec = np.frombuffer(rec_raw, dtype=np.int16).astype(np.float32) / 32768.0
-    ref = normalize_volume(ref)
-    rec = normalize_volume(rec)
-    ref, _ = librosa.effects.trim(ref, top_db=cal["top_db"])
-    rec, _ = librosa.effects.trim(rec, top_db=cal["top_db"])
-    if len(ref) < 1600 or len(rec) < 1600:
-        return 0
-    return dist_to_pct(dtw_distance(extract_mfcc(ref), extract_mfcc(rec)))
-
-
-def quick_calibrate():
-    global calibrated, _vu_max
-    w = "test"
-    ref_path = ensure_ref(w)
-    raw = [None]
-    t = threading.Thread(
-        target=lambda: raw.__setitem__(0, record_audio(3)[0]))
-    t.start()
-    time.sleep(cal["delay"])
-    speak(w)
-    t.join()
-    ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
-    rec = np.frombuffer(raw[0], dtype=np.int16).astype(np.float32) / 32768.0
-    ref = normalize_volume(ref)
-    rec = normalize_volume(rec)
-    ref, _ = librosa.effects.trim(ref, top_db=cal["top_db"])
-    rec, _ = librosa.effects.trim(rec, top_db=cal["top_db"])
-    if len(ref) < 1600 or len(rec) < 1600:
-        return
-    d = dtw_distance(extract_mfcc(ref), extract_mfcc(rec))
-    cal["bias"] = d * 0.9
-    cal["scale"] = d * 0.6
-    p = float(np.max(np.abs(rec)))
-    if p > _vu_max:
-        _vu_max = p
-    calibrated = True
-
+        tty.setcbreak(sys.stdin.fileno())
+        key = None
+        while select.select([sys.stdin], [], [], 0)[0]:
+            key = sys.stdin.read(1)
+        if key:
+            return key
+        if select.select([sys.stdin], [], [], timeout)[0]:
+            return sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old)
+    return None
 
 
 # IPA-based homophone lookup
@@ -337,174 +157,14 @@ def stt_score(expected, heard):
     return 0
 
 
-_VU_BLOCKS = ".▁▂▃▄▅▆▇█"
-
-
-def record_audio(duration=5, pause=0.8, on_chunk=None):
-    """Record with VAD - stops after pause seconds of silence.
-    on_chunk(peak_0_1) called every ~200ms with peak amplitude.
-    Returns (raw_bytes, speech_started, key_pressed)."""
-    vad = webrtcvad.Vad(3)
-    chunk_ms = 30
-    chunk_bytes = int(SAMPLE_RATE * SAMPLE_WIDTH * chunk_ms / 1000)
-    max_chunks = int(duration * 1000 / chunk_ms)
-    pa = pasimple.PaSimple(
-        pasimple.PA_STREAM_RECORD,
-        pasimple.PA_SAMPLE_S16LE,
-        CHANNELS, SAMPLE_RATE,
-        app_name="pronounce",
-        stream_name="record",
-        fragsize=chunk_bytes,
-    )
-    chunks = []
-    speech_started = False
-    speech_run = 0
-    silence = 0
-    key = None
-    vu_peak = 0.0
-    vu_count = 0
-    try:
-        for _ in range(max_chunks):
-            c = pa.read(chunk_bytes)
-            chunks.append(c)
-            # VU meter - emit one bar per 300ms (10 chunks)
-            if on_chunk:
-                p = float(np.max(np.abs(
-                    np.frombuffer(c, dtype=np.int16)))) / 32768.0
-                if p > vu_peak:
-                    vu_peak = p
-                vu_count += 1
-                if vu_count >= 10:
-                    on_chunk(vu_peak)
-                    vu_peak = 0.0
-                    vu_count = 0
-            if _term_saved and select.select([sys.stdin], [], [], 0)[0]:
-                key = sys.stdin.read(1)
-                if speech_started:
-                    break
-            is_speech = vad.is_speech(c, SAMPLE_RATE)
-            # reject keyboard clicks: speech has more low-freq energy
-            if is_speech:
-                s = np.frombuffer(c, dtype=np.int16).astype(np.float32)
-                fft = np.abs(np.fft.rfft(s))
-                cutoff = len(fft) * 2000 // (SAMPLE_RATE // 2)
-                if np.sum(fft[cutoff:]) > np.sum(fft[:cutoff]) * 2:
-                    is_speech = False
-            if is_speech:
-                speech_run += 1
-                if speech_run >= 8:
-                    speech_started = True
-                silence = 0
-            elif speech_started:
-                silence += chunk_ms
-                if silence >= pause * 1000:
-                    break
-            else:
-                speech_run = 0
-    finally:
-        pa.close()
-    return b"".join(chunks), speech_started, key
-
-
-def normalize_raw(raw):
-    a = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
-    peak = np.max(np.abs(a))
-    if peak < 100:
-        return raw
-    a = a / peak * 16000
-    return np.clip(a, -32768, 32767).astype(np.int16).tobytes()
-
-
-def raw_to_sr_audio(raw):
-    pad = b'\x00' * (SAMPLE_RATE * SAMPLE_WIDTH)  # 1s silence
-    norm = normalize_raw(raw)
-    buf = BytesIO()
-    with wave.open(buf, "wb") as w:
-        w.setnchannels(CHANNELS)
-        w.setsampwidth(SAMPLE_WIDTH)
-        w.setframerate(SAMPLE_RATE)
-        w.writeframes(pad + norm + pad)
-    return sr.AudioData(buf.getvalue(), SAMPLE_RATE, SAMPLE_WIDTH)
-
-
-def clear_line():
-    print("\r\033[K", end="", flush=True)
-
-
-_term_saved = None
-
-
-def set_cbreak():
-    global _term_saved
-    _term_saved = termios.tcgetattr(sys.stdin)
-    tty.setcbreak(sys.stdin.fileno())
-
-
-def restore_term():
-    global _term_saved
-    if _term_saved:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, _term_saved)
-        _term_saved = None
-
-
-def wait_key(timeout=2):
-    """Returns key pressed or None."""
-    if _term_saved:
-        key = None
-        while select.select([sys.stdin], [], [], 0)[0]:
-            key = sys.stdin.read(1)
-        if key:
-            return key
-        if timeout is None:
-            return sys.stdin.read(1)
-        if select.select([sys.stdin], [], [], timeout)[0]:
-            return sys.stdin.read(1)
-        return None
-    old = termios.tcgetattr(sys.stdin)
-    try:
-        tty.setcbreak(sys.stdin.fileno())
-        key = None
-        while select.select([sys.stdin], [], [], 0)[0]:
-            key = sys.stdin.read(1)
-        if key:
-            return key
-        if select.select([sys.stdin], [], [], timeout)[0]:
-            return sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old)
-    return None
-
-
-def play_raw(raw, volume=0.3):
-    a = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
-    peak = np.max(np.abs(a))
-    if peak < 500:
-        return
-    a = a / peak * 32767 * volume
-    out = a.astype(np.int16).tobytes()
-    with pasimple.PaSimple(
-        pasimple.PA_STREAM_PLAYBACK,
-        pasimple.PA_SAMPLE_S16LE,
-        CHANNELS, SAMPLE_RATE,
-        app_name="pronounce",
-    ) as pa:
-        pa.write(out)
-        pa.drain()
-
-
-_vu_max = 0.2
-
-
 def record_word(word, rec, prefix=""):
     """Returns (heard, pct, sim, peak, dur, raw, key)."""
-    global _vu_max
     vu = []
 
     def on_chunk(peak):
-        global _vu_max
-        if peak > _vu_max:
-            _vu_max = peak
-        mx = _vu_max if _vu_max > 1e-6 else 1.0
+        if peak > audio._vu_max:
+            audio._vu_max = peak
+        mx = audio._vu_max if audio._vu_max > 1e-6 else 1.0
         vu.append(_VU_BLOCKS[min(8, int(peak / mx * 8))])
         print(f"\r\033[K{prefix}"
               f"{DIM}[s]kip [f]eedback [q]uit{RST} "
@@ -514,7 +174,8 @@ def record_word(word, rec, prefix=""):
         ref = get_ref_path(word)
         key = None
         while True:
-            raw, spoke, key = record_audio(on_chunk=on_chunk)
+            raw, spoke, key = record_audio(
+                on_chunk=on_chunk, check_keys=bool(_term_saved))
             if key in ('s', 'q', 'f'):
                 print()
                 return None, 0, 0, 0, 0, None, key
@@ -572,25 +233,8 @@ def update_history(h, gid, word, pct):
     h["groups"][gid]["correct"] += pct / 100
 
 
-DIM = "\033[2m"
-
-
-def status(msg=''):
-    print(f"\r{msg}\033[K", end='', flush=True, file=sys.stderr)
-
-
 def _no_ipa():
     return "" if os.getenv("GOOGLE_API_KEY") else " No IPA symbols."
-
-
-def _raw_to_wav(raw):
-    buf = BytesIO()
-    with wave.open(buf, "wb") as w:
-        w.setnchannels(CHANNELS)
-        w.setsampwidth(SAMPLE_WIDTH)
-        w.setframerate(SAMPLE_RATE)
-        w.writeframes(normalize_raw(raw))
-    return buf.getvalue()
 
 
 def _ask_ai(raw, prompt):
@@ -687,17 +331,8 @@ def parse_assessment(text):
 RED = "\033[31m"
 YEL = "\033[33m"
 GRN = "\033[32m"
-RST = "\033[0m"
 
 sim_threshold = 60
-
-
-def pct_color(pct):
-    if pct >= 70:
-        return GRN
-    if pct >= 40:
-        return YEL
-    return RED
 
 
 def sim_color(pct):
@@ -708,23 +343,6 @@ def sim_color(pct):
     return RED
 
 
-def pct_bar(pct, width=20):
-    n = pct * width // 100
-    c = pct_color(pct)
-    return f"{c}{'#' * n}{'.' * (width - n)}{RST}"
-
-
-def pct_block(pct):
-    c = pct_color(pct)
-    if pct >= 70:
-        return f"{c}\u2588{RST}"
-    if pct >= 40:
-        return f"{c}\u2585{RST}"
-    if pct >= 15:
-        return f"{c}\u2582{RST}"
-    return f"{c} {RST}"
-
-
 def show_stats(h):
     if not h["groups"]:
         print("No practice history yet.")
@@ -732,7 +350,7 @@ def show_stats(h):
     print("\nPerformance by phoneme group:\n")
     for gid, g in sorted(h["groups"].items()):
         acc = g["correct"] / g["attempts"] if g["attempts"] else 0
-        print(f"  {gid:20s} {pct_bar(int(acc * 100))} {acc:.0%}"
+        print(f"  {gid:20s} {acc:.0%}"
               f"  ({g['attempts']} attempts)")
 
     print("\nWeakest words:\n")
@@ -755,30 +373,18 @@ def list_groups():
         print(f"  {gid:20s} - {g.name} ({n} words)")
 
 
-GROUP_KEYS = {
-    "th_voiced": "t", "th_voiceless": "t", "sh_ch": "s",
-    "r_l": "r", "vowel_pairs": "v", "silent_letters": "i",
-    "word_stress": "w", "v_w": "a", "s_z": "z",
-    "diphthongs": "d", "consonant_clusters": "c",
-    "ed_endings": "e", "schwa": "e", "ng_sound": "n",
-    "j_dj": "j", "ei_ai": "y", "ough_spellings": "o",
-    "r_vowels": "l", "zh_sound": "k", "h_sound": "h",
-    "tion_sion": "g", "f_v": "f",
-}
-
-
 def select_group(h):
-    groups = list(data.phonemes.keys())
     keys = {}
-    for gid in groups:
-        k = GROUP_KEYS.get(gid)
+    used = set()
+    for gid, g in data.phonemes.items():
+        k = g.get("key")
         if not k:
-            used = set(GROUP_KEYS.values()) | {'?'}
             for ch in gid:
-                if ch.isalpha() and ch not in used:
+                if ch.isalpha() and ch not in used and ch != '?':
                     k = ch
                     break
         if k:
+            used.add(k)
             keys.setdefault(k, []).append(gid)
 
     print("\nPhoneme groups:\n")
@@ -889,8 +495,8 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
         sim_s = f"  {sim_color(sim)}{sim:2d}%{RST}" if sim else ""
-        bar_s = f"{pct_bar(pct)} {pct}%" if sim and not cont else ""
-        score = f"{bar_s}{heard_s}{sim_s}{dbg}"
+        pct_s = f"{pct}%" if sim and not cont else ""
+        score = f"{pct_s}{heard_s}{sim_s}{dbg}"
         print(f"\r\033[K{prefix}{lb_s}{score}")
 
         if sim >= sim_threshold and pct > 0 \
@@ -1006,7 +612,7 @@ def assess(h, cont=False, debug=False):
         return
     gid = weak[0]
     print(f"\n  Starting practice: {data.phonemes[gid].name}\n")
-    practice(gid, h, cont, debug)
+    practice_phonemes(gid, h, cont, debug)
 
 
 def practice_twisters(h):
@@ -1061,7 +667,7 @@ def practice_twisters(h):
         print()
 
 
-def practice(gid, h, cont=False, debug=False):
+def practice_phonemes(gid, h, cont=False, debug=False):
     g = data.phonemes[gid]
     print(f"\n--- {g.name} ---")
     print(f"  {g.description}")
@@ -1237,48 +843,9 @@ def calibrate():
         speak(w)
         t.join()
         sim = audio_similarity(ref_path, raw[0])
-        print(f"    {w:10s} {pct_block(sim)}{sim:3d}%")
+        print(f"    {w:10s} {sim_color(sim)}{sim:3d}%{RST}")
 
     print(f"\n  Saved to {CAL_FILE}")
-
-
-def test_rec():
-    print("Recording test - speak into mic, Ctrl+C to stop\n")
-    chunk_ms = 30
-    chunk_bytes = int(SAMPLE_RATE * SAMPLE_WIDTH * chunk_ms / 1000)
-    pa = pasimple.PaSimple(
-        pasimple.PA_STREAM_RECORD,
-        pasimple.PA_SAMPLE_S16LE,
-        CHANNELS, SAMPLE_RATE,
-        app_name="pronounce",
-        fragsize=chunk_bytes,
-    )
-    peak = 0.0
-    count = 0
-    try:
-        while True:
-            c = pa.read(chunk_bytes)
-            p = float(np.max(np.abs(
-                np.frombuffer(c, dtype=np.int16)))) / 32768.0
-            if p > peak:
-                peak = p
-            count += 1
-            if count >= 10:
-                print(_VU_BLOCKS[min(8, int(peak * 40))], end="", flush=True)
-                peak = 0.0
-                count = 0
-    except KeyboardInterrupt:
-        pass
-    finally:
-        pa.close()
-    print()
-
-
-def _ref_raw(word):
-    ref = ensure_ref(word)
-    seg = AudioSegment.from_wav(str(ref))
-    return seg.set_channels(1).set_frame_rate(
-        SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH).raw_data
 
 
 def _test_bad():
@@ -1385,20 +952,19 @@ def main():
 
     if a.voice:
         import random
-        global voice
         v = a.voice.lower()
         if v == "list":
             print("Male:  ", ", ".join(VOICES_MALE))
             print("Female:", ", ".join(VOICES_FEMALE))
             return
         elif v == "random":
-            voice = random.choice(VOICES_ALL)
+            audio.voice = random.choice(VOICES_ALL)
         elif v == "male":
-            voice = random.choice(VOICES_MALE)
+            audio.voice = random.choice(VOICES_MALE)
         elif v == "female":
-            voice = random.choice(VOICES_FEMALE)
+            audio.voice = random.choice(VOICES_FEMALE)
         else:
-            voice = next((x for x in VOICES_ALL if x.lower() == v), v)
+            audio.voice = next((x for x in VOICES_ALL if x.lower() == v), v)
 
     if a.test_rec:
         test_rec()
@@ -1407,6 +973,7 @@ def main():
     global sim_threshold
     sim_threshold = a.sim_threshold
     load_calibration()
+    load_cfg()
     load_data()
     build_ipa_map()
     h = load_history()
@@ -1457,7 +1024,7 @@ def main():
 
     print("English pronunciation trainer")
     print("The app will say each word, then you repeat it.")
-    if not calibrated:
+    if not audio.calibrated:
         print(f"{DIM}Quick calibrating...{RST}", end="", flush=True)
         quick_calibrate()
         print("\r\033[K", end="")
@@ -1487,7 +1054,7 @@ def main():
             return
 
     try:
-        practice(gid, h, a.continuous, a.debug)
+        practice_phonemes(gid, h, a.continuous, a.debug)
     except KeyboardInterrupt:
         pass
     finally:
