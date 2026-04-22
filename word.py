@@ -8,9 +8,11 @@ import urllib.request
 
 from cefrpy import CEFRAnalyzer
 from nltk.corpus import wordnet as wn
+from nltk.stem import WordNetLemmatizer
 from wordfreq import zipf_frequency, top_n_list
 
 _cefr = CEFRAnalyzer()
+_lem = WordNetLemmatizer()
 _freq_rank = {w: i for i, w in enumerate(top_n_list('en', 100000))}
 
 
@@ -48,6 +50,14 @@ p.add_argument("words", nargs="+", help="words to look up")
 p.add_argument("--lang", help="translate to language (e.g. ru, de, fr)")
 a = p.parse_args()
 
+def find_root(w):
+    """Find lemma/root trying all POS."""
+    for pos in ('v', 'n', 'a', 'r'):
+        r = _lem.lemmatize(w, pos)
+        if r != w:
+            return r
+    return None
+
 for w in a.words:
     print(word_header(w, a.lang))
     ss = wn.synsets(w)
@@ -76,3 +86,6 @@ for w in a.words:
             print(f"  (dictionaryapi.dev / Wiktionary)")
         except Exception as e:
             print(f"  no definition found ({e})")
+    root = find_root(w)
+    if root:
+        print(f"  root: {word_header(root, a.lang)}")
