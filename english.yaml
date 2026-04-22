@@ -1,1008 +1,1009 @@
-th_voiced:
-  name: 'th voiced (ð)'
-  description: 'as in "this", "that" - tongue between teeth, vibrate'
-  words:
-    - word: this
-      ipa: /ðɪs/
-      example: Is this your book?
-      difficulty: 1
-    - word: that
-      ipa: /ðæt/
-      example: That was amazing.
-      difficulty: 1
-    - word: the
-      ipa: /ðə/
-      example: The cat sat on the mat.
-      difficulty: 1
-    - word: there
-      ipa: /ðɛr/
-      example: There are many options.
-      difficulty: 1
-    - word: they
-      ipa: /ðeɪ/
-      example: They went to the park.
-      difficulty: 1
-    - word: these
-      ipa: /ðiːz/
-      example: These are my friends.
-      difficulty: 1
-    - word: those
-      ipa: /ðoʊz/
-      example: Those flowers are beautiful.
-      difficulty: 1
-    - word: weather
-      ipa: /ˈwɛðər/
-      example: The weather is nice today.
-      difficulty: 2
-    - word: together
-      ipa: /təˈɡɛðər/
-      example: We work together every day.
-      difficulty: 2
-    - word: breathe
-      ipa: /briːð/
-      example: Take a moment to breathe deeply.
-      difficulty: 2
+phonemes:
+  th_voiced:
+    name: 'th voiced (ð)'
+    description: 'as in "this", "that" - tongue between teeth, vibrate'
+    words:
+      - word: this
+        ipa: /ðɪs/
+        example: Is this your book?
+        difficulty: 1
+      - word: that
+        ipa: /ðæt/
+        example: That was amazing.
+        difficulty: 1
+      - word: the
+        ipa: /ðə/
+        example: The cat sat on the mat.
+        difficulty: 1
+      - word: there
+        ipa: /ðɛr/
+        example: There are many options.
+        difficulty: 1
+      - word: they
+        ipa: /ðeɪ/
+        example: They went to the park.
+        difficulty: 1
+      - word: these
+        ipa: /ðiːz/
+        example: These are my friends.
+        difficulty: 1
+      - word: those
+        ipa: /ðoʊz/
+        example: Those flowers are beautiful.
+        difficulty: 1
+      - word: weather
+        ipa: /ˈwɛðər/
+        example: The weather is nice today.
+        difficulty: 2
+      - word: together
+        ipa: /təˈɡɛðər/
+        example: We work together every day.
+        difficulty: 2
+      - word: breathe
+        ipa: /briːð/
+        example: Take a moment to breathe deeply.
+        difficulty: 2
 
-th_voiceless:
-  name: 'th voiceless (θ)'
-  description: 'as in "think", "bath" - tongue between teeth, no vibration'
-  words:
-    - word: think
-      ipa: /θɪŋk/
-      example: I think it will rain.
-      difficulty: 1
-    - word: thing
-      ipa: /θɪŋ/
-      example: The most important thing is practice.
-      difficulty: 1
-    - word: three
-      ipa: /θriː/
-      example: I have three cats.
-      difficulty: 1
-    - word: thank
-      ipa: /θæŋk/
-      example: Thank you very much.
-      difficulty: 1
-    - word: thought
-      ipa: /θɔːt/
-      example: I thought about it carefully.
-      difficulty: 2
-    - word: through
-      ipa: /θruː/
-      example: We walked through the forest.
-      difficulty: 2
-    - word: Thursday
-      ipa: /ˈθɜːrzdeɪ/
-      example: The meeting is on Thursday.
-      difficulty: 2
-    - word: beneath
-      ipa: /bɪˈniːθ/
-      example: The treasure lies beneath the surface.
-      difficulty: 2
-    - word: growth
-      ipa: /ɡroʊθ/
-      example: Economic growth has been steady.
-      difficulty: 2
-    - word: mathematics
-      ipa: /ˌmæθəˈmætɪks/
-      example: She studies mathematics at university.
-      difficulty: 3
+  th_voiceless:
+    name: 'th voiceless (θ)'
+    description: 'as in "think", "bath" - tongue between teeth, no vibration'
+    words:
+      - word: think
+        ipa: /θɪŋk/
+        example: I think it will rain.
+        difficulty: 1
+      - word: thing
+        ipa: /θɪŋ/
+        example: The most important thing is practice.
+        difficulty: 1
+      - word: three
+        ipa: /θriː/
+        example: I have three cats.
+        difficulty: 1
+      - word: thank
+        ipa: /θæŋk/
+        example: Thank you very much.
+        difficulty: 1
+      - word: thought
+        ipa: /θɔːt/
+        example: I thought about it carefully.
+        difficulty: 2
+      - word: through
+        ipa: /θruː/
+        example: We walked through the forest.
+        difficulty: 2
+      - word: Thursday
+        ipa: /ˈθɜːrzdeɪ/
+        example: The meeting is on Thursday.
+        difficulty: 2
+      - word: beneath
+        ipa: /bɪˈniːθ/
+        example: The treasure lies beneath the surface.
+        difficulty: 2
+      - word: growth
+        ipa: /ɡroʊθ/
+        example: Economic growth has been steady.
+        difficulty: 2
+      - word: mathematics
+        ipa: /ˌmæθəˈmætɪks/
+        example: She studies mathematics at university.
+        difficulty: 3
 
-sh_ch:
-  name: sh (ʃ) and ch (tʃ)
-  description: sh - lips rounded, air through wide tongue; ch - starts with t then sh
-  words:
-    - word: ship
-      ipa: /ʃɪp/
-      example: The ship sailed across the ocean.
-      difficulty: 1
-    - word: shop
-      ipa: /ʃɑːp/
-      example: I need to go to the shop.
-      difficulty: 1
-    - word: she
-      ipa: /ʃiː/
-      example: She is a great teacher.
-      difficulty: 1
-    - word: wish
-      ipa: /wɪʃ/
-      example: I wish you the best.
-      difficulty: 1
-    - word: chip
-      ipa: /tʃɪp/
-      example: There is a chip in the glass.
-      difficulty: 1
-    - word: church
-      ipa: /tʃɜːrtʃ/
-      example: The old church is beautiful.
-      difficulty: 2
-    - word: catch
-      ipa: /kætʃ/
-      example: Try to catch the ball.
-      difficulty: 1
-    - word: watch
-      ipa: /wɑːtʃ/
-      example: Let me watch this movie.
-      difficulty: 1
-    - word: machine
-      ipa: /məˈʃiːn/
-      example: The machine works perfectly.
-      difficulty: 2
-    - word: championship
-      ipa: /ˈtʃæmpiənʃɪp/
-      example: They won the championship last year.
-      difficulty: 3
+  sh_ch:
+    name: sh (ʃ) and ch (tʃ)
+    description: sh - lips rounded, air through wide tongue; ch - starts with t then sh
+    words:
+      - word: ship
+        ipa: /ʃɪp/
+        example: The ship sailed across the ocean.
+        difficulty: 1
+      - word: shop
+        ipa: /ʃɑːp/
+        example: I need to go to the shop.
+        difficulty: 1
+      - word: she
+        ipa: /ʃiː/
+        example: She is a great teacher.
+        difficulty: 1
+      - word: wish
+        ipa: /wɪʃ/
+        example: I wish you the best.
+        difficulty: 1
+      - word: chip
+        ipa: /tʃɪp/
+        example: There is a chip in the glass.
+        difficulty: 1
+      - word: church
+        ipa: /tʃɜːrtʃ/
+        example: The old church is beautiful.
+        difficulty: 2
+      - word: catch
+        ipa: /kætʃ/
+        example: Try to catch the ball.
+        difficulty: 1
+      - word: watch
+        ipa: /wɑːtʃ/
+        example: Let me watch this movie.
+        difficulty: 1
+      - word: machine
+        ipa: /məˈʃiːn/
+        example: The machine works perfectly.
+        difficulty: 2
+      - word: championship
+        ipa: /ˈtʃæmpiənʃɪp/
+        example: They won the championship last year.
+        difficulty: 3
 
-r_l:
-  name: r and l contrast
-  description: r - tongue curled back, no contact; l - tongue touches ridge behind teeth
-  words:
-    - word: right
-      ipa: /raɪt/
-      example: Turn right at the corner.
-      difficulty: 1
-    - word: light
-      ipa: /laɪt/
-      example: Turn on the light please.
-      difficulty: 1
-    - word: red
-      ipa: /rɛd/
-      example: The car is red.
-      difficulty: 1
-    - word: led
-      ipa: /lɛd/
-      example: She led the team to victory.
-      difficulty: 1
-    - word: road
-      ipa: /roʊd/
-      example: The road was long and winding.
-      difficulty: 1
-    - word: load
-      ipa: /loʊd/
-      example: The truck carried a heavy load.
-      difficulty: 1
-    - word: really
-      ipa: /ˈriːəli/
-      example: I really appreciate your help.
-      difficulty: 2
-    - word: rarely
-      ipa: /ˈrɛrli/
-      example: I rarely eat fast food.
-      difficulty: 2
-    - word: parallel
-      ipa: /ˈpærəˌlɛl/
-      example: The lines are parallel to each other.
-      difficulty: 3
-    - word: literally
-      ipa: /ˈlɪtərəli/
-      example: I literally just arrived.
-      difficulty: 3
+  r_l:
+    name: r and l contrast
+    description: r - tongue curled back, no contact; l - tongue touches ridge behind teeth
+    words:
+      - word: right
+        ipa: /raɪt/
+        example: Turn right at the corner.
+        difficulty: 1
+      - word: light
+        ipa: /laɪt/
+        example: Turn on the light please.
+        difficulty: 1
+      - word: red
+        ipa: /rɛd/
+        example: The car is red.
+        difficulty: 1
+      - word: led
+        ipa: /lɛd/
+        example: She led the team to victory.
+        difficulty: 1
+      - word: road
+        ipa: /roʊd/
+        example: The road was long and winding.
+        difficulty: 1
+      - word: load
+        ipa: /loʊd/
+        example: The truck carried a heavy load.
+        difficulty: 1
+      - word: really
+        ipa: /ˈriːəli/
+        example: I really appreciate your help.
+        difficulty: 2
+      - word: rarely
+        ipa: /ˈrɛrli/
+        example: I rarely eat fast food.
+        difficulty: 2
+      - word: parallel
+        ipa: /ˈpærəˌlɛl/
+        example: The lines are parallel to each other.
+        difficulty: 3
+      - word: literally
+        ipa: /ˈlɪtərəli/
+        example: I literally just arrived.
+        difficulty: 3
 
-vowel_pairs:
-  name: vowel pairs (æ/ɛ, iː/ɪ, uː/ʊ)
-  description: distinguish short vs long and similar vowels
-  words:
-    - word: bat
-      ipa: /bæt/
-      example: He hit the ball with a bat.
-      difficulty: 1
-    - word: bet
-      ipa: /bɛt/
-      example: I bet you can do it.
-      difficulty: 1
-    - word: seat
-      ipa: /siːt/
-      example: Please take a seat.
-      difficulty: 1
-    - word: sit
-      ipa: /sɪt/
-      example: Sit down and relax.
-      difficulty: 1
-    - word: pool
-      ipa: /puːl/
-      example: Let's swim in the pool.
-      difficulty: 1
-    - word: pull
-      ipa: /pʊl/
-      example: Pull the door to open it.
-      difficulty: 1
-    - word: man
-      ipa: /mæn/
-      example: The man walked his dog.
-      difficulty: 1
-    - word: men
-      ipa: /mɛn/
-      example: The men were working hard.
-      difficulty: 1
-    - word: food
-      ipa: /fuːd/
-      example: The food was delicious.
-      difficulty: 1
-    - word: foot
-      ipa: /fʊt/
-      example: I hurt my foot yesterday.
-      difficulty: 1
+  vowel_pairs:
+    name: vowel pairs (æ/ɛ, iː/ɪ, uː/ʊ)
+    description: distinguish short vs long and similar vowels
+    words:
+      - word: bat
+        ipa: /bæt/
+        example: He hit the ball with a bat.
+        difficulty: 1
+      - word: bet
+        ipa: /bɛt/
+        example: I bet you can do it.
+        difficulty: 1
+      - word: seat
+        ipa: /siːt/
+        example: Please take a seat.
+        difficulty: 1
+      - word: sit
+        ipa: /sɪt/
+        example: Sit down and relax.
+        difficulty: 1
+      - word: pool
+        ipa: /puːl/
+        example: Let's swim in the pool.
+        difficulty: 1
+      - word: pull
+        ipa: /pʊl/
+        example: Pull the door to open it.
+        difficulty: 1
+      - word: man
+        ipa: /mæn/
+        example: The man walked his dog.
+        difficulty: 1
+      - word: men
+        ipa: /mɛn/
+        example: The men were working hard.
+        difficulty: 1
+      - word: food
+        ipa: /fuːd/
+        example: The food was delicious.
+        difficulty: 1
+      - word: foot
+        ipa: /fʊt/
+        example: I hurt my foot yesterday.
+        difficulty: 1
 
-silent_letters:
-  name: silent letters
-  description: letters written but not pronounced
-  words:
-    - word: knife
-      ipa: /naɪf/
-      example: Cut the bread with a knife.
-      difficulty: 1
-    - word: know
-      ipa: /noʊ/
-      example: I know the answer.
-      difficulty: 1
-    - word: write
-      ipa: /raɪt/
-      example: Please write your name here.
-      difficulty: 1
-    - word: wrong
-      ipa: /rɔːŋ/
-      example: That answer is wrong.
-      difficulty: 1
-    - word: comb
-      ipa: /koʊm/
-      example: She used a comb for her hair.
-      difficulty: 2
-    - word: doubt
-      ipa: /daʊt/
-      example: I have no doubt about it.
-      difficulty: 2
-    - word: island
-      ipa: /ˈaɪlənd/
-      example: The island has beautiful beaches.
-      difficulty: 2
-    - word: castle
-      ipa: /ˈkæsəl/
-      example: The castle stands on the hill.
-      difficulty: 2
-    - word: Wednesday
-      ipa: /ˈwɛnzdeɪ/
-      example: The class meets on Wednesday.
-      difficulty: 2
-    - word: kernel
-      ipa: /ˈkɜːrnəl/
-      example: The kernel of the idea was simple.
-      difficulty: 2
+  silent_letters:
+    name: silent letters
+    description: letters written but not pronounced
+    words:
+      - word: knife
+        ipa: /naɪf/
+        example: Cut the bread with a knife.
+        difficulty: 1
+      - word: know
+        ipa: /noʊ/
+        example: I know the answer.
+        difficulty: 1
+      - word: write
+        ipa: /raɪt/
+        example: Please write your name here.
+        difficulty: 1
+      - word: wrong
+        ipa: /rɔːŋ/
+        example: That answer is wrong.
+        difficulty: 1
+      - word: comb
+        ipa: /koʊm/
+        example: She used a comb for her hair.
+        difficulty: 2
+      - word: doubt
+        ipa: /daʊt/
+        example: I have no doubt about it.
+        difficulty: 2
+      - word: island
+        ipa: /ˈaɪlənd/
+        example: The island has beautiful beaches.
+        difficulty: 2
+      - word: castle
+        ipa: /ˈkæsəl/
+        example: The castle stands on the hill.
+        difficulty: 2
+      - word: Wednesday
+        ipa: /ˈwɛnzdeɪ/
+        example: The class meets on Wednesday.
+        difficulty: 2
+      - word: kernel
+        ipa: /ˈkɜːrnəl/
+        example: The kernel of the idea was simple.
+        difficulty: 2
 
-word_stress:
-  name: word stress patterns
-  description: correct syllable emphasis changes meaning and clarity
-  words:
-    - word: present
-      ipa: /ˈprɛzənt/ (noun) /prɪˈzɛnt/ (verb)
-      example: I want to present a present to you.
-      difficulty: 2
-    - word: record
-      ipa: /ˈrɛkərd/ (noun) /rɪˈkɔːrd/ (verb)
-      example: She wants to record a new record.
-      difficulty: 2
-    - word: desert
-      ipa: /ˈdɛzərt/ (noun) /dɪˈzɜːrt/ (verb)
-      example: Don't desert me in the desert.
-      difficulty: 2
-    - word: photograph
-      ipa: /ˈfoʊtəˌɡræf/
-      example: Take a photograph of the sunset.
-      difficulty: 2
-    - word: photography
-      ipa: /fəˈtɑːɡrəfi/
-      example: She studies photography at college.
-      difficulty: 3
-    - word: photographic
-      ipa: /ˌfoʊtəˈɡræfɪk/
-      example: He has a photographic memory.
-      difficulty: 3
-    - word: economy
-      ipa: /ɪˈkɑːnəmi/
-      example: The economy is improving.
-      difficulty: 2
-    - word: economic
-      ipa: /ˌiːkəˈnɑːmɪk/
-      example: Economic growth is steady.
-      difficulty: 3
-    - word: comfortable
-      ipa: /ˈkʌmftərbəl/
-      example: This chair is very comfortable.
-      difficulty: 2
-    - word: vegetable
-      ipa: /ˈvɛdʒtəbəl/
-      example: Eat your vegetables every day.
-      difficulty: 2
-    - word: accidentally
-      ipa: /ˌæksɪˈdɛntəli/
-      example: I accidentally deleted the file.
-      difficulty: 3
+  word_stress:
+    name: word stress patterns
+    description: correct syllable emphasis changes meaning and clarity
+    words:
+      - word: present
+        ipa: /ˈprɛzənt/ (noun) /prɪˈzɛnt/ (verb)
+        example: I want to present a present to you.
+        difficulty: 2
+      - word: record
+        ipa: /ˈrɛkərd/ (noun) /rɪˈkɔːrd/ (verb)
+        example: She wants to record a new record.
+        difficulty: 2
+      - word: desert
+        ipa: /ˈdɛzərt/ (noun) /dɪˈzɜːrt/ (verb)
+        example: Don't desert me in the desert.
+        difficulty: 2
+      - word: photograph
+        ipa: /ˈfoʊtəˌɡræf/
+        example: Take a photograph of the sunset.
+        difficulty: 2
+      - word: photography
+        ipa: /fəˈtɑːɡrəfi/
+        example: She studies photography at college.
+        difficulty: 3
+      - word: photographic
+        ipa: /ˌfoʊtəˈɡræfɪk/
+        example: He has a photographic memory.
+        difficulty: 3
+      - word: economy
+        ipa: /ɪˈkɑːnəmi/
+        example: The economy is improving.
+        difficulty: 2
+      - word: economic
+        ipa: /ˌiːkəˈnɑːmɪk/
+        example: Economic growth is steady.
+        difficulty: 3
+      - word: comfortable
+        ipa: /ˈkʌmftərbəl/
+        example: This chair is very comfortable.
+        difficulty: 2
+      - word: vegetable
+        ipa: /ˈvɛdʒtəbəl/
+        example: Eat your vegetables every day.
+        difficulty: 2
+      - word: accidentally
+        ipa: /ˌæksɪˈdɛntəli/
+        example: I accidentally deleted the file.
+        difficulty: 3
 
-v_w:
-  name: v and w contrast
-  description: v - upper teeth on lower lip, vibrate; w - lips rounded, no teeth
-  words:
-    - word: very
-      ipa: /ˈvɛri/
-      example: That is very kind of you.
-      difficulty: 1
-    - word: west
-      ipa: /wɛst/
-      example: The sun sets in the west.
-      difficulty: 1
-    - word: vine
-      ipa: /vaɪn/
-      example: The vine grows along the wall.
-      difficulty: 1
-    - word: wine
-      ipa: /waɪn/
-      example: Would you like some wine?
-      difficulty: 1
-    - word: vet
-      ipa: /vɛt/
-      example: Take the cat to the vet.
-      difficulty: 1
-    - word: wet
-      ipa: /wɛt/
-      example: The grass is wet from rain.
-      difficulty: 1
-    - word: vowel
-      ipa: /ˈvaʊəl/
-      example: Every word needs a vowel.
-      difficulty: 2
-    - word: wave
-      ipa: /weɪv/
-      example: She gave a friendly wave.
-      difficulty: 1
-    - word: revolution
-      ipa: /ˌrɛvəˈluːʃən/
-      example: The revolution changed everything.
-      difficulty: 3
-    - word: viewpoint
-      ipa: /ˈvjuːˌpɔɪnt/
-      example: Consider a different viewpoint.
-      difficulty: 2
+  v_w:
+    name: v and w contrast
+    description: v - upper teeth on lower lip, vibrate; w - lips rounded, no teeth
+    words:
+      - word: very
+        ipa: /ˈvɛri/
+        example: That is very kind of you.
+        difficulty: 1
+      - word: west
+        ipa: /wɛst/
+        example: The sun sets in the west.
+        difficulty: 1
+      - word: vine
+        ipa: /vaɪn/
+        example: The vine grows along the wall.
+        difficulty: 1
+      - word: wine
+        ipa: /waɪn/
+        example: Would you like some wine?
+        difficulty: 1
+      - word: vet
+        ipa: /vɛt/
+        example: Take the cat to the vet.
+        difficulty: 1
+      - word: wet
+        ipa: /wɛt/
+        example: The grass is wet from rain.
+        difficulty: 1
+      - word: vowel
+        ipa: /ˈvaʊəl/
+        example: Every word needs a vowel.
+        difficulty: 2
+      - word: wave
+        ipa: /weɪv/
+        example: She gave a friendly wave.
+        difficulty: 1
+      - word: revolution
+        ipa: /ˌrɛvəˈluːʃən/
+        example: The revolution changed everything.
+        difficulty: 3
+      - word: viewpoint
+        ipa: /ˈvjuːˌpɔɪnt/
+        example: Consider a different viewpoint.
+        difficulty: 2
 
-s_z:
-  name: s and z contrast
-  description: s - voiceless hiss; z - voiced buzz, same tongue position
-  words:
-    - word: sip
-      ipa: /sɪp/
-      example: Take a sip of water.
-      difficulty: 1
-    - word: zip
-      ipa: /zɪp/
-      example: Zip up your jacket.
-      difficulty: 1
-    - word: bus
-      ipa: /bʌs/
-      example: I take the bus to work.
-      difficulty: 1
-    - word: buzz
-      ipa: /bʌz/
-      example: I heard a buzz from the phone.
-      difficulty: 1
-    - word: price
-      ipa: /praɪs/
-      example: What is the price of this?
-      difficulty: 1
-    - word: prize
-      ipa: /praɪz/
-      example: She won first prize.
-      difficulty: 1
-    - word: loose
-      ipa: /luːs/
-      example: The screw is loose.
-      difficulty: 2
-    - word: lose
-      ipa: /luːz/
-      example: I don't want to lose my keys.
-      difficulty: 2
-    - word: excuse
-      ipa: /ɪkˈskjuːs/ (noun) /ɪkˈskjuːz/ (verb)
-      example: Excuse me, that is no excuse.
-      difficulty: 2
-    - word: exercise
-      ipa: /ˈɛksərˌsaɪz/
-      example: Daily exercise keeps you healthy.
-      difficulty: 2
+  s_z:
+    name: s and z contrast
+    description: s - voiceless hiss; z - voiced buzz, same tongue position
+    words:
+      - word: sip
+        ipa: /sɪp/
+        example: Take a sip of water.
+        difficulty: 1
+      - word: zip
+        ipa: /zɪp/
+        example: Zip up your jacket.
+        difficulty: 1
+      - word: bus
+        ipa: /bʌs/
+        example: I take the bus to work.
+        difficulty: 1
+      - word: buzz
+        ipa: /bʌz/
+        example: I heard a buzz from the phone.
+        difficulty: 1
+      - word: price
+        ipa: /praɪs/
+        example: What is the price of this?
+        difficulty: 1
+      - word: prize
+        ipa: /praɪz/
+        example: She won first prize.
+        difficulty: 1
+      - word: loose
+        ipa: /luːs/
+        example: The screw is loose.
+        difficulty: 2
+      - word: lose
+        ipa: /luːz/
+        example: I don't want to lose my keys.
+        difficulty: 2
+      - word: excuse
+        ipa: /ɪkˈskjuːs/ (noun) /ɪkˈskjuːz/ (verb)
+        example: Excuse me, that is no excuse.
+        difficulty: 2
+      - word: exercise
+        ipa: /ˈɛksərˌsaɪz/
+        example: Daily exercise keeps you healthy.
+        difficulty: 2
 
-diphthongs:
-  name: diphthongs (aɪ, aʊ, eɪ, oʊ, ɔɪ)
-  description: two vowel sounds gliding together in one syllable
-  words:
-    - word: time
-      ipa: /taɪm/
-      example: What time is it now?
-      difficulty: 1
-    - word: house
-      ipa: /haʊs/
-      example: They bought a new house.
-      difficulty: 1
-    - word: day
-      ipa: /deɪ/
-      example: Have a great day.
-      difficulty: 1
-    - word: go
-      ipa: /ɡoʊ/
-      example: Let's go for a walk.
-      difficulty: 1
-    - word: boy
-      ipa: /bɔɪ/
-      example: The boy played in the park.
-      difficulty: 1
-    - word: around
-      ipa: /əˈraʊnd/
-      example: Look around the room.
-      difficulty: 2
-    - word: enjoying
-      ipa: /ɪnˈdʒɔɪɪŋ/
-      example: I am enjoying this book.
-      difficulty: 2
-    - word: idea
-      ipa: /aɪˈdɪə/
-      example: That is a great idea.
-      difficulty: 2
-    - word: radio
-      ipa: /ˈreɪdiˌoʊ/
-      example: Turn on the radio please.
-      difficulty: 2
-    - word: employment
-      ipa: /ɪmˈplɔɪmənt/
-      example: She found employment quickly.
-      difficulty: 3
+  diphthongs:
+    name: diphthongs (aɪ, aʊ, eɪ, oʊ, ɔɪ)
+    description: two vowel sounds gliding together in one syllable
+    words:
+      - word: time
+        ipa: /taɪm/
+        example: What time is it now?
+        difficulty: 1
+      - word: house
+        ipa: /haʊs/
+        example: They bought a new house.
+        difficulty: 1
+      - word: day
+        ipa: /deɪ/
+        example: Have a great day.
+        difficulty: 1
+      - word: go
+        ipa: /ɡoʊ/
+        example: Let's go for a walk.
+        difficulty: 1
+      - word: boy
+        ipa: /bɔɪ/
+        example: The boy played in the park.
+        difficulty: 1
+      - word: around
+        ipa: /əˈraʊnd/
+        example: Look around the room.
+        difficulty: 2
+      - word: enjoying
+        ipa: /ɪnˈdʒɔɪɪŋ/
+        example: I am enjoying this book.
+        difficulty: 2
+      - word: idea
+        ipa: /aɪˈdɪə/
+        example: That is a great idea.
+        difficulty: 2
+      - word: radio
+        ipa: /ˈreɪdiˌoʊ/
+        example: Turn on the radio please.
+        difficulty: 2
+      - word: employment
+        ipa: /ɪmˈplɔɪmənt/
+        example: She found employment quickly.
+        difficulty: 3
 
-consonant_clusters:
-  name: consonant clusters
-  description: multiple consonants together, don't add extra vowels
-  words:
-    - word: street
-      ipa: /striːt/
-      example: Walk down the street.
-      difficulty: 1
-    - word: strong
-      ipa: /strɔːŋ/
-      example: She is a strong swimmer.
-      difficulty: 1
-    - word: splash
-      ipa: /splæʃ/
-      example: The kids love to splash in puddles.
-      difficulty: 2
-    - word: spring
-      ipa: /sprɪŋ/
-      example: Flowers bloom in spring.
-      difficulty: 1
-    - word: world
-      ipa: /wɜːrld/
-      example: Travel around the world.
-      difficulty: 2
-    - word: strength
-      ipa: /strɛŋθ/
-      example: You need strength and patience.
-      difficulty: 3
-    - word: twelfth
-      ipa: /twɛlfθ/
-      example: It is the twelfth of March.
-      difficulty: 3
-    - word: texts
-      ipa: /tɛksts/
-      example: I sent three texts today.
-      difficulty: 2
-    - word: asked
-      ipa: /æskt/
-      example: She asked a good question.
-      difficulty: 2
-    - word: glimpse
-      ipa: /ɡlɪmps/
-      example: I caught a glimpse of the sunset.
-      difficulty: 2
-    - word: glass
-      ipa: /ɡlæs/
-      example: Pour me a glass of water.
-      difficulty: 1
-    - word: class
-      ipa: /klæs/
-      example: The class starts at nine.
-      difficulty: 1
-    - word: grass
-      ipa: /ɡræs/
-      example: The grass is green after the rain.
-      difficulty: 1
+  consonant_clusters:
+    name: consonant clusters
+    description: multiple consonants together, don't add extra vowels
+    words:
+      - word: street
+        ipa: /striːt/
+        example: Walk down the street.
+        difficulty: 1
+      - word: strong
+        ipa: /strɔːŋ/
+        example: She is a strong swimmer.
+        difficulty: 1
+      - word: splash
+        ipa: /splæʃ/
+        example: The kids love to splash in puddles.
+        difficulty: 2
+      - word: spring
+        ipa: /sprɪŋ/
+        example: Flowers bloom in spring.
+        difficulty: 1
+      - word: world
+        ipa: /wɜːrld/
+        example: Travel around the world.
+        difficulty: 2
+      - word: strength
+        ipa: /strɛŋθ/
+        example: You need strength and patience.
+        difficulty: 3
+      - word: twelfth
+        ipa: /twɛlfθ/
+        example: It is the twelfth of March.
+        difficulty: 3
+      - word: texts
+        ipa: /tɛksts/
+        example: I sent three texts today.
+        difficulty: 2
+      - word: asked
+        ipa: /æskt/
+        example: She asked a good question.
+        difficulty: 2
+      - word: glimpse
+        ipa: /ɡlɪmps/
+        example: I caught a glimpse of the sunset.
+        difficulty: 2
+      - word: glass
+        ipa: /ɡlæs/
+        example: Pour me a glass of water.
+        difficulty: 1
+      - word: class
+        ipa: /klæs/
+        example: The class starts at nine.
+        difficulty: 1
+      - word: grass
+        ipa: /ɡræs/
+        example: The grass is green after the rain.
+        difficulty: 1
 
-ed_endings:
-  name: -ed endings (t/d/ɪd)
-  description: 'after voiceless -> /t/, voiced -> /d/, t or d -> /ɪd/'
-  words:
-    - word: walked
-      ipa: /wɔːkt/
-      example: She walked to the store.
-      difficulty: 1
-    - word: played
-      ipa: /pleɪd/
-      example: They played all afternoon.
-      difficulty: 1
-    - word: wanted
-      ipa: /ˈwɑːntɪd/
-      example: He wanted to leave early.
-      difficulty: 1
-    - word: stopped
-      ipa: /stɑːpt/
-      example: The car stopped at the light.
-      difficulty: 1
-    - word: called
-      ipa: /kɔːld/
-      example: She called her mother yesterday.
-      difficulty: 1
-    - word: needed
-      ipa: /ˈniːdɪd/
-      example: We needed more time.
-      difficulty: 1
-    - word: laughed
-      ipa: /læft/
-      example: Everyone laughed at the joke.
-      difficulty: 2
-    - word: organized
-      ipa: /ˈɔːrɡənaɪzd/
-      example: She organized the entire event.
-      difficulty: 2
-    - word: decided
-      ipa: /dɪˈsaɪdɪd/
-      example: They decided to stay home.
-      difficulty: 2
-    - word: collapsed
-      ipa: /kəˈlæpst/
-      example: The building collapsed suddenly.
-      difficulty: 3
+  ed_endings:
+    name: -ed endings (t/d/ɪd)
+    description: 'after voiceless -> /t/, voiced -> /d/, t or d -> /ɪd/'
+    words:
+      - word: walked
+        ipa: /wɔːkt/
+        example: She walked to the store.
+        difficulty: 1
+      - word: played
+        ipa: /pleɪd/
+        example: They played all afternoon.
+        difficulty: 1
+      - word: wanted
+        ipa: /ˈwɑːntɪd/
+        example: He wanted to leave early.
+        difficulty: 1
+      - word: stopped
+        ipa: /stɑːpt/
+        example: The car stopped at the light.
+        difficulty: 1
+      - word: called
+        ipa: /kɔːld/
+        example: She called her mother yesterday.
+        difficulty: 1
+      - word: needed
+        ipa: /ˈniːdɪd/
+        example: We needed more time.
+        difficulty: 1
+      - word: laughed
+        ipa: /læft/
+        example: Everyone laughed at the joke.
+        difficulty: 2
+      - word: organized
+        ipa: /ˈɔːrɡənaɪzd/
+        example: She organized the entire event.
+        difficulty: 2
+      - word: decided
+        ipa: /dɪˈsaɪdɪd/
+        example: They decided to stay home.
+        difficulty: 2
+      - word: collapsed
+        ipa: /kəˈlæpst/
+        example: The building collapsed suddenly.
+        difficulty: 3
 
-schwa:
-  name: 'schwa (ə)'
-  description: 'most common English vowel - short, relaxed, unstressed'
-  words:
-    - word: about
-      ipa: /əˈbaʊt/
-      example: Tell me about your day.
-      difficulty: 1
-    - word: banana
-      ipa: /bəˈnænə/
-      example: I had a banana for breakfast.
-      difficulty: 1
-    - word: problem
-      ipa: /ˈprɑːbləm/
-      example: That is not a problem.
-      difficulty: 1
-    - word: support
-      ipa: /səˈpɔːrt/
-      example: Thank you for your support.
-      difficulty: 2
-    - word: common
-      ipa: /ˈkɑːmən/
-      example: That is a common mistake.
-      difficulty: 1
-    - word: again
-      ipa: /əˈɡɛn/
-      example: Say it again please.
-      difficulty: 1
-    - word: possible
-      ipa: /ˈpɑːsəbəl/
-      example: Anything is possible.
-      difficulty: 2
-    - word: general
-      ipa: /ˈdʒɛnərəl/
-      example: In general, I agree with you.
-      difficulty: 2
-    - word: particular
-      ipa: /pərˈtɪkjələr/
-      example: This particular case is unusual.
-      difficulty: 3
-    - word: comfortable
-      ipa: /ˈkʌmftərbəl/
-      example: Make yourself comfortable.
-      difficulty: 2
+  schwa:
+    name: 'schwa (ə)'
+    description: 'most common English vowel - short, relaxed, unstressed'
+    words:
+      - word: about
+        ipa: /əˈbaʊt/
+        example: Tell me about your day.
+        difficulty: 1
+      - word: banana
+        ipa: /bəˈnænə/
+        example: I had a banana for breakfast.
+        difficulty: 1
+      - word: problem
+        ipa: /ˈprɑːbləm/
+        example: That is not a problem.
+        difficulty: 1
+      - word: support
+        ipa: /səˈpɔːrt/
+        example: Thank you for your support.
+        difficulty: 2
+      - word: common
+        ipa: /ˈkɑːmən/
+        example: That is a common mistake.
+        difficulty: 1
+      - word: again
+        ipa: /əˈɡɛn/
+        example: Say it again please.
+        difficulty: 1
+      - word: possible
+        ipa: /ˈpɑːsəbəl/
+        example: Anything is possible.
+        difficulty: 2
+      - word: general
+        ipa: /ˈdʒɛnərəl/
+        example: In general, I agree with you.
+        difficulty: 2
+      - word: particular
+        ipa: /pərˈtɪkjələr/
+        example: This particular case is unusual.
+        difficulty: 3
+      - word: comfortable
+        ipa: /ˈkʌmftərbəl/
+        example: Make yourself comfortable.
+        difficulty: 2
 
-ng_sound:
-  name: 'ng sound (ŋ)'
-  description: 'back of tongue touches soft palate, air through nose'
-  words:
-    - word: sing
-      ipa: /sɪŋ/
-      example: I like to sing in the shower.
-      difficulty: 1
-    - word: ring
-      ipa: /rɪŋ/
-      example: The phone will ring soon.
-      difficulty: 1
-    - word: long
-      ipa: /lɔːŋ/
-      example: It was a long day.
-      difficulty: 1
-    - word: singing
-      ipa: /ˈsɪŋɪŋ/
-      example: She was singing beautifully.
-      difficulty: 1
-    - word: finger
-      ipa: /ˈfɪŋɡər/
-      example: He pointed his finger at the map.
-      difficulty: 2
-    - word: anger
-      ipa: /ˈæŋɡər/
-      example: Try to control your anger.
-      difficulty: 2
-    - word: thinking
-      ipa: /ˈθɪŋkɪŋ/
-      example: I was thinking about you.
-      difficulty: 2
-    - word: hanging
-      ipa: /ˈhæŋɪŋ/
-      example: The painting was hanging on the wall.
-      difficulty: 2
-    - word: English
-      ipa: /ˈɪŋɡlɪʃ/
-      example: She speaks English fluently.
-      difficulty: 2
-    - word: distinguish
-      ipa: /dɪˈstɪŋɡwɪʃ/
-      example: It is hard to distinguish the two.
-      difficulty: 3
+  ng_sound:
+    name: 'ng sound (ŋ)'
+    description: 'back of tongue touches soft palate, air through nose'
+    words:
+      - word: sing
+        ipa: /sɪŋ/
+        example: I like to sing in the shower.
+        difficulty: 1
+      - word: ring
+        ipa: /rɪŋ/
+        example: The phone will ring soon.
+        difficulty: 1
+      - word: long
+        ipa: /lɔːŋ/
+        example: It was a long day.
+        difficulty: 1
+      - word: singing
+        ipa: /ˈsɪŋɪŋ/
+        example: She was singing beautifully.
+        difficulty: 1
+      - word: finger
+        ipa: /ˈfɪŋɡər/
+        example: He pointed his finger at the map.
+        difficulty: 2
+      - word: anger
+        ipa: /ˈæŋɡər/
+        example: Try to control your anger.
+        difficulty: 2
+      - word: thinking
+        ipa: /ˈθɪŋkɪŋ/
+        example: I was thinking about you.
+        difficulty: 2
+      - word: hanging
+        ipa: /ˈhæŋɪŋ/
+        example: The painting was hanging on the wall.
+        difficulty: 2
+      - word: English
+        ipa: /ˈɪŋɡlɪʃ/
+        example: She speaks English fluently.
+        difficulty: 2
+      - word: distinguish
+        ipa: /dɪˈstɪŋɡwɪʃ/
+        example: It is hard to distinguish the two.
+        difficulty: 3
 
-j_dj:
-  name: 'j (dʒ) and y (j)'
-  description: 'j/g - tongue touches roof then releases with buzz; y - tongue near palate, glide'
-  words:
-    - word: joke
-      ipa: /dʒoʊk/
-      example: That was a funny joke.
-      difficulty: 1
-    - word: yoke
-      ipa: /joʊk/
-      example: The yoke connects the oxen.
-      difficulty: 2
-    - word: jet
-      ipa: /dʒɛt/
-      example: The jet flew overhead.
-      difficulty: 1
-    - word: yet
-      ipa: /jɛt/
-      example: Are we there yet?
-      difficulty: 1
-    - word: juice
-      ipa: /dʒuːs/
-      example: I had orange juice for breakfast.
-      difficulty: 1
-    - word: use
-      ipa: /juːz/ (verb) /juːs/ (noun)
-      example: Can I use your phone?
-      difficulty: 1
-    - word: major
-      ipa: /ˈmeɪdʒər/
-      example: It is a major decision.
-      difficulty: 2
-    - word: young
-      ipa: /jʌŋ/
-      example: She is still young.
-      difficulty: 1
-    - word: jealous
-      ipa: /ˈdʒɛləs/
-      example: Don't be jealous of others.
-      difficulty: 2
-    - word: beyond
-      ipa: /bɪˈjɑːnd/
-      example: The view beyond is stunning.
-      difficulty: 2
+  j_dj:
+    name: 'j (dʒ) and y (j)'
+    description: 'j/g - tongue touches roof then releases with buzz; y - tongue near palate, glide'
+    words:
+      - word: joke
+        ipa: /dʒoʊk/
+        example: That was a funny joke.
+        difficulty: 1
+      - word: yoke
+        ipa: /joʊk/
+        example: The yoke connects the oxen.
+        difficulty: 2
+      - word: jet
+        ipa: /dʒɛt/
+        example: The jet flew overhead.
+        difficulty: 1
+      - word: yet
+        ipa: /jɛt/
+        example: Are we there yet?
+        difficulty: 1
+      - word: juice
+        ipa: /dʒuːs/
+        example: I had orange juice for breakfast.
+        difficulty: 1
+      - word: use
+        ipa: /juːz/ (verb) /juːs/ (noun)
+        example: Can I use your phone?
+        difficulty: 1
+      - word: major
+        ipa: /ˈmeɪdʒər/
+        example: It is a major decision.
+        difficulty: 2
+      - word: young
+        ipa: /jʌŋ/
+        example: She is still young.
+        difficulty: 1
+      - word: jealous
+        ipa: /ˈdʒɛləs/
+        example: Don't be jealous of others.
+        difficulty: 2
+      - word: beyond
+        ipa: /bɪˈjɑːnd/
+        example: The view beyond is stunning.
+        difficulty: 2
 
-ei_ai:
-  name: 'eɪ and aɪ diphthongs'
-  description: 'eɪ as in "day" - glide from eh to ee; aɪ as in "my" - glide from ah to ee'
-  words:
-    - word: main
-      ipa: /meɪn/
-      example: The main entrance is over there.
-      difficulty: 1
-    - word: mind
-      ipa: /maɪnd/
-      example: Do you mind if I sit here?
-      difficulty: 1
-    - word: rain
-      ipa: /reɪn/
-      example: It started to rain heavily.
-      difficulty: 1
-    - word: fine
-      ipa: /faɪn/
-      example: Everything is fine now.
-      difficulty: 1
-    - word: train
-      ipa: /treɪn/
-      example: The train arrives at noon.
-      difficulty: 1
-    - word: kind
-      ipa: /kaɪnd/
-      example: She is a very kind person.
-      difficulty: 1
-    - word: explain
-      ipa: /ɪkˈspleɪn/
-      example: Can you explain this to me?
-      difficulty: 2
-    - word: behind
-      ipa: /bɪˈhaɪnd/
-      example: The garden is behind the house.
-      difficulty: 2
-    - word: maintain
-      ipa: /meɪnˈteɪn/
-      example: We need to maintain the equipment.
-      difficulty: 2
-    - word: reminder
-      ipa: /rɪˈmaɪndər/
-      example: Set a reminder for tomorrow.
-      difficulty: 2
+  ei_ai:
+    name: 'eɪ and aɪ diphthongs'
+    description: 'eɪ as in "day" - glide from eh to ee; aɪ as in "my" - glide from ah to ee'
+    words:
+      - word: main
+        ipa: /meɪn/
+        example: The main entrance is over there.
+        difficulty: 1
+      - word: mind
+        ipa: /maɪnd/
+        example: Do you mind if I sit here?
+        difficulty: 1
+      - word: rain
+        ipa: /reɪn/
+        example: It started to rain heavily.
+        difficulty: 1
+      - word: fine
+        ipa: /faɪn/
+        example: Everything is fine now.
+        difficulty: 1
+      - word: train
+        ipa: /treɪn/
+        example: The train arrives at noon.
+        difficulty: 1
+      - word: kind
+        ipa: /kaɪnd/
+        example: She is a very kind person.
+        difficulty: 1
+      - word: explain
+        ipa: /ɪkˈspleɪn/
+        example: Can you explain this to me?
+        difficulty: 2
+      - word: behind
+        ipa: /bɪˈhaɪnd/
+        example: The garden is behind the house.
+        difficulty: 2
+      - word: maintain
+        ipa: /meɪnˈteɪn/
+        example: We need to maintain the equipment.
+        difficulty: 2
+      - word: reminder
+        ipa: /rɪˈmaɪndər/
+        example: Set a reminder for tomorrow.
+        difficulty: 2
 
-ough_spellings:
-  name: ough variations
-  description: same spelling, different sounds - must memorize each
-  words:
-    - word: though
-      ipa: /ðoʊ/
-      example: Even though it rained, we went out.
-      difficulty: 2
-    - word: through
-      ipa: /θruː/
-      example: We drove through the tunnel.
-      difficulty: 2
-    - word: tough
-      ipa: /tʌf/
-      example: That was a tough question.
-      difficulty: 2
-    - word: cough
-      ipa: /kɔːf/
-      example: She has a bad cough.
-      difficulty: 2
-    - word: thought
-      ipa: /θɔːt/
-      example: I thought about it all day.
-      difficulty: 2
-    - word: enough
-      ipa: /ɪˈnʌf/
-      example: That is enough for now.
-      difficulty: 2
-    - word: dough
-      ipa: /doʊ/
-      example: Knead the dough for ten minutes.
-      difficulty: 2
-    - word: thorough
-      ipa: /ˈθɜːroʊ/
-      example: She did a thorough job.
-      difficulty: 3
-    - word: borough
-      ipa: /ˈbɜːroʊ/
-      example: He lives in the next borough.
-      difficulty: 3
-    - word: throughout
-      ipa: /θruːˈaʊt/
-      example: It rained throughout the day.
-      difficulty: 3
+  ough_spellings:
+    name: ough variations
+    description: same spelling, different sounds - must memorize each
+    words:
+      - word: though
+        ipa: /ðoʊ/
+        example: Even though it rained, we went out.
+        difficulty: 2
+      - word: through
+        ipa: /θruː/
+        example: We drove through the tunnel.
+        difficulty: 2
+      - word: tough
+        ipa: /tʌf/
+        example: That was a tough question.
+        difficulty: 2
+      - word: cough
+        ipa: /kɔːf/
+        example: She has a bad cough.
+        difficulty: 2
+      - word: thought
+        ipa: /θɔːt/
+        example: I thought about it all day.
+        difficulty: 2
+      - word: enough
+        ipa: /ɪˈnʌf/
+        example: That is enough for now.
+        difficulty: 2
+      - word: dough
+        ipa: /doʊ/
+        example: Knead the dough for ten minutes.
+        difficulty: 2
+      - word: thorough
+        ipa: /ˈθɜːroʊ/
+        example: She did a thorough job.
+        difficulty: 3
+      - word: borough
+        ipa: /ˈbɜːroʊ/
+        example: He lives in the next borough.
+        difficulty: 3
+      - word: throughout
+        ipa: /θruːˈaʊt/
+        example: It rained throughout the day.
+        difficulty: 3
 
-r_vowels:
-  name: vowel + r (ɜːr, ɑːr, ɔːr, ɪr, ɛr)
-  description: r colors the vowel before it, each combination sounds different
-  words:
-    - word: bird
-      ipa: /bɜːrd/
-      example: A bird landed on the branch.
-      difficulty: 1
-    - word: work
-      ipa: /wɜːrk/
-      example: I have a lot of work to do.
-      difficulty: 1
-    - word: car
-      ipa: /kɑːr/
-      example: She parked the car outside.
-      difficulty: 1
-    - word: door
-      ipa: /dɔːr/
-      example: Please close the door.
-      difficulty: 1
-    - word: here
-      ipa: /hɪr/
-      example: Come here please.
-      difficulty: 1
-    - word: care
-      ipa: /kɛr/
-      example: I don't care about that.
-      difficulty: 1
-    - word: nurse
-      ipa: /nɜːrs/
-      example: The nurse took my temperature.
-      difficulty: 2
-    - word: heart
-      ipa: /hɑːrt/
-      example: She has a kind heart.
-      difficulty: 2
-    - word: earth
-      ipa: /ɜːrθ/
-      example: The earth orbits the sun.
-      difficulty: 2
-    - word: particular
-      ipa: /pərˈtɪkjələr/
-      example: Any particular reason?
-      difficulty: 3
+  r_vowels:
+    name: vowel + r (ɜːr, ɑːr, ɔːr, ɪr, ɛr)
+    description: r colors the vowel before it, each combination sounds different
+    words:
+      - word: bird
+        ipa: /bɜːrd/
+        example: A bird landed on the branch.
+        difficulty: 1
+      - word: work
+        ipa: /wɜːrk/
+        example: I have a lot of work to do.
+        difficulty: 1
+      - word: car
+        ipa: /kɑːr/
+        example: She parked the car outside.
+        difficulty: 1
+      - word: door
+        ipa: /dɔːr/
+        example: Please close the door.
+        difficulty: 1
+      - word: here
+        ipa: /hɪr/
+        example: Come here please.
+        difficulty: 1
+      - word: care
+        ipa: /kɛr/
+        example: I don't care about that.
+        difficulty: 1
+      - word: nurse
+        ipa: /nɜːrs/
+        example: The nurse took my temperature.
+        difficulty: 2
+      - word: heart
+        ipa: /hɑːrt/
+        example: She has a kind heart.
+        difficulty: 2
+      - word: earth
+        ipa: /ɜːrθ/
+        example: The earth orbits the sun.
+        difficulty: 2
+      - word: particular
+        ipa: /pərˈtɪkjələr/
+        example: Any particular reason?
+        difficulty: 3
 
-zh_sound:
-  name: 'zh sound (ʒ)'
-  description: 'like sh but voiced - tongue same as sh, add vibration'
-  words:
-    - word: vision
-      ipa: /ˈvɪʒən/
-      example: She has great vision.
-      difficulty: 2
-    - word: measure
-      ipa: /ˈmɛʒər/
-      example: Measure the distance carefully.
-      difficulty: 2
-    - word: pleasure
-      ipa: /ˈplɛʒər/
-      example: It was a pleasure to meet you.
-      difficulty: 2
-    - word: usual
-      ipa: /ˈjuːʒuəl/
-      example: The usual time works for me.
-      difficulty: 2
-    - word: decision
-      ipa: /dɪˈsɪʒən/
-      example: That was a difficult decision.
-      difficulty: 2
-    - word: television
-      ipa: /ˈtɛləˌvɪʒən/
-      example: Turn off the television.
-      difficulty: 2
-    - word: garage
-      ipa: /ɡəˈrɑːʒ/
-      example: Park the car in the garage.
-      difficulty: 2
-    - word: massage
-      ipa: /məˈsɑːʒ/
-      example: A massage would feel great.
-      difficulty: 2
-    - word: treasure
-      ipa: /ˈtrɛʒər/
-      example: They found buried treasure.
-      difficulty: 2
-    - word: explosion
-      ipa: /ɪkˈsploʊʒən/
-      example: We heard a loud explosion.
-      difficulty: 3
+  zh_sound:
+    name: 'zh sound (ʒ)'
+    description: 'like sh but voiced - tongue same as sh, add vibration'
+    words:
+      - word: vision
+        ipa: /ˈvɪʒən/
+        example: She has great vision.
+        difficulty: 2
+      - word: measure
+        ipa: /ˈmɛʒər/
+        example: Measure the distance carefully.
+        difficulty: 2
+      - word: pleasure
+        ipa: /ˈplɛʒər/
+        example: It was a pleasure to meet you.
+        difficulty: 2
+      - word: usual
+        ipa: /ˈjuːʒuəl/
+        example: The usual time works for me.
+        difficulty: 2
+      - word: decision
+        ipa: /dɪˈsɪʒən/
+        example: That was a difficult decision.
+        difficulty: 2
+      - word: television
+        ipa: /ˈtɛləˌvɪʒən/
+        example: Turn off the television.
+        difficulty: 2
+      - word: garage
+        ipa: /ɡəˈrɑːʒ/
+        example: Park the car in the garage.
+        difficulty: 2
+      - word: massage
+        ipa: /məˈsɑːʒ/
+        example: A massage would feel great.
+        difficulty: 2
+      - word: treasure
+        ipa: /ˈtrɛʒər/
+        example: They found buried treasure.
+        difficulty: 2
+      - word: explosion
+        ipa: /ɪkˈsploʊʒən/
+        example: We heard a loud explosion.
+        difficulty: 3
 
-h_sound:
-  name: h sound
-  description: gentle breath of air from throat, don't drop or add it
-  words:
-    - word: hat
-      ipa: /hæt/
-      example: She wore a big hat.
-      difficulty: 1
-    - word: help
-      ipa: /hɛlp/
-      example: Can you help me please?
-      difficulty: 1
-    - word: hour
-      ipa: /aʊər/
-      example: I waited for an hour.
-      difficulty: 2
-    - word: honest
-      ipa: /ˈɑːnɪst/
-      example: He is an honest person.
-      difficulty: 2
-    - word: behind
-      ipa: /bɪˈhaɪnd/
-      example: Look behind the curtain.
-      difficulty: 1
-    - word: ahead
-      ipa: /əˈhɛd/
-      example: Go ahead and start.
-      difficulty: 2
-    - word: heir
-      ipa: /ɛr/
-      example: She is the heir to the estate.
-      difficulty: 3
-    - word: exhaust
-      ipa: /ɪɡˈzɔːst/
-      example: The exhaust pipe is broken.
-      difficulty: 2
-    - word: vehicle
-      ipa: /ˈviːɪkəl/
-      example: The vehicle stopped suddenly.
-      difficulty: 2
-    - word: perhaps
-      ipa: /pərˈhæps/
-      example: Perhaps we should wait.
-      difficulty: 2
+  h_sound:
+    name: h sound
+    description: gentle breath of air from throat, don't drop or add it
+    words:
+      - word: hat
+        ipa: /hæt/
+        example: She wore a big hat.
+        difficulty: 1
+      - word: help
+        ipa: /hɛlp/
+        example: Can you help me please?
+        difficulty: 1
+      - word: hour
+        ipa: /aʊər/
+        example: I waited for an hour.
+        difficulty: 2
+      - word: honest
+        ipa: /ˈɑːnɪst/
+        example: He is an honest person.
+        difficulty: 2
+      - word: behind
+        ipa: /bɪˈhaɪnd/
+        example: Look behind the curtain.
+        difficulty: 1
+      - word: ahead
+        ipa: /əˈhɛd/
+        example: Go ahead and start.
+        difficulty: 2
+      - word: heir
+        ipa: /ɛr/
+        example: She is the heir to the estate.
+        difficulty: 3
+      - word: exhaust
+        ipa: /ɪɡˈzɔːst/
+        example: The exhaust pipe is broken.
+        difficulty: 2
+      - word: vehicle
+        ipa: /ˈviːɪkəl/
+        example: The vehicle stopped suddenly.
+        difficulty: 2
+      - word: perhaps
+        ipa: /pərˈhæps/
+        example: Perhaps we should wait.
+        difficulty: 2
 
-tion_sion:
-  name: -tion and -sion endings
-  description: '-tion = /ʃən/, -sion = /ʒən/ or /ʃən/ depending on context'
-  words:
-    - word: nation
-      ipa: /ˈneɪʃən/
-      example: The nation celebrated independence.
-      difficulty: 1
-    - word: question
-      ipa: /ˈkwɛstʃən/
-      example: That is a good question.
-      difficulty: 1
-    - word: education
-      ipa: /ˌɛdʒʊˈkeɪʃən/
-      example: Education is very important.
-      difficulty: 2
-    - word: attention
-      ipa: /əˈtɛnʃən/
-      example: Pay attention to the teacher.
-      difficulty: 2
-    - word: version
-      ipa: /ˈvɜːrʒən/
-      example: Download the latest version.
-      difficulty: 2
-    - word: confusion
-      ipa: /kənˈfjuːʒən/
-      example: There was some confusion.
-      difficulty: 2
-    - word: suggestion
-      ipa: /səˈdʒɛstʃən/
-      example: Thank you for the suggestion.
-      difficulty: 2
-    - word: permission
-      ipa: /pərˈmɪʃən/
-      example: You need permission to enter.
-      difficulty: 2
-    - word: pronunciation
-      ipa: /prəˌnʌnsiˈeɪʃən/
-      example: Work on your pronunciation.
-      difficulty: 3
-    - word: comprehension
-      ipa: /ˌkɑːmprɪˈhɛnʃən/
-      example: Reading comprehension is key.
-      difficulty: 3
+  tion_sion:
+    name: -tion and -sion endings
+    description: '-tion = /ʃən/, -sion = /ʒən/ or /ʃən/ depending on context'
+    words:
+      - word: nation
+        ipa: /ˈneɪʃən/
+        example: The nation celebrated independence.
+        difficulty: 1
+      - word: question
+        ipa: /ˈkwɛstʃən/
+        example: That is a good question.
+        difficulty: 1
+      - word: education
+        ipa: /ˌɛdʒʊˈkeɪʃən/
+        example: Education is very important.
+        difficulty: 2
+      - word: attention
+        ipa: /əˈtɛnʃən/
+        example: Pay attention to the teacher.
+        difficulty: 2
+      - word: version
+        ipa: /ˈvɜːrʒən/
+        example: Download the latest version.
+        difficulty: 2
+      - word: confusion
+        ipa: /kənˈfjuːʒən/
+        example: There was some confusion.
+        difficulty: 2
+      - word: suggestion
+        ipa: /səˈdʒɛstʃən/
+        example: Thank you for the suggestion.
+        difficulty: 2
+      - word: permission
+        ipa: /pərˈmɪʃən/
+        example: You need permission to enter.
+        difficulty: 2
+      - word: pronunciation
+        ipa: /prəˌnʌnsiˈeɪʃən/
+        example: Work on your pronunciation.
+        difficulty: 3
+      - word: comprehension
+        ipa: /ˌkɑːmprɪˈhɛnʃən/
+        example: Reading comprehension is key.
+        difficulty: 3
 
-f_v:
-  name: f and v contrast
-  description: 'both use upper teeth on lower lip - f is voiceless, v is voiced'
-  words:
-    - word: fan
-      ipa: /fæn/
-      example: Turn on the fan.
-      difficulty: 1
-    - word: van
-      ipa: /væn/
-      example: They rented a van.
-      difficulty: 1
-    - word: safe
-      ipa: /seɪf/
-      example: Keep your money in the safe.
-      difficulty: 1
-    - word: save
-      ipa: /seɪv/
-      example: Save your work often.
-      difficulty: 1
-    - word: leaf
-      ipa: /liːf/
-      example: A leaf fell from the tree.
-      difficulty: 1
-    - word: leave
-      ipa: /liːv/
-      example: I have to leave now.
-      difficulty: 1
-    - word: half
-      ipa: /hæf/
-      example: Cut it in half.
-      difficulty: 2
-    - word: have
-      ipa: /hæv/
-      example: I have two brothers.
-      difficulty: 1
-    - word: belief
-      ipa: /bɪˈliːf/
-      example: It is a common belief.
-      difficulty: 2
-    - word: believe
-      ipa: /bɪˈliːv/
-      example: I believe in you.
-      difficulty: 2
+  f_v:
+    name: f and v contrast
+    description: 'both use upper teeth on lower lip - f is voiceless, v is voiced'
+    words:
+      - word: fan
+        ipa: /fæn/
+        example: Turn on the fan.
+        difficulty: 1
+      - word: van
+        ipa: /væn/
+        example: They rented a van.
+        difficulty: 1
+      - word: safe
+        ipa: /seɪf/
+        example: Keep your money in the safe.
+        difficulty: 1
+      - word: save
+        ipa: /seɪv/
+        example: Save your work often.
+        difficulty: 1
+      - word: leaf
+        ipa: /liːf/
+        example: A leaf fell from the tree.
+        difficulty: 1
+      - word: leave
+        ipa: /liːv/
+        example: I have to leave now.
+        difficulty: 1
+      - word: half
+        ipa: /hæf/
+        example: Cut it in half.
+        difficulty: 2
+      - word: have
+        ipa: /hæv/
+        example: I have two brothers.
+        difficulty: 1
+      - word: belief
+        ipa: /bɪˈliːf/
+        example: It is a common belief.
+        difficulty: 2
+      - word: believe
+        ipa: /bɪˈliːv/
+        example: I believe in you.
+        difficulty: 2
 
 pangrams:
   - text: >-

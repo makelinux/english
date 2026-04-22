@@ -73,8 +73,6 @@ cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 calibrated = False
 cfg = Box(default_box=True)
 voice = "Kore"
-SYSPROMPT = ""
-pmt = Box()
 data = Box()
 
 
@@ -102,18 +100,10 @@ def save_calibration():
 def load_data():
     with open(DATA) as f:
         raw = yaml.safe_load(f)
-    global SYSPROMPT, pmt, data
-    d = Box(raw)
-    pmt = Box(raw.pop("prompts", {}))
-    SYSPROMPT = pmt.sysprompt.format(no_ipa=_no_ipa())
-    STT_ALIASES.update(raw.pop("stt_aliases", {}))
-    for group in raw.pop("stt_equiv", []):
-        STT_EQUIV.append(set(group))
-    raw.pop("pangrams", None)
-    raw.pop("twisters", None)
-    raw.pop("prompts", None)
-    d.groups = Box(raw)
-    data = d
+    global data
+    data = Box(raw)
+    data.prompts.sysprompt = data.prompts.sysprompt.format(no_ipa=_no_ipa())
+    data.stt_equiv = [set(g) for g in data.stt_equiv or []]
 
 
 def load_history():
@@ -310,15 +300,13 @@ def quick_calibrate():
     calibrated = True
 
 
-STT_ALIASES = {}
-STT_EQUIV = []
 
 # IPA-based homophone lookup
 ipa_to_words = {}  # "/raɪt/" -> {"right", "write"}
 
 
 def build_ipa_map():
-    for g in data.groups.values():
+    for g in data.phonemes.values():
         for w in g.words:
             for ipa in re.findall(r'/[^/]+/', w.ipa):
                 ipa_to_words.setdefault(ipa, set()).add(w.word.lower())
@@ -332,9 +320,10 @@ def stt_score(expected, heard):
     h = heard.lower().strip()
     if e == h:
         return 100
-    if STT_ALIASES.get(e) == h or STT_ALIASES.get(h) == e:
+    a = data.stt_aliases
+    if a and (a.get(e) == h or a.get(h) == e):
         return 100
-    for group in STT_EQUIV:
+    for group in data.stt_equiv:
         if e in group and h in group:
             return 100
     for words in ipa_to_words.values():
@@ -616,7 +605,7 @@ def _ask_gemini(wav, prompt):
     import google.generativeai as genai
     status(f"  {DIM}gemini-flash-latest ...{RST}")
     m = genai.GenerativeModel("gemini-flash-latest",
-                              system_instruction=SYSPROMPT)
+                              system_instruction=data.prompts.sysprompt)
     r = m.generate_content([
         prompt, {"mime_type": "audio/wav", "data": wav},
     ])
@@ -663,7 +652,7 @@ def _ask_openai(wav, prompt):
     r = c.chat.completions.create(
         model=mdl,
         messages=[
-            {"role": "system", "content": SYSPROMPT},
+            {"role": "system", "content": data.prompts.sysprompt},
             {"role": "user", "content": [
                 {"type": "text", "text": prompt}, part,
             ]},
@@ -674,13 +663,13 @@ def _ask_openai(wav, prompt):
 
 
 def get_feedback(raw, word, ipa):
-    p = pmt.feedback.format(word=word, ipa=ipa)
+    p = data.prompts.feedback.format(word=word, ipa=ipa)
     fb = _ask_ai(raw, p)
     return re.sub(r'"(\w+)\."', r'"\1".', fb)
 
 
 def get_assessment(raw, text):
-    p = pmt.assess.format(text=text, groups=", ".join(data.groups.keys()))
+    p = data.prompts.assess.format(text=text, groups=", ".join(data.phonemes.keys()))
     return _ask_ai(raw, p)
 
 
@@ -690,7 +679,7 @@ def parse_assessment(text):
     groups = []
     for line in text.strip().splitlines():
         g = line.strip().lower()
-        if g in data.groups:
+        if g in data.phonemes:
             groups.append(g)
     return groups
 
@@ -761,7 +750,7 @@ def show_stats(h):
 
 def list_groups():
     print("\nPhoneme groups:\n")
-    for gid, g in data.groups.items():
+    for gid, g in data.phonemes.items():
         n = len(g.words)
         print(f"  {gid:20s} - {g.name} ({n} words)")
 
@@ -779,7 +768,7 @@ GROUP_KEYS = {
 
 
 def select_group(h):
-    groups = list(data.groups.keys())
+    groups = list(data.phonemes.keys())
     keys = {}
     for gid in groups:
         k = GROUP_KEYS.get(gid)
@@ -798,7 +787,7 @@ def select_group(h):
         gids = keys[k]
         names = []
         for gid in gids:
-            g = data.groups[gid]
+            g = data.phonemes[gid]
             acc = group_accuracy(h, gid)
             tag = f" {acc:.0%}" if acc >= 0 else " new"
             names.append(f"{g.name}{tag}")
@@ -819,7 +808,7 @@ def select_group(h):
             if len(gids) == 1:
                 return gids[0]
             for i, gid in enumerate(gids):
-                g = data.groups[gid]
+                g = data.phonemes[gid]
                 acc = group_accuracy(h, gid)
                 tag = f" {acc:.0%}" if acc >= 0 else " new"
                 print(f"  {i + 1} - {g.name}{tag}")
@@ -1006,7 +995,7 @@ def assess(h, cont=False, debug=False):
         return
     print(f"\n  Areas to work on:\n")
     for i, gid in enumerate(weak):
-        g = data.groups[gid]
+        g = data.phonemes[gid]
         acc = group_accuracy(h, gid)
         tag = f" ({acc:.0%})" if acc >= 0 else ""
         print(f"  {i + 1}. {g.name}{tag}")
@@ -1016,7 +1005,7 @@ def assess(h, cont=False, debug=False):
     if c == 'q':
         return
     gid = weak[0]
-    print(f"\n  Starting practice: {data.groups[gid].name}\n")
+    print(f"\n  Starting practice: {data.phonemes[gid].name}\n")
     practice(gid, h, cont, debug)
 
 
@@ -1025,7 +1014,7 @@ def practice_twisters(h):
     for i, tw in enumerate(data.twisters):
         text = tw["text"]
         gid = tw.get("group", "")
-        gn = data.groups[gid].name if gid in data.groups else ""
+        gn = data.phonemes[gid].name if gid in data.phonemes else ""
         lbl = f"  {i + 1}/{len(data.twisters)}"
         if gn:
             lbl += f"  ({gn})"
@@ -1055,7 +1044,7 @@ def practice_twisters(h):
         if sim:
             print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
         try:
-            fb = _ask_ai(raw, pmt.twister.format(text=text))
+            fb = _ask_ai(raw, data.prompts.twister.format(text=text))
         except Exception as e:
             print(f"  Feedback error: {e}")
             continue
@@ -1073,7 +1062,7 @@ def practice_twisters(h):
 
 
 def practice(gid, h, cont=False, debug=False):
-    g = data.groups[gid]
+    g = data.phonemes[gid]
     print(f"\n--- {g.name} ---")
     print(f"  {g.description}")
     print()
@@ -1334,7 +1323,7 @@ def test_feedback():
 
 def test_services():
     raw = _ref_raw("hello")
-    p = pmt.feedback.format(word="hello", ipa="/hɛˈloʊ/")
+    p = data.prompts.feedback.format(word="hello", ipa="/hɛˈloʊ/")
     svcs = [
         ("gemini-flash-latest feedback", lambda:
          _ask_gemini(_raw_to_wav(raw), p)),
@@ -1456,7 +1445,7 @@ def main():
 
     if a.text:
         ipa = ""
-        for g in data.groups.values():
+        for g in data.phonemes.values():
             for wd in g.words:
                 if wd.word.lower() == a.text.lower():
                     ipa = wd.ipa
@@ -1480,14 +1469,14 @@ def main():
     print()
 
     if a.group:
-        if a.group not in data.groups:
+        if a.group not in data.phonemes:
             print(f"Unknown group: {a.group}")
             print("Use --list to see available groups.")
             return
         gid = a.group
     elif a.weak:
         accs = [(gid, group_accuracy(h, gid))
-                for gid in data.groups.keys()]
+                for gid in data.phonemes.keys()]
         accs.sort(key=lambda x: x[1])
         gid = accs[0][0]
     else:
