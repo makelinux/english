@@ -71,10 +71,11 @@ VOICES_ALL = VOICES_MALE + VOICES_FEMALE
 # calibration state - loaded at startup
 cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 calibrated = False
-cfg = {}
+cfg = Box(default_box=True)
 voice = "Kore"
 SYSPROMPT = ""
 pmt = Box()
+data = Box()
 
 
 def load_calibration():
@@ -98,21 +99,21 @@ def save_calibration():
         yaml.dump(cal, f)
 
 
-def load_words():
+def load_data():
     with open(DATA) as f:
         raw = yaml.safe_load(f)
-    global pangrams, twisters, SYSPROMPT, pmt
-    pangrams = raw.pop("pangrams", [])
-    if not pangrams:
-        p = raw.pop("pangram", {})
-        pangrams = [p] if p else []
-    twisters = raw.pop("twisters", [])
+    global SYSPROMPT, pmt, data
+    d = Box(raw)
     pmt = Box(raw.pop("prompts", {}))
     SYSPROMPT = pmt.sysprompt.format(no_ipa=_no_ipa())
     STT_ALIASES.update(raw.pop("stt_aliases", {}))
     for group in raw.pop("stt_equiv", []):
         STT_EQUIV.append(set(group))
-    return Box(raw)
+    raw.pop("pangrams", None)
+    raw.pop("twisters", None)
+    raw.pop("prompts", None)
+    d.groups = Box(raw)
+    data = d
 
 
 def load_history():
@@ -316,8 +317,8 @@ STT_EQUIV = []
 ipa_to_words = {}  # "/raɪt/" -> {"right", "write"}
 
 
-def build_ipa_map(data):
-    for g in data.values():
+def build_ipa_map():
+    for g in data.groups.values():
         for w in g.words:
             for ipa in re.findall(r'/[^/]+/', w.ipa):
                 ipa_to_words.setdefault(ipa, set()).add(w.word.lower())
@@ -606,7 +607,7 @@ def _raw_to_wav(raw):
 def _ask_ai(raw, prompt):
     """Send audio + prompt to Gemini or OpenAI, return response text."""
     wav = _raw_to_wav(raw)
-    if cfg.get("openai"):
+    if cfg.openai:
         return _ask_openai(wav, prompt)
     return _ask_gemini(wav, prompt)
 
@@ -626,18 +627,18 @@ def _ask_gemini(wav, prompt):
 def _ask_openai(wav, prompt):
     import base64
     from openai import OpenAI
-    oc = cfg.get("openai", {})
+    oc = cfg.openai
     c = OpenAI(
-        base_url=oc.get("base_url", "http://localhost:8321/v1/"),
-        api_key=oc.get("api_key", "none"),
+        base_url=oc.base_url or "http://localhost:8321/v1/",
+        api_key=oc.api_key or "none",
     )
     b64 = base64.b64encode(wav).decode()
-    mdl = oc.get("model", os.getenv("INFERENCE_MODEL",
-                                     "gemini/gemini-2.5-flash"))
+    mdl = oc.model or os.getenv("INFERENCE_MODEL",
+                                "gemini/gemini-2.5-flash")
     status(f"  {DIM}{mdl} ...{RST}")
     uri = f"data:audio/wav;base64,{b64}"
-    af = oc.get("audio_format", "image_url")
-    if oc.get("api_type", "completions") == "responses":
+    af = oc.audio_format or "image_url"
+    if (oc.api_type or "completions") == "responses":
         if af == "input_audio":
             part = {"type": "input_audio",
                     "input_audio": {"data": b64, "format": "wav"}}
@@ -678,18 +679,18 @@ def get_feedback(raw, word, ipa):
     return re.sub(r'"(\w+)\."', r'"\1".', fb)
 
 
-def get_assessment(raw, data, text):
-    p = pmt.assess.format(text=text, groups=", ".join(data.keys()))
+def get_assessment(raw, text):
+    p = pmt.assess.format(text=text, groups=", ".join(data.groups.keys()))
     return _ask_ai(raw, p)
 
 
-def parse_assessment(text, data):
+def parse_assessment(text):
     if text.strip().upper() == "GOOD":
         return []
     groups = []
     for line in text.strip().splitlines():
         g = line.strip().lower()
-        if g in data:
+        if g in data.groups:
             groups.append(g)
     return groups
 
@@ -758,9 +759,9 @@ def show_stats(h):
         print("  Need at least 2 attempts per word to rank.")
 
 
-def list_groups(data):
+def list_groups():
     print("\nPhoneme groups:\n")
-    for gid, g in data.items():
+    for gid, g in data.groups.items():
         n = len(g.words)
         print(f"  {gid:20s} - {g.name} ({n} words)")
 
@@ -777,8 +778,8 @@ GROUP_KEYS = {
 }
 
 
-def select_group(data, h):
-    groups = list(data.keys())
+def select_group(h):
+    groups = list(data.groups.keys())
     keys = {}
     for gid in groups:
         k = GROUP_KEYS.get(gid)
@@ -797,7 +798,7 @@ def select_group(data, h):
         gids = keys[k]
         names = []
         for gid in gids:
-            g = data[gid]
+            g = data.groups[gid]
             acc = group_accuracy(h, gid)
             tag = f" {acc:.0%}" if acc >= 0 else " new"
             names.append(f"{g.name}{tag}")
@@ -818,7 +819,7 @@ def select_group(data, h):
             if len(gids) == 1:
                 return gids[0]
             for i, gid in enumerate(gids):
-                g = data[gid]
+                g = data.groups[gid]
                 acc = group_accuracy(h, gid)
                 tag = f" {acc:.0%}" if acc >= 0 else " new"
                 print(f"  {i + 1} - {g.name}{tag}")
@@ -936,7 +937,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None):
     return best, last_raw
 
 
-def _assess_one(data, text, ipa):
+def _assess_one(text, ipa):
     """Record and assess one pangram. Returns list of weak group IDs."""
     print(f"  {text}")
     if ipa:
@@ -980,21 +981,21 @@ def _assess_one(data, text, ipa):
     if sim:
         print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
     try:
-        r = get_assessment(raw, data, text)
+        r = get_assessment(raw, text)
     except Exception as e:
         print(f"  Analysis error: {e}")
         return []
-    return parse_assessment(r, data)
+    return parse_assessment(r)
 
 
-def assess(data, h, cont=False, debug=False):
+def assess(h, cont=False, debug=False):
     print(f"\n--- Pronunciation assessment ---\n")
     print(f"  Read each sentence aloud:\n")
     weak = []
-    for p in pangrams:
+    for p in data.pangrams:
         text = p.get("text", p) if isinstance(p, dict) else p
         ipa = p.get("ipa", "") if isinstance(p, dict) else ""
-        w = _assess_one(data, text, ipa)
+        w = _assess_one(text, ipa)
         for g in w:
             if g not in weak:
                 weak.append(g)
@@ -1005,7 +1006,7 @@ def assess(data, h, cont=False, debug=False):
         return
     print(f"\n  Areas to work on:\n")
     for i, gid in enumerate(weak):
-        g = data[gid]
+        g = data.groups[gid]
         acc = group_accuracy(h, gid)
         tag = f" ({acc:.0%})" if acc >= 0 else ""
         print(f"  {i + 1}. {g.name}{tag}")
@@ -1015,17 +1016,17 @@ def assess(data, h, cont=False, debug=False):
     if c == 'q':
         return
     gid = weak[0]
-    print(f"\n  Starting practice: {data[gid].name}\n")
-    practice(data, gid, h, cont, debug)
+    print(f"\n  Starting practice: {data.groups[gid].name}\n")
+    practice(gid, h, cont, debug)
 
 
-def practice_twisters(data, h):
+def practice_twisters(h):
     print(f"\n--- Tongue twisters ---\n")
-    for i, tw in enumerate(twisters):
+    for i, tw in enumerate(data.twisters):
         text = tw["text"]
         gid = tw.get("group", "")
-        gn = data[gid].name if gid in data else ""
-        lbl = f"  {i + 1}/{len(twisters)}"
+        gn = data.groups[gid].name if gid in data.groups else ""
+        lbl = f"  {i + 1}/{len(data.twisters)}"
         if gn:
             lbl += f"  ({gn})"
         print(lbl)
@@ -1061,7 +1062,7 @@ def practice_twisters(data, h):
         print(f"  {fb}")
         if fb.strip() != "Good":
             speak_text(re.sub(r'[\"\'()"/]', '', fb))
-        if i < len(twisters) - 1:
+        if i < len(data.twisters) - 1:
             print(f"\n  {DIM}[Enter] next  [q]uit{RST}", end="",
                   flush=True)
             c = wait_key(None)
@@ -1071,8 +1072,8 @@ def practice_twisters(data, h):
         print()
 
 
-def practice(data, gid, h, cont=False, debug=False):
-    g = data[gid]
+def practice(gid, h, cont=False, debug=False):
+    g = data.groups[gid]
     print(f"\n--- {g.name} ---")
     print(f"  {g.description}")
     print()
@@ -1340,9 +1341,8 @@ def test_services():
         ("gemini-3.1-flash-tts TTS", lambda:
          _gemini_tts_wav("test")),
     ]
-    if cfg.get("openai"):
-        oc = cfg["openai"]
-        m = oc.get("model", "gemini/gemini-2.5-flash")
+    if cfg.openai:
+        m = cfg.openai.model or "gemini/gemini-2.5-flash"
         svcs.append((f"openai {m} feedback", lambda:
                      _ask_openai(_raw_to_wav(raw), p)))
     svcs.append(("gTTS", lambda: speak_text("test")))
@@ -1418,8 +1418,8 @@ def main():
     global sim_threshold
     sim_threshold = a.sim_threshold
     load_calibration()
-    data = load_words()
-    build_ipa_map(data)
+    load_data()
+    build_ipa_map()
     h = load_history()
 
     if a.test_services:
@@ -1430,7 +1430,7 @@ def main():
         return
 
     if a.list:
-        list_groups(data)
+        list_groups()
         return
     if a.stats:
         show_stats(h)
@@ -1440,7 +1440,7 @@ def main():
         return
     if a.assess:
         try:
-            assess(data, h, a.continuous, a.debug)
+            assess(h, a.continuous, a.debug)
         except KeyboardInterrupt:
             pass
         finally:
@@ -1449,14 +1449,14 @@ def main():
         return
     if a.twisters:
         try:
-            practice_twisters(data, h)
+            practice_twisters(h)
         except KeyboardInterrupt:
             pass
         return
 
     if a.text:
         ipa = ""
-        for g in data.values():
+        for g in data.groups.values():
             for wd in g.words:
                 if wd.word.lower() == a.text.lower():
                     ipa = wd.ipa
@@ -1480,24 +1480,25 @@ def main():
     print()
 
     if a.group:
-        if a.group not in data:
+        if a.group not in data.groups:
             print(f"Unknown group: {a.group}")
             print("Use --list to see available groups.")
             return
         gid = a.group
     elif a.weak:
-        accs = [(gid, group_accuracy(h, gid)) for gid in data.keys()]
+        accs = [(gid, group_accuracy(h, gid))
+                for gid in data.groups.keys()]
         accs.sort(key=lambda x: x[1])
         gid = accs[0][0]
     else:
         try:
-            gid = select_group(data, h)
+            gid = select_group(h)
         except KeyboardInterrupt:
             print()
             return
 
     try:
-        practice(data, gid, h, a.continuous, a.debug)
+        practice(gid, h, a.continuous, a.debug)
     except KeyboardInterrupt:
         pass
     finally:
