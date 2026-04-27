@@ -18,10 +18,11 @@ vocabulary size.
 ## pronounce.py
 
 Practice words grouped by phoneme:
-- Speaks each word via gTTS
+- Speaks each word via Gemini TTS (gTTS fallback)
 - Records and replays your attempt so you hear yourself
-- Scores using audio similarity and speech recognition
-- AI feedback
+- Scores via speech recognition, audio similarity shown
+  for reference
+- AI feedback on demand
 
 ### Usage
 
@@ -48,38 +49,43 @@ Practice words grouped by phoneme:
 ### Sample output
 
 ```
-1/10: foot  /fʊt/  ######.............. 30%  heard: food  30%
-1/10: foot  /fʊt/  #######............. 39%  heard: food  39%
-  You said "food". Try to make the vowel sound shorter and more relaxed,
-like the 'oo' in "book" or "good". Also, make sure the final sound
-is a crisp 't' sound, not a 'd'.
-1/10: foot  /fʊt/  #################### 100%  heard: foot  44%
+1/10: foot  /fʊt/  heard: food  30%
+1/10: foot  /fʊt/  heard: food  39%
+  You said "food". Try to make the vowel sound shorter and more
+  relaxed, like the 'oo' in "book" or "good". Also, make sure
+  the final sound is a crisp 't' sound, not a 'd'.
+1/10: foot  /fʊt/  heard: foot  44%
 
 ```
 
 ### Keys
 
-During recording (continuous mode):
-- `Enter` - retry
-- `p` - pause (continuous mode)
+During recording:
 - `s` - skip word
 - `f` - get AI feedback
+- `q` - quit
+
+Continuous mode (`-c`):
+- `Enter` - retry
+- `p` - pause
 - `s` - skip
+- `f` - feedback
 - `q` - quit
 
 ### Scoring
 
-Each attempt shows two scores:
-- Speech recognition - did Google hear the right word
-- Audio similarity - comparison with gTTS reference
+Each attempt shows:
+- Speech recognition result - what Google heard
+- Audio similarity - comparison with TTS reference (informational)
 
 Pass conditions:
-- sim >= threshold (default 60%), or
-- sim >= half threshold and perfect speech recognition, or
-- speech recognition >= 80% if audio similarity unavailable
+- sim >= threshold and STT partially correct, or
+- sim >= half threshold and STT perfect, or
+- STT >= 80% if audio similarity unavailable
 
-Audio similarity is colored by `--sim-threshold` (default 60%):
-green above, yellow above half, red below.
+History uses EMA (exponential moving average) so recent
+performance weighs more. `--weak` picks the group with
+lowest EMA score.
 
 ### Phoneme groups
 
@@ -97,8 +103,8 @@ Groups and words are defined in `english.yaml`.
 Press `f` to get pronunciation feedback. The AI listens to
 your recording, compares it to standard American accent, and
 tells you what to fix. Good pronunciation gets just "Good".
-Feedback is spoken aloud via Gemini TTS (gTTS fallback).
-Shows model name while waiting for API response.
+Feedback is spoken aloud via Gemini TTS (gTTS fallback)
+and saved to history.
 
 Backends:
 - Gemini (default) - set `GOOGLE_API_KEY` env variable
@@ -124,9 +130,11 @@ Audio similarity requires calibration. Calibration requires
 speakers - it plays reference words aloud and records them
 through the mic to measure channel characteristics.
 
-On first run, the app does a quick one-word auto-calibration.
-Run `--calibrate` for more precise tuning with multiple words.
-Settings are saved to `~/.config/english-pronounce/calibration.yaml`.
+On first run, the app does a quick auto-calibration.
+Run `--calibrate` for more precise tuning with multiple
+words. Calibration also measures cross-word distances to
+reduce false positives. Settings saved to
+`~/.config/english-pronounce/calibration.yaml`.
 With headphones only (no speakers), audio similarity is
 unavailable and scoring falls back to speech recognition.
 
@@ -176,11 +184,12 @@ python3 -c "import nltk; nltk.download('wordnet')"
 ## Files
 
 - `pronounce.py` - pronunciation trainer
+- `audio.py` - audio recording, playback, processing, TTS
 - `vocab.py` - vocabulary size estimator
 - `english.yaml` - phoneme groups, words, STT equivalences
 - `requirements.txt` - Python dependencies
 - `~/.config/english-pronounce/` - user data directory
   - `history.yaml` - practice history
   - `calibration.yaml` - mic/speaker calibration
-  - `ref/` - cached gTTS reference audio
+  - `ref/` - cached TTS reference audio (per voice)
   - `config.yaml` - OpenAI-compatible API settings

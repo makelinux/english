@@ -25,8 +25,8 @@ from audio import (
     SAMPLE_RATE, CONF_DIR, CAL_WORDS,
     VOICES_MALE, VOICES_FEMALE, VOICES_ALL, _BARS,
     cal, DIM, RST,
-    load_calibration, save_calibration, quick_calibrate,
-    status, record_audio, play_raw, speak, speak_text,
+    load_calibration, save_calibration, quick_calibrate, CAL_FILE,
+    status, record_audio, play_raw, speak,
     ensure_ref, get_ref_path, audio_similarity,
     normalize_volume, extract_mfcc, dtw_distance,
     raw_to_sr_audio, _raw_to_wav, _gemini_tts_wav, _ref_raw,
@@ -195,8 +195,8 @@ def record_word(word, rec, prefix="", duration=5):
             heard = None
         except sr.RequestError:
             heard = None
-        pct = max(sim, stt_score(word, heard))
-        return heard, pct, sim, peak, dur, raw, key
+        stt = stt_score(word, heard)
+        return heard, stt, sim, peak, dur, raw, key
     except Exception as e:
         print(f"\r\033[K{prefix}Recording error: {e}")
         return None, 0, 0, 0, 0, None, None
@@ -421,7 +421,7 @@ def select_group(h):
         c = wait_key(None)
         clear_line()
         if c == '?':
-            accs = [(gid, group_accuracy(h, gid)) for gid in groups]
+            accs = [(gid, group_accuracy(h, gid)) for gid in data.phonemes]
             accs.sort(key=lambda x: x[1])
             return accs[0][0]
         if c in keys:
@@ -452,7 +452,7 @@ def _do_feedback(raw, word, ipa, h=None):
         print(f"  {DIM}Feedback error: {e}{RST}")
         return
     print(f"  {DIM}{fb}{RST}")
-    speak_text(re.sub(r'[\"\'()"/]', '', fb))
+    speak(re.sub(r'[\"\'()"/]', '', fb))
     if h and word in h["words"]:
         h["words"][word]["feedback"] = fb
 
@@ -512,8 +512,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
         sim_s = f"  {sim_color(sim)}{sim:2d}%{RST}" if sim else ""
-        pct_s = f"{pct}%" if sim and not cont else ""
-        score = f"{pct_s}{heard_s}{sim_s}{dbg}"
+        score = f"{heard_s}{sim_s}{dbg}"
         print(f"\r\033[K{prefix}{lb_s}{score}")
 
         if sim >= sim_threshold and pct > 0 \
@@ -556,7 +555,7 @@ def _assess_one(text, ipa):
         print(f"  {DIM}{ipa}{RST}")
     print()
     print(f"  {DIM}Listen first...{RST}", end="", flush=True)
-    speak_text(text)
+    speak(text)
     print("\r\033[K", end="")
     ensure_ref(text)
     rec = sr.Recognizer()
@@ -585,8 +584,7 @@ def _assess_one(text, ipa):
 
 
 def assess(h, cont=False, debug=False):
-    print(f"\n--- Pronunciation assessment ---\n")
-    print(f"  Read each sentence aloud:\n")
+    print(f"\nPronunciation assessment\n")
     weak = []
     for p in data.pangrams:
         text = p.get("text", p) if isinstance(p, dict) else p
@@ -617,7 +615,7 @@ def assess(h, cont=False, debug=False):
 
 
 def practice_twisters(h):
-    print(f"\n--- Tongue twisters ---\n")
+    print(f"\nTongue twisters\n")
     rec = sr.Recognizer()
     for i, tw in enumerate(data.twisters):
         text = tw["text"]
@@ -630,7 +628,7 @@ def practice_twisters(h):
         print(f"  {text}")
         print()
         print(f"  {DIM}Listen...{RST}", end="", flush=True)
-        speak_text(text)
+        speak(text)
         print("\r\033[K", end="")
         ensure_ref(text)
         pw = len(text.split())
@@ -666,13 +664,13 @@ def practice_twisters(h):
                 continue
             print(f"  {fb}")
             if fb.strip() != "Good":
-                speak_text(re.sub(r'[\"\'()"/]', '', fb))
+                speak(re.sub(r'[\"\'()"/]', '', fb))
         print()
 
 
 def practice_phonemes(gid, h, cont=False, debug=False):
     g = data.phonemes[gid]
-    print(f"\n--- {g.name} ---")
+    print(f"\n{g.name}")
     print(f"  {g.description}")
     print()
 
@@ -725,7 +723,7 @@ def practice_phonemes(gid, h, cont=False, debug=False):
     ok = sum(1 for _, p in results if 40 <= p < 80)
     bad = sum(1 for _, p in results if p < 40)
 
-    print(f"\n--- Session summary ---")
+    print(f"\nSession summary")
     print(f"  Words practiced: {total}")
     print(f"  Average score: {avg:.0f}%")
     print(f"  Good (>=80%): {good}")
@@ -766,14 +764,16 @@ def calibrate():
     print("  Finding playback delay...", end=" ", flush=True)
     best_delay = 0.3
     best_score = -1
-    for delay in [0.1, 0.2, 0.3, 0.5]:
+    delays = [0.1, 0.2, 0.3, 0.5]
+    for i, delay in enumerate(delays):
+        w = CAL_WORDS[i % len(CAL_WORDS)]
         raw = [None]
         t = threading.Thread(target=lambda: raw.__setitem__(0, record_audio(3)[0]))
         t.start()
         time.sleep(delay)
-        speak(CAL_WORDS[0])
+        speak(w)
         t.join()
-        ref_path = get_ref_path(CAL_WORDS[0])
+        ref_path = get_ref_path(w)
         ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
         rec = np.frombuffer(raw[0], dtype=np.int16).astype(np.float32) / 32768.0
         ref = normalize_volume(ref)
@@ -792,7 +792,6 @@ def calibrate():
     # measure baseline distances
     print("  Measuring channel bias...\n")
     dists = []
-    peak_max = 0.0
     for w in CAL_WORDS:
         ref_path = get_ref_path(w)
         raw = [None]
@@ -803,9 +802,6 @@ def calibrate():
         t.join()
 
         rec = np.frombuffer(raw[0], dtype=np.int16).astype(np.float32) / 32768.0
-        p = float(np.max(np.abs(rec)))
-        if p > peak_max:
-            peak_max = p
         ref, _ = librosa.load(str(ref_path), sr=SAMPLE_RATE)
         ref = normalize_volume(ref)
         rec = normalize_volume(rec)
@@ -822,11 +818,29 @@ def calibrate():
         print("\n  Not enough samples. Check mic/speaker.")
         return
 
+    # cross-word distances for mismatch baseline
+    print("  Measuring mismatch distances...")
+    refs = {}
+    for w in CAL_WORDS:
+        rp = get_ref_path(w)
+        r, _ = librosa.load(str(rp), sr=SAMPLE_RATE)
+        r = normalize_volume(r)
+        r, _ = librosa.effects.trim(r, top_db=cal["top_db"])
+        if len(r) >= 1600:
+            refs[w] = extract_mfcc(r)
+    cross = []
+    words = list(refs.keys())
+    for i in range(len(words)):
+        for j in range(i + 1, len(words)):
+            cross.append(dtw_distance(refs[words[i]], refs[words[j]]))
+
     bias = np.mean(dists) * 0.9
-    # scale so that bias distance -> ~95%, and 2x bias -> ~0%
     cal["bias"] = round(float(bias), 1)
-    cal["scale"] = round(float(np.mean(dists) * 0.6), 1)
-    cal["vu_peak"] = round(float(peak_max), 3)
+    if cross:
+        d_mis = float(np.median(cross))
+        cal["scale"] = round((d_mis - bias) / 3, 1)
+    else:
+        cal["scale"] = round(float(np.mean(dists) * 0.6), 1)
 
     save_calibration()
 
@@ -904,7 +918,7 @@ def test_services():
         m = cfg.openai.model or "gemini/gemini-2.5-flash"
         svcs.append((f"openai {m} feedback", lambda:
                      _ask_openai(_raw_to_wav(raw), p)))
-    svcs.append(("gTTS", lambda: speak_text("test")))
+    svcs.append(("gTTS", lambda: speak("test")))
 
     for name, fn in svcs:
         print(f"  {name} ... ", end="", flush=True)

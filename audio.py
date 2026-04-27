@@ -43,7 +43,7 @@ SAMPLE_RATE = 16000
 SAMPLE_WIDTH = 2
 CHANNELS = 1
 N_MFCC = 13
-CAL_WORDS = ["test", "sip", "one", "two", "three", "four", "five"]
+CAL_WORDS = ["one", "two", "three", "four", "five"]
 VOICES_MALE = [
     "Achird", "Algenib", "Algieba", "Alnilam", "Charon",
     "Enceladus", "Fenrir", "Iapetus", "Orus", "Puck",
@@ -61,7 +61,7 @@ VOICES_ALL = VOICES_MALE + VOICES_FEMALE
 cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 calibrated = False
 _peak_max = 0.2
-voice = "Kore"
+voice = "Puck"
 
 DIM = "\033[2m"
 RST = "\033[0m"
@@ -79,7 +79,8 @@ def load_calibration():
             cal.update(yaml.safe_load(f))
         cal.pop("gain", None)
         calibrated = True
-        _peak_max = cal.get("vu_peak", 0.2) * 0.5
+        cal.pop("mic_peak", None)
+        cal.pop("vu_peak", None)
 
 
 def save_calibration():
@@ -89,7 +90,7 @@ def save_calibration():
 
 
 def get_ref_path(word):
-    return REF_DIR / f"{word}.wav"
+    return REF_DIR / f"{word}-{voice}.wav"
 
 
 def _gemini_tts_wav(text):
@@ -97,6 +98,7 @@ def _gemini_tts_wav(text):
     try:
         from google import genai
         from google.genai import types
+        status(f"  {DIM}gemini-3.1-flash-tts ...{RST}")
         c = genai.Client()
         r = c.models.generate_content(
             model="gemini-3.1-flash-tts-preview",
@@ -115,9 +117,11 @@ def _gemini_tts_wav(text):
         d = r.candidates[0].content.parts[0].inline_data.data
         seg = AudioSegment(data=d, sample_width=2,
                            frame_rate=24000, channels=1)
+        status()
         return seg.set_channels(1).set_frame_rate(SAMPLE_RATE) \
                   .set_sample_width(SAMPLE_WIDTH)
     except Exception:
+        status()
         return None
 
 
@@ -143,11 +147,11 @@ def speak(text):
     try:
         ref = ensure_ref(text)
         seg = AudioSegment.from_wav(str(ref))
+        seg = seg + (-10)
         with pasimple.PaSimple(
             pasimple.PA_STREAM_PLAYBACK,
             pasimple.PA_SAMPLE_S16LE,
-            seg.channels,
-            seg.frame_rate,
+            1, SAMPLE_RATE,
             app_name="pronounce",
         ) as pa:
             pa.write(seg.raw_data)
@@ -155,38 +159,6 @@ def speak(text):
     except Exception:
         subprocess.run(
             ["espeak-ng", "-s", "130", "-v", "en-us", text],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-
-def _play_seg(seg, vol=-10):
-    seg = seg + vol
-    with pasimple.PaSimple(
-        pasimple.PA_STREAM_PLAYBACK,
-        pasimple.PA_SAMPLE_S16LE,
-        1, SAMPLE_RATE,
-        app_name="pronounce",
-    ) as pa:
-        pa.write(seg.raw_data)
-        pa.drain()
-
-
-def speak_text(text):
-    try:
-        status(f"  {DIM}gemini-3.1-flash-tts ...{RST}")
-        seg = _gemini_tts_wav(text)
-        status()
-        if seg:
-            _play_seg(seg)
-            return
-        buf = BytesIO()
-        gTTS(text, lang="en").write_to_fp(buf)
-        buf.seek(0)
-        seg = AudioSegment.from_mp3(buf).set_channels(1) \
-            .set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
-        _play_seg(seg)
-    except Exception:
-        subprocess.run(
-            ["espeak-ng", "-s", "150", "-v", "en-us", text],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
@@ -355,7 +327,7 @@ def play_raw(raw, volume=0.3):
 
 def quick_calibrate():
     global calibrated, _peak_max
-    w = "test"
+    w = CAL_WORDS[0]
     ref_path = ensure_ref(w)
     raw = [None]
     t = threading.Thread(
@@ -372,9 +344,25 @@ def quick_calibrate():
     rec, _ = librosa.effects.trim(rec, top_db=cal["top_db"])
     if len(ref) < 1600 or len(rec) < 1600:
         return
-    d = dtw_distance(extract_mfcc(ref), extract_mfcc(rec))
-    cal["bias"] = d * 0.9
-    cal["scale"] = d * 0.6
+    rec_mfcc = extract_mfcc(rec)
+    d_match = dtw_distance(extract_mfcc(ref), rec_mfcc)
+    # compare against different words to find mismatch distance
+    diffs = []
+    for other in CAL_WORDS:
+        if other == w:
+            continue
+        op = ensure_ref(other)
+        o, _ = librosa.load(str(op), sr=SAMPLE_RATE)
+        o = normalize_volume(o)
+        o, _ = librosa.effects.trim(o, top_db=cal["top_db"])
+        if len(o) >= 1600:
+            diffs.append(dtw_distance(extract_mfcc(o), rec_mfcc))
+    cal["bias"] = d_match * 0.9
+    if diffs:
+        d_mis = np.median(diffs)
+        cal["scale"] = (d_mis - cal["bias"]) / 3
+    else:
+        cal["scale"] = d_match * 0.6
     p = float(np.max(np.abs(rec)))
     if p > _peak_max:
         _peak_max = p
