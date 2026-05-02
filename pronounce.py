@@ -14,15 +14,19 @@ from datetime import date
 from difflib import SequenceMatcher
 from pathlib import Path
 
+from io import BytesIO
+
 import librosa
 import numpy as np
 import speech_recognition as sr
 import yaml
 from box import Box
+from gtts import gTTS
+from pydub import AudioSegment
 
 import audio
 from audio import (
-    SAMPLE_RATE, CONF_DIR, CAL_WORDS,
+    SAMPLE_RATE, SAMPLE_WIDTH, CONF_DIR, CAL_WORDS, REF_DIR,
     VOICES_MALE, VOICES_FEMALE, VOICES_ALL, _BARS,
     cal, DIM, RST,
     load_calibration, save_calibration, quick_calibrate, CAL_FILE,
@@ -157,7 +161,7 @@ def stt_score(expected, heard):
     return 0
 
 
-def record_word(word, rec, prefix="", duration=5):
+def record_word(word, rec, prefix="", duration=5, pause=0.8):
     """Returns (heard, pct, sim, peak, dur, raw, key)."""
     bars = []
 
@@ -175,7 +179,8 @@ def record_word(word, rec, prefix="", duration=5):
         key = None
         while True:
             raw, spoke, key = record_audio(
-                duration=duration, on_chunk=on_chunk,
+                duration=duration, pause=pause,
+                on_chunk=on_chunk,
                 check_keys=bool(_term_saved))
             if key in ('s', 'q', 'f'):
                 print()
@@ -562,7 +567,7 @@ def _assess_one(text, ipa):
     pw = len(text.split())
     while True:
         heard, pct, sim, peak, dur, raw, key = record_word(
-            text, rec, "  ", duration=30)
+            text, rec, "  ", duration=30, pause=2.0)
         if key == 'q' or not raw:
             return []
         hw = len(heard.split()) if heard else 0
@@ -634,7 +639,7 @@ def practice_twisters(h):
         pw = len(text.split())
         while True:
             heard, pct, sim, peak, dur, raw, key = record_word(
-                text, rec, "  ", duration=15)
+                text, rec, "  ", duration=15, pause=1.5)
             if key == 'q':
                 return
             if not raw:
@@ -901,6 +906,62 @@ def _test_bad():
     return ok, len(pairs)
 
 
+def test_similarity(n=10):
+    import random
+    words = []
+    for g in data.phonemes.values():
+        for w in g.words:
+            words.append(w.word)
+    words = random.sample(words, min(n, len(words)))
+    voices = ["Puck", "Kore", "gTTS"]
+    print(f"  Testing audio similarity: {len(words)} words, "
+          f"{len(voices)} voices\n")
+    # generate refs for all voices
+    orig_voice = audio.voice
+    for v in voices:
+        audio.voice = v
+        for w in words:
+            status(f"  {DIM}TTS {v}: {w}{RST}")
+            p = get_ref_path(w)
+            if not p.exists():
+                REF_DIR.mkdir(parents=True, exist_ok=True)
+                if v == "gTTS":
+                    buf = BytesIO()
+                    gTTS(w, lang="en").write_to_fp(buf)
+                    buf.seek(0)
+                    seg = AudioSegment.from_mp3(buf)
+                    seg = seg.set_channels(1).set_frame_rate(
+                        SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
+                    seg.export(str(p), format="wav")
+                else:
+                    ensure_ref(w)
+    status()
+    audio.voice = orig_voice
+    # compare across voice pairs
+    for vi, v1 in enumerate(voices):
+        for v2 in voices[vi + 1:]:
+            same, diff = [], []
+            for i, w1 in enumerate(words):
+                audio.voice = v1
+                p1 = get_ref_path(w1)
+                for j, w2 in enumerate(words):
+                    audio.voice = v2
+                    raw2 = _ref_raw(w2)
+                    s = audio_similarity(p1, raw2)
+                    if w1 == w2:
+                        same.append(s)
+                    else:
+                        diff.append(s)
+            avg_s = sum(same) / len(same) if same else 0
+            avg_d = sum(diff) / len(diff) if diff else 0
+            fp = sum(1 for d in diff if d >= avg_s) / len(diff) \
+                if diff and avg_s > 0 else 0
+            print(f"  {v1:6s} vs {v2:6s}  "
+                  f"same:{avg_s:4.0f}%  diff:{avg_d:4.0f}%  "
+                  f"sep:{avg_s - avg_d:4.0f}pp  fp:{fp:.0%}")
+    audio.voice = orig_voice
+
+
 def test_feedback():
     _test_bad()
 
@@ -959,6 +1020,8 @@ def main():
                    help="test AI feedback on mismatched words")
     p.add_argument("--test-services", action="store_true",
                    help="test available services")
+    p.add_argument("--test-sim", type=int, nargs="?", const=10,
+                   metavar="N", help="test audio similarity on N words")
     p.add_argument("--assess", action="store_true",
                    help="assess pronunciation with a pangram")
     p.add_argument("--twisters", action="store_true",
@@ -1000,6 +1063,9 @@ def main():
         return
     if a.test_feedback:
         test_feedback()
+        return
+    if a.test_sim is not None:
+        test_similarity(a.test_sim)
         return
 
     if a.list:
