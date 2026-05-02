@@ -131,7 +131,7 @@ def ensure_ref(word):
     if p.exists():
         return p
     REF_DIR.mkdir(parents=True, exist_ok=True)
-    seg = _gemini_tts_wav(word)
+    seg = None if voice == "gTTS" else _gemini_tts_wav(word)
     if not seg:
         buf = BytesIO()
         gTTS(word, lang="en").write_to_fp(buf)

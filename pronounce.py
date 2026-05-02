@@ -51,6 +51,14 @@ def load_cfg():
             c = yaml.safe_load(f)
         if c:
             cfg.update(c)
+    if cfg.get("sim_voice"):
+        audio.voice = cfg.sim_voice
+
+
+def save_cfg():
+    CONF_DIR.mkdir(parents=True, exist_ok=True)
+    with open(CFG_FILE, "w") as f:
+        yaml.dump(cfg.to_dict(), f)
 
 
 def load_data():
@@ -554,7 +562,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
 
 
 def _assess_one(text, ipa):
-    """Record and assess one pangram. Returns list of weak group IDs."""
+    """Record and assess one pangram. Returns (weak_groups, raw)."""
     print(f"  {text}")
     if ipa:
         print(f"  {DIM}{ipa}{RST}")
@@ -569,7 +577,7 @@ def _assess_one(text, ipa):
         heard, pct, sim, peak, dur, raw, key = record_word(
             text, rec, "  ", duration=30, pause=2.0)
         if key == 'q' or not raw:
-            return []
+            return [], None
         hw = len(heard.split()) if heard else 0
         if hw < pw * 0.5:
             print(f"  Incomplete ({hw}/{pw} words). Try again.")
@@ -578,14 +586,82 @@ def _assess_one(text, ipa):
     clear_line()
     if heard:
         print(f"  Heard: {heard}")
-    if sim:
-        print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
     try:
         r = get_assessment(raw, text)
     except Exception as e:
         print(f"  Analysis error: {e}")
-        return []
-    return parse_assessment(r)
+        return [], raw
+    return parse_assessment(r), raw
+
+
+VOICE_SAMPLE = ["Puck", "Charon", "Fenrir",
+                "Kore", "Aoede", "Zephyr", "gTTS"]
+
+
+def _ensure_voice_ref(word, v):
+    """Generate TTS ref for a specific voice."""
+    orig = audio.voice
+    audio.voice = v
+    p = get_ref_path(word)
+    if not p.exists():
+        REF_DIR.mkdir(parents=True, exist_ok=True)
+        if v == "gTTS":
+            buf = BytesIO()
+            gTTS(word, lang="en").write_to_fp(buf)
+            buf.seek(0)
+            seg = AudioSegment.from_mp3(buf)
+            seg = seg.set_channels(1).set_frame_rate(
+                SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
+            seg.export(str(p), format="wav")
+        else:
+            ensure_ref(word)
+    audio.voice = orig
+    return p
+
+
+MATCH_WORDS = ["hello", "beautiful", "water", "morning",
+               "everything", "together", "natural", "remember"]
+
+
+def _save_voice(v):
+    print(f"\n  Best match: {v}")
+    cfg.sim_voice = v
+    save_cfg()
+    print(f"  Saved to {CFG_FILE}")
+
+
+def match_voice():
+    """Record multiple words, find closest TTS voice."""
+    rec = sr.Recognizer()
+    totals = {v: 0.0 for v in VOICE_SAMPLE}
+    n = 0
+    orig = audio.voice
+    for word in MATCH_WORDS:
+        for v in VOICE_SAMPLE:
+            _ensure_voice_ref(word, v)
+        print(f"\n  Say \"{word}\"")
+        _, _, _, _, _, raw, key = record_word(word, rec, "  ")
+        if not raw or key == 'q':
+            break
+        n += 1
+        for v in VOICE_SAMPLE:
+            audio.voice = v
+            s = audio_similarity(get_ref_path(word), raw)
+            totals[v] += s
+        audio.voice = orig
+        scores = sorted(totals.items(), key=lambda x: -x[1])
+        print()
+        for v, t in scores:
+            print(f"    {v:20s} {t / n:5.1f}%")
+        if n >= 3:
+            top = scores[0][1] / n
+            second = scores[1][1] / n
+            if top - second >= 5:
+                _save_voice(scores[0][0])
+                return
+    if n:
+        scores = sorted(totals.items(), key=lambda x: -x[1])
+        _save_voice(scores[0][0])
 
 
 def assess(h, cont=False, debug=False):
@@ -594,14 +670,14 @@ def assess(h, cont=False, debug=False):
     for p in data.pangrams:
         text = p.get("text", p) if isinstance(p, dict) else p
         ipa = p.get("ipa", "") if isinstance(p, dict) else ""
-        w = _assess_one(text, ipa)
+        w, raw = _assess_one(text, ipa)
         for g in w:
             if g not in weak:
                 weak.append(g)
         if weak:
             break
     if not weak:
-        print("  Your pronunciation sounds good!")
+        print("\n  Your pronunciation sounds good!")
         return
     print(f"\n  Areas to work on:\n")
     for i, gid in enumerate(weak):
@@ -1026,6 +1102,8 @@ def main():
                    help="assess pronunciation with a pangram")
     p.add_argument("--twisters", action="store_true",
                    help="practice tongue twisters with feedback")
+    p.add_argument("--match-voice", action="store_true",
+                   help="find TTS voice closest to yours")
     p.add_argument("--voice",
                    help="TTS voice (list, male, female, random, or name)")
     a = p.parse_args()
@@ -1066,6 +1144,9 @@ def main():
         return
     if a.test_sim is not None:
         test_similarity(a.test_sim)
+        return
+    if a.match_voice:
+        match_voice()
         return
 
     if a.list:
@@ -1120,6 +1201,7 @@ def main():
     print("  a - assess pronunciation")
     print("  t - tongue twisters")
     print("  p - practice phonemes")
+    print("  v - match TTS voice")
     print()
     try:
         set_cbreak()
@@ -1137,6 +1219,8 @@ def main():
             assess(h, a.continuous, a.debug)
         elif c == 't':
             practice_twisters(h)
+        elif c == 'v':
+            match_voice()
         elif c == 'p':
             _run_phonemes(a, h)
         else:
