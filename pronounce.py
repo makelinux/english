@@ -1025,6 +1025,8 @@ def main():
             practice_twisters(h)
         except KeyboardInterrupt:
             pass
+        finally:
+            save_history(h)
         return
 
     if a.text:
@@ -1039,12 +1041,48 @@ def main():
         practice_word(w, rec, debug=a.debug)
         return
 
-    print("English pronunciation trainer")
-    print("The app will say each word, then you repeat it.")
     if not audio.calibrated:
         print(f"{DIM}Quick calibrating...{RST}", end="", flush=True)
         quick_calibrate()
         print("\r\033[K", end="")
+
+    if a.group or a.weak:
+        _run_phonemes(a, h)
+        return
+
+    print("English pronunciation trainer\n")
+    print("  a - assess pronunciation")
+    print("  t - tongue twisters")
+    print("  p - practice phonemes")
+    print()
+    try:
+        set_cbreak()
+        print(f"{DIM}Pick:{RST} ", end="", flush=True)
+        c = wait_key(None)
+        clear_line()
+    except KeyboardInterrupt:
+        print()
+        return
+    finally:
+        restore_term()
+
+    try:
+        if c == 'a':
+            assess(h, a.continuous, a.debug)
+        elif c == 't':
+            practice_twisters(h)
+        elif c == 'p':
+            _run_phonemes(a, h)
+        else:
+            return
+    except KeyboardInterrupt:
+        pass
+    finally:
+        restore_term()
+        save_history(h)
+
+
+def _run_phonemes(a, h):
     if a.continuous:
         print(f"{DIM}Keys: [s]kip  [f]eedback  [p]ause  [q]uit{RST}")
         print(f"{DIM}Keys work during recording and between words{RST}")
@@ -1077,7 +1115,6 @@ def main():
     finally:
         restore_term()
         save_history(h)
-        print("\nProgress saved.")
 
 
 if __name__ == "__main__":
