@@ -621,32 +621,36 @@ def match_voice():
     totals = {v: 0.0 for v in VOICE_SAMPLE}
     n = 0
     orig = audio.voice
-    for word in MATCH_WORDS:
-        for v in VOICE_SAMPLE:
-            _ensure_voice_ref(word, v)
-        print(f"\n  Say \"{word}\"")
-        _, _, _, _, _, raw, key = record_word(word, rec, "  ")
-        if not raw or key == 'q':
-            break
-        n += 1
-        for v in VOICE_SAMPLE:
-            audio.voice = v
-            s = audio_similarity(get_ref_path(word), raw)
-            totals[v] += s
-        audio.voice = orig
-        scores = sorted(totals.items(), key=lambda x: -x[1])
-        print()
-        for v, t in scores:
-            print(f"    {v:20s} {t / n:5.1f}%")
-        if n >= 3:
-            top = scores[0][1] / n
-            second = scores[1][1] / n
-            if top - second >= 5:
-                _save_voice(scores[0][0])
-                return
-    if n:
-        scores = sorted(totals.items(), key=lambda x: -x[1])
-        _save_voice(scores[0][0])
+    set_cbreak()
+    try:
+        for word in MATCH_WORDS:
+            for v in VOICE_SAMPLE:
+                _ensure_voice_ref(word, v)
+            print(f"\n  Say \"{word}\"")
+            _, _, _, _, _, raw, key = record_word(word, rec, "  ")
+            if not raw or key == 'q':
+                break
+            n += 1
+            for v in VOICE_SAMPLE:
+                audio.voice = v
+                s = audio_similarity(get_ref_path(word), raw)
+                totals[v] += s
+            audio.voice = orig
+            scores = sorted(totals.items(), key=lambda x: -x[1])
+            print()
+            for v, t in scores:
+                print(f"    {v:20s} {t / n:5.1f}%")
+            if n >= 3:
+                top = scores[0][1] / n
+                second = scores[1][1] / n
+                if top - second >= 5:
+                    _save_voice(scores[0][0])
+                    return
+        if n:
+            scores = sorted(totals.items(), key=lambda x: -x[1])
+            _save_voice(scores[0][0])
+    finally:
+        restore_term()
 
 
 def assess(h, cont=False, debug=False):
