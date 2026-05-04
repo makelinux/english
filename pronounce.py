@@ -179,7 +179,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.8):
         mx = audio._peak_max if audio._peak_max > 1e-6 else 1.0
         bars.append(_BARS[min(8, int(peak / mx * 8))])
         print(f"\r\033[K{prefix}"
-              f"{DIM}[s]kip [f]eedback [q]uit{RST} "
+              f"{DIM}[s]kip [q]uit{RST} "
               f"Listening{''.join(bars)}🎤", end="", flush=True)
 
     try:
@@ -190,7 +190,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.8):
                 duration=duration, pause=pause,
                 on_chunk=on_chunk,
                 check_keys=bool(_term_saved))
-            if key in ('s', 'q', 'f'):
+            if key in ('s', 'q'):
                 print()
                 return None, 0, 0, 0, 0, None, key
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
@@ -508,30 +508,19 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
         if key == 's':
             print(f"\r\033[K{prefix}{DIM}skipped{RST}")
             break
-        if key == 'f':
-            clear_line()
-            if last_raw:
-                fb_raw, fb_word, fb_ipa = last_raw, w.word, w.ipa
-            elif prev:
-                fb_raw, fb_word, fb_ipa = prev
-            else:
-                continue
-            _do_feedback(fb_raw, fb_word, fb_ipa, h)
-            continue
 
         if pct > best:
             best = pct
 
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
-        sim_s = f"  {sim_color(sim)}{sim:2d}%{RST}" if sim else ""
-        score = f"{heard_s}{sim_s}{dbg}"
-        print(f"\r\033[K{prefix}{lb_s}{score}")
+        print(f"\r\033[K{prefix}{lb_s}{heard_s}{dbg}")
 
-        if sim >= sim_threshold and pct > 0 \
-                or sim >= sim_threshold // 2 and pct == 100 \
-                or not sim and pct >= 80:
+        if pct == 100:
+            _do_feedback(last_raw, w.word, w.ipa, h)
             break
+
+        _do_feedback(last_raw, w.word, w.ipa, h)
 
         if cont:
             k = wait_key(2)
@@ -539,15 +528,13 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
                 return -1, last_raw
             if k == 's':
                 break
-            if k == 'f' and last_raw:
-                _do_feedback(last_raw, w.word, w.ipa, h)
-            elif k == 'p':
+            if k == 'p':
                 print(f"  {DIM}Paused. Any key...{RST}",
                       end="", flush=True)
                 wait_key(None)
                 clear_line()
         else:
-            print(f"  {DIM}[Enter] retry [s]kip [f]eedback{RST}",
+            print(f"  {DIM}[Enter] retry [s]kip{RST}",
                   end="", flush=True)
             c = wait_key(None)
             clear_line()
@@ -555,8 +542,6 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
                 pass
             elif c == "s":
                 break
-            elif c == "f" and last_raw:
-                _do_feedback(last_raw, w.word, w.ipa, h)
 
     return best, last_raw
 
@@ -982,6 +967,49 @@ def _test_bad():
     return ok, len(pairs)
 
 
+HARVARD_PHRASES = [
+    "the birch canoe slid on the smooth planks",
+    "glue the sheet to the dark blue background",
+    "a king ruled the state in the early days",
+    "the juice of lemons makes fine punch",
+    "these days a chicken leg is a rare dish",
+    "the box was thrown beside the parked truck",
+    "the hogs were fed chopped corn and garbage",
+    "we found the fat cat curled up in a ball",
+    "move the vat over the hot fire",
+    "the bark of the pine tree was shiny and dark",
+]
+
+
+def _sim_matrix(texts, label):
+    """Compare all pairs of texts using gTTS. Print summary."""
+    orig = audio.voice
+    audio.voice = "gTTS"
+    for t in texts:
+        status(f"  {DIM}TTS: {t[:30]}...{RST}")
+        ensure_ref(t)
+    status()
+    same, diff = [], []
+    for i, t1 in enumerate(texts):
+        p1 = get_ref_path(t1)
+        for j, t2 in enumerate(texts):
+            if i >= j:
+                continue
+            raw2 = _ref_raw(t2)
+            s = audio_similarity(p1, raw2)
+            diff.append(s)
+        raw1 = _ref_raw(t1)
+        s = audio_similarity(get_ref_path(t1), raw1)
+        same.append(s)
+    audio.voice = orig
+    avg_s = sum(same) / len(same) if same else 0
+    avg_d = sum(diff) / len(diff) if diff else 0
+    fp = sum(1 for d in diff if d >= avg_s) / len(diff) \
+        if diff and avg_s > 0 else 0
+    print(f"  {label:12s}  same:{avg_s:4.0f}%  diff:{avg_d:4.0f}%  "
+          f"sep:{avg_s - avg_d:4.0f}pp  fp:{fp:.0%}")
+
+
 def test_similarity(n=10):
     import random
     words = []
@@ -989,53 +1017,10 @@ def test_similarity(n=10):
         for w in g.words:
             words.append(w.word)
     words = random.sample(words, min(n, len(words)))
-    voices = ["Puck", "Kore", "gTTS"]
-    print(f"  Testing audio similarity: {len(words)} words, "
-          f"{len(voices)} voices\n")
-    # generate refs for all voices
-    orig_voice = audio.voice
-    for v in voices:
-        audio.voice = v
-        for w in words:
-            status(f"  {DIM}TTS {v}: {w}{RST}")
-            p = get_ref_path(w)
-            if not p.exists():
-                REF_DIR.mkdir(parents=True, exist_ok=True)
-                if v == "gTTS":
-                    buf = BytesIO()
-                    gTTS(w, lang="en").write_to_fp(buf)
-                    buf.seek(0)
-                    seg = AudioSegment.from_mp3(buf)
-                    seg = seg.set_channels(1).set_frame_rate(
-                        SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
-                    seg.export(str(p), format="wav")
-                else:
-                    ensure_ref(w)
-    status()
-    audio.voice = orig_voice
-    # compare across voice pairs
-    for vi, v1 in enumerate(voices):
-        for v2 in voices[vi + 1:]:
-            same, diff = [], []
-            for i, w1 in enumerate(words):
-                audio.voice = v1
-                p1 = get_ref_path(w1)
-                for j, w2 in enumerate(words):
-                    audio.voice = v2
-                    raw2 = _ref_raw(w2)
-                    s = audio_similarity(p1, raw2)
-                    if w1 == w2:
-                        same.append(s)
-                    else:
-                        diff.append(s)
-            avg_s = sum(same) / len(same) if same else 0
-            avg_d = sum(diff) / len(diff) if diff else 0
-            fp = sum(1 for d in diff if d >= avg_s) / len(diff) \
-                if diff and avg_s > 0 else 0
-            print(f"  {v1:6s} vs {v2:6s}  "
-                  f"same:{avg_s:4.0f}%  diff:{avg_d:4.0f}%  "
-                  f"sep:{avg_s - avg_d:4.0f}pp  fp:{fp:.0%}")
-    audio.voice = orig_voice
+    phrases = random.sample(HARVARD_PHRASES, min(n, len(HARVARD_PHRASES)))
+    print(f"  Audio similarity discrimination test (gTTS)\n")
+    _sim_matrix(words, f"words ({len(words)})")
+    _sim_matrix(phrases, f"phrases ({len(phrases)})")
 
 
 def test_feedback():
@@ -1234,10 +1219,9 @@ def main():
 
 def _run_phonemes(a, h):
     if a.continuous:
-        print(f"{DIM}Keys: [s]kip  [f]eedback  [p]ause  [q]uit{RST}")
-        print(f"{DIM}Keys work during recording and between words{RST}")
+        print(f"{DIM}Keys: [s]kip  [p]ause  [q]uit{RST}")
     else:
-        print(f"{DIM}Keys: [Enter] retry  [s]kip  [f]eedback  [q]uit{RST}")
+        print(f"{DIM}Keys: [Enter] retry  [s]kip  [q]uit{RST}")
     print()
 
     if a.group:

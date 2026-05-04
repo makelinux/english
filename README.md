@@ -38,23 +38,23 @@ Practice words grouped by phoneme:
 ./pronounce.py --calibrate  # calibrate mic/speaker
 ./pronounce.py --test-rec   # test recording histogram
 ./pronounce.py -d           # debug info (duration, peak, selfcheck)
-./pronounce.py --sim-threshold 50  # set audio similarity pass threshold
 ./pronounce.py --assess              # pangram pronunciation assessment
 ./pronounce.py --twisters            # tongue twisters with AI feedback
+./pronounce.py --match-voice         # find TTS voice closest to yours
 ./pronounce.py --voice puck          # choose TTS voice
 ./pronounce.py --test-services       # test API connectivity
 ./pronounce.py --test-feedback       # test AI feedback accuracy
+./pronounce.py --test-sim            # test audio similarity
 ```
 
 ### Sample output
 
 ```
-1/10: foot  /fʊt/  heard: food  30%
-1/10: foot  /fʊt/  heard: food  39%
-  You said "food". Try to make the vowel sound shorter and more
-  relaxed, like the 'oo' in "book" or "good". Also, make sure
-  the final sound is a crisp 't' sound, not a 'd'.
-1/10: foot  /fʊt/  heard: foot  44%
+1/10: foot  /fʊt/  heard: food
+  You said "food". Try shorter vowel, like "book".
+  Final sound should be a crisp 't', not 'd'.
+1/10: foot  /fʊt/  heard: foot
+  Good
 
 ```
 
@@ -62,26 +62,24 @@ Practice words grouped by phoneme:
 
 During recording:
 - `s` - skip word
-- `f` - get AI feedback
 - `q` - quit
 
 Continuous mode (`-c`):
 - `Enter` - retry
 - `p` - pause
 - `s` - skip
-- `f` - feedback
 - `q` - quit
 
 ### Scoring
 
-Each attempt shows:
-- Speech recognition result - what Google heard
-- Audio similarity - comparison with TTS reference (informational)
+Each attempt gets AI feedback - the AI listens to your
+recording, compares to standard American accent, and tells
+you what to fix. Good pronunciation gets just "Good".
+Feedback is spoken aloud and saved to history.
 
-Pass conditions:
-- sim >= threshold and STT partially correct, or
-- sim >= half threshold and STT perfect, or
-- STT >= 80% if audio similarity unavailable
+Speech recognition shows what Google heard. Audio similarity
+is used for sentences (assess/twisters) where it's more
+reliable than for single words.
 
 History uses EMA (exponential moving average) so recent
 performance weighs more. `--weak` picks the group with
@@ -98,15 +96,8 @@ lowest EMA score.
 
 Groups and words are defined in `english.yaml`.
 
-### AI feedback
+### AI backends
 
-Press `f` to get pronunciation feedback. The AI listens to
-your recording, compares it to standard American accent, and
-tells you what to fix. Good pronunciation gets just "Good".
-Feedback is spoken aloud via Gemini TTS (gTTS fallback)
-and saved to history.
-
-Backends:
 - Gemini (default) - set `GOOGLE_API_KEY` env variable
 - OpenAI-compatible (llama-stack, etc) - configure in
   `~/.config/english-pronounce/config.yaml`:
