@@ -460,20 +460,20 @@ def select_group(h):
 
 
 def _do_feedback(raw, word, ipa, h=None):
-    """Returns True if pronunciation is good."""
+    """Returns (good, feedback_text)."""
     try:
         fb = get_feedback(raw, word, ipa)
     except Exception as e:
         status()
         print(f"  {DIM}Feedback error: {e}{RST}")
-        return False
+        return False, ""
     good = fb.strip().lower().startswith("good")
-    print(f"  {DIM}{fb}{RST}")
     if not good:
+        print(f"  {DIM}{fb}{RST}")
         speak(re.sub(r'[\"\'()"/]', '', fb))
     if h and word in h["words"]:
         h["words"][word]["feedback"] = fb
-    return good
+    return good, fb
 
 
 def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
@@ -521,10 +521,14 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
 
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
-        print(f"\r\033[K{prefix}{lb_s}{heard_s}{dbg}")
+        print(f"\r\033[K{prefix}{lb_s}{heard_s}{dbg}",
+              end="", flush=True)
 
-        if _do_feedback(last_raw, w.word, w.ipa, h):
+        good, fb = _do_feedback(last_raw, w.word, w.ipa, h)
+        if good:
+            print(f",  {DIM}{fb}{RST}")
             break
+        print()
 
         if cont:
             k = wait_key(2)
