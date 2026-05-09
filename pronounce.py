@@ -14,15 +14,12 @@ from datetime import date
 from difflib import SequenceMatcher
 from pathlib import Path
 
-from io import BytesIO
 
 import librosa
 import numpy as np
 import speech_recognition as sr
 import yaml
 from box import Box
-from gtts import gTTS
-from pydub import AudioSegment
 
 import audio
 from audio import (
@@ -587,79 +584,6 @@ def _assess_one(text, ipa):
     return parse_assessment(r), raw
 
 
-VOICE_SAMPLE = ["Puck", "Charon", "Fenrir",
-                "Kore", "Aoede", "Zephyr", "gTTS"]
-
-
-def _ensure_voice_ref(word, v):
-    """Generate TTS ref for a specific voice."""
-    orig = audio.voice
-    audio.voice = v
-    p = get_ref_path(word)
-    if not p.exists():
-        REF_DIR.mkdir(parents=True, exist_ok=True)
-        if v == "gTTS":
-            buf = BytesIO()
-            gTTS(word, lang="en").write_to_fp(buf)
-            buf.seek(0)
-            seg = AudioSegment.from_mp3(buf)
-            seg = seg.set_channels(1).set_frame_rate(
-                SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
-            seg.export(str(p), format="wav")
-        else:
-            ensure_ref(word)
-    audio.voice = orig
-    return p
-
-
-MATCH_WORDS = ["hello", "beautiful", "water", "morning",
-               "everything", "together", "natural", "remember"]
-
-
-def _save_voice(v):
-    print(f"\n  Best match: {v}")
-    cfg.sim_voice = v
-    save_cfg()
-    print(f"  Saved to {CFG_FILE}")
-
-
-def match_voice():
-    """Record multiple words, find closest TTS voice."""
-    rec = sr.Recognizer()
-    totals = {v: 0.0 for v in VOICE_SAMPLE}
-    n = 0
-    orig = audio.voice
-    set_cbreak()
-    try:
-        for word in MATCH_WORDS:
-            for v in VOICE_SAMPLE:
-                _ensure_voice_ref(word, v)
-            print(f"\n  Say \"{word}\"")
-            _, _, _, _, _, raw, key = record_word(word, rec, "  ")
-            if not raw or key == 'q':
-                break
-            n += 1
-            for v in VOICE_SAMPLE:
-                audio.voice = v
-                s = audio_similarity(get_ref_path(word), raw)
-                totals[v] += s
-            audio.voice = orig
-            scores = sorted(totals.items(), key=lambda x: -x[1])
-            print()
-            for v, t in scores:
-                print(f"    {v:20s} {t / n:5.1f}%")
-            if n >= 3:
-                top = scores[0][1] / n
-                second = scores[1][1] / n
-                if top - second >= 5:
-                    _save_voice(scores[0][0])
-                    return
-        if n:
-            scores = sorted(totals.items(), key=lambda x: -x[1])
-            _save_voice(scores[0][0])
-    finally:
-        restore_term()
-
 
 def assess(h, cont=False, debug=False):
     print(f"\nPronunciation assessment\n")
@@ -943,102 +867,6 @@ def calibrate():
     print(f"\n  Saved to {CAL_FILE}")
 
 
-def _test_bad():
-    # near-homophones: forward and reverse pairs
-    pairs = [
-        ("sit", "seat", "/siːt/"),
-        ("seat", "sit", "/sɪt/"),
-        ("leaf", "leave", "/liːv/"),
-        ("leave", "leaf", "/liːf/"),
-        ("bat", "bet", "/bɛt/"),
-        ("bet", "bat", "/bæt/"),
-        ("ship", "chip", "/tʃɪp/"),
-        ("chip", "ship", "/ʃɪp/"),
-        ("thin", "this", "/ðɪs/"),
-        ("this", "thin", "/θɪn/"),
-        ("fan", "van", "/væn/"),
-        ("van", "fan", "/fæn/"),
-        ("hat", "hot", "/hɑːt/"),
-        ("hot", "hat", "/hæt/"),
-        ("price", "prize", "/praɪz/"),
-        ("prize", "price", "/praɪs/"),
-        ("pool", "pull", "/pʊl/"),
-        ("pull", "pool", "/puːl/"),
-        ("wine", "vine", "/vaɪn/"),
-        ("vine", "wine", "/waɪn/"),
-    ]
-    ok = 0
-    for said, expected, ipa in pairs:
-        raw = _ref_raw(said)
-        fb = get_feedback(raw, expected, ipa)
-        caught = not fb.lower().startswith("good")
-        ok += caught
-        mark = GRN + "pass" + RST if caught else RED + "FAIL" + RST
-        print(f"  {mark}  said: {said}  labeled: {expected} {ipa} -> {fb}")
-    print(f"\n  error detection: {ok}/{len(pairs)} ({ok * 100 // len(pairs)}%)\n")
-    return ok, len(pairs)
-
-
-HARVARD_PHRASES = [
-    "the birch canoe slid on the smooth planks",
-    "glue the sheet to the dark blue background",
-    "a king ruled the state in the early days",
-    "the juice of lemons makes fine punch",
-    "these days a chicken leg is a rare dish",
-    "the box was thrown beside the parked truck",
-    "the hogs were fed chopped corn and garbage",
-    "we found the fat cat curled up in a ball",
-    "move the vat over the hot fire",
-    "the bark of the pine tree was shiny and dark",
-]
-
-
-def _sim_matrix(texts, label):
-    """Compare all pairs of texts using gTTS. Print summary."""
-    orig = audio.voice
-    audio.voice = "gTTS"
-    for t in texts:
-        status(f"  {DIM}TTS: {t[:30]}...{RST}")
-        ensure_ref(t)
-    status()
-    same, diff = [], []
-    for i, t1 in enumerate(texts):
-        p1 = get_ref_path(t1)
-        for j, t2 in enumerate(texts):
-            if i >= j:
-                continue
-            raw2 = _ref_raw(t2)
-            s = audio_similarity(p1, raw2)
-            diff.append(s)
-        raw1 = _ref_raw(t1)
-        s = audio_similarity(get_ref_path(t1), raw1)
-        same.append(s)
-    audio.voice = orig
-    avg_s = sum(same) / len(same) if same else 0
-    avg_d = sum(diff) / len(diff) if diff else 0
-    fp = sum(1 for d in diff if d >= avg_s) / len(diff) \
-        if diff and avg_s > 0 else 0
-    print(f"  {label:12s}  same:{avg_s:4.0f}%  diff:{avg_d:4.0f}%  "
-          f"sep:{avg_s - avg_d:4.0f}pp  fp:{fp:.0%}")
-
-
-def test_similarity(n=10):
-    import random
-    words = []
-    for g in data.phonemes.values():
-        for w in g.words:
-            words.append(w.word)
-    words = random.sample(words, min(n, len(words)))
-    phrases = random.sample(HARVARD_PHRASES, min(n, len(HARVARD_PHRASES)))
-    print(f"  Audio similarity discrimination test (gTTS)\n")
-    _sim_matrix(words, f"words ({len(words)})")
-    _sim_matrix(phrases, f"phrases ({len(phrases)})")
-
-
-def test_feedback():
-    _test_bad()
-
-
 def test_services():
     raw = _ref_raw("hello")
     p = data.prompts.feedback.format(word="hello", ipa="/hɛˈloʊ/")
@@ -1089,18 +917,12 @@ def main():
                    help="practice a specific word or phrase")
     p.add_argument("--test-rec", action="store_true",
                    help="test recording histogram")
-    p.add_argument("--test-feedback", action="store_true",
-                   help="test AI feedback on mismatched words")
     p.add_argument("--test-services", action="store_true",
                    help="test available services")
-    p.add_argument("--test-sim", type=int, nargs="?", const=10,
-                   metavar="N", help="test audio similarity on N words")
     p.add_argument("--assess", action="store_true",
                    help="assess pronunciation with a pangram")
     p.add_argument("--twisters", action="store_true",
                    help="practice tongue twisters with feedback")
-    p.add_argument("--match-voice", action="store_true",
-                   help="find TTS voice closest to yours")
     p.add_argument("--voice",
                    help="TTS voice (list, male, female, random, or name)")
     a = p.parse_args()
@@ -1139,16 +961,6 @@ def main():
     if a.test_services:
         test_services()
         return
-    if a.test_feedback:
-        test_feedback()
-        return
-    if a.test_sim is not None:
-        test_similarity(a.test_sim)
-        return
-    if a.match_voice:
-        match_voice()
-        return
-
     if a.list:
         list_groups()
         return
@@ -1201,7 +1013,6 @@ def main():
     print("  a - assess pronunciation")
     print("  t - tongue twisters")
     print("  p - practice phonemes")
-    print("  v - match TTS voice")
     print()
     try:
         set_cbreak()
@@ -1219,8 +1030,6 @@ def main():
             assess(h, a.continuous, a.debug)
         elif c == 't':
             practice_twisters(h)
-        elif c == 'v':
-            match_voice()
         elif c == 'p':
             _run_phonemes(a, h)
         else:
