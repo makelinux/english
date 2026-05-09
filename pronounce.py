@@ -51,8 +51,8 @@ def load_cfg():
             c = yaml.safe_load(f)
         if c:
             cfg.update(c)
-    if cfg.get("sim_voice"):
-        audio.voice = cfg.sim_voice
+    if cfg.get("voice"):
+        audio.voice = cfg.voice
 
 
 def save_cfg():
@@ -183,7 +183,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.8):
               f"Listening{''.join(bars)}🎤", end="", flush=True)
 
     try:
-        ref = get_ref_path(word)
+        sim_ref = get_ref_path(word, cfg.get("sim_voice"))
         key = None
         while True:
             raw, spoke, key = record_audio(
@@ -201,7 +201,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.8):
         dur = len(samples) / SAMPLE_RATE
         play_raw(raw)
         print(f"\r\033[K{prefix}Processing...", end="", flush=True)
-        sim = audio_similarity(ref, raw) if ref.exists() else 0
+        sim = audio_similarity(sim_ref, raw) if sim_ref.exists() else 0
         try:
             heard = rec.recognize_google(raw_to_sr_audio(raw))
         except sr.UnknownValueError:
@@ -474,6 +474,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
     """Practice one word with retries. Returns (best_pct, last_raw).
     best_pct=-1 means quit. prev=(raw, word, ipa) for feedback fallback."""
     ensure_ref(w.word)
+    ensure_ref(w.word, cfg.get("sim_voice"))
 
     prefix = f"{num}{w.word}  {w.ipa}  "
     best = 0
@@ -555,7 +556,7 @@ def _assess_one(text, ipa):
     print(f"  {DIM}Listen first...{RST}", end="", flush=True)
     speak(text)
     print("\r\033[K", end="")
-    ensure_ref(text)
+    ensure_ref(text, cfg.get("sim_voice"))
     rec = sr.Recognizer()
     pw = len(text.split())
     while True:
@@ -700,7 +701,7 @@ def practice_twisters(h):
         print(f"  {DIM}Listen...{RST}", end="", flush=True)
         speak(text)
         print("\r\033[K", end="")
-        ensure_ref(text)
+        ensure_ref(text, cfg.get("sim_voice"))
         pw = len(text.split())
         while True:
             heard, pct, sim, peak, dur, raw, key = record_word(
@@ -1112,7 +1113,6 @@ def main():
             audio.voice = random.choice(VOICES_FEMALE)
         else:
             audio.voice = next((x for x in VOICES_ALL if x.lower() == v), v)
-
     if a.test_rec:
         test_rec()
         return
@@ -1121,6 +1121,10 @@ def main():
     sim_threshold = a.sim_threshold
     load_calibration()
     load_cfg()
+
+    if a.voice:
+        cfg.voice = audio.voice
+        save_cfg()
     load_data()
     build_ipa_map()
     h = load_history()
