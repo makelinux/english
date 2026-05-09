@@ -89,11 +89,13 @@ def save_calibration():
         yaml.dump(cal, f)
 
 
-def get_ref_path(word):
-    return REF_DIR / f"{word}-{voice}.wav"
+def get_ref_path(word, v=None):
+    import hashlib
+    name = word if len(word) < 80 else hashlib.md5(word.encode()).hexdigest()
+    return REF_DIR / f"{name}-{v or voice}.wav"
 
 
-def _gemini_tts_wav(text):
+def _gemini_tts_wav(text, v=None):
     """Returns AudioSegment or None."""
     try:
         from google import genai
@@ -108,7 +110,7 @@ def _gemini_tts_wav(text):
                 speech_config=types.SpeechConfig(
                     voice_config=types.VoiceConfig(
                         prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name=voice
+                            voice_name=v or voice
                         )
                     )
                 )
@@ -125,13 +127,14 @@ def _gemini_tts_wav(text):
         return None
 
 
-def ensure_ref(word):
+def ensure_ref(word, v=None):
     """Cache reference audio - Gemini TTS first, gTTS fallback."""
-    p = get_ref_path(word)
+    v = v or voice
+    p = get_ref_path(word, v)
     if p.exists():
         return p
     REF_DIR.mkdir(parents=True, exist_ok=True)
-    seg = None if voice == "gTTS" else _gemini_tts_wav(word)
+    seg = None if v == "gTTS" else _gemini_tts_wav(word, v)
     if not seg:
         buf = BytesIO()
         gTTS(word, lang="en").write_to_fp(buf)
@@ -156,7 +159,8 @@ def speak(text):
         ) as pa:
             pa.write(seg.raw_data)
             pa.drain()
-    except Exception:
+    except Exception as e:
+        print(f"\n  speak error: {e}", file=sys.stderr)
         subprocess.run(
             ["espeak-ng", "-s", "130", "-v", "en-us", text],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
