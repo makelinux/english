@@ -191,11 +191,13 @@ def record_word(word, rec, prefix="", duration=5, pause=0.8):
                 on_chunk=on_chunk,
                 check_keys=bool(_term_saved))
             if key in ('s', 'q'):
+                clear_line()
                 print()
                 return None, 0, 0, 0, 0, None, key
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
             if spoke and peak_raw > 1000:
                 break
+        clear_line()
         samples = np.frombuffer(raw, dtype=np.int16)
         peak = int(np.max(np.abs(samples)))
         dur = len(samples) / SAMPLE_RATE
