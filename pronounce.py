@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import random
 import re
 import select
 import sys
@@ -432,7 +433,7 @@ def select_group(h):
         if c == '?':
             accs = [(gid, group_accuracy(h, gid)) for gid in data.phonemes]
             accs.sort(key=lambda x: x[1])
-            return accs[0][0]
+            return random.choice([g for g, _ in accs[:3]])
         if c in keys:
             gids = keys[c]
             if len(gids) == 1:
@@ -520,6 +521,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
 
         good, fb = _do_feedback(last_raw, w.word, w.ipa, h)
         if good:
+            best = 100
             print(f"\033[A\r\033[K{info},  {DIM}{fb}{RST}")
             break
 
@@ -1050,7 +1052,7 @@ def _run_phonemes(a, h):
         accs = [(gid, group_accuracy(h, gid))
                 for gid in data.phonemes.keys()]
         accs.sort(key=lambda x: x[1])
-        gid = accs[0][0]
+        gid = random.choice([g for g, _ in accs[:3]])
     else:
         try:
             gid = select_group(h)
