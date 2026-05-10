@@ -360,13 +360,10 @@ RED = "\033[31m"
 YEL = "\033[33m"
 GRN = "\033[32m"
 
-sim_threshold = 60
-
-
 def sim_color(pct):
-    if pct >= sim_threshold:
+    if pct >= 60:
         return GRN
-    if pct >= sim_threshold // 2:
+    if pct >= 30:
         return YEL
     return RED
 
@@ -911,8 +908,6 @@ def main():
                    help="continuous mode, no Enter between words")
     p.add_argument("--debug", "-d", action="store_true",
                    help="show audio debug info")
-    p.add_argument("--sim-threshold", type=int, default=60,
-                   help="audio similarity threshold %% (default 60)")
     p.add_argument("--text", "-t",
                    help="practice a specific word or phrase")
     p.add_argument("--test-rec", action="store_true",
@@ -946,8 +941,6 @@ def main():
         test_rec()
         return
 
-    global sim_threshold
-    sim_threshold = a.sim_threshold
     load_calibration()
     load_cfg()
 
