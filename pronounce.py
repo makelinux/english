@@ -515,14 +515,13 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
 
         heard_s = f"  heard: {heard}" if heard else ""
         dbg = f"  {dur:.1f}s peak={peak * 100 // 32768}%" if debug else ""
-        print(f"\r\033[K{prefix}{lb_s}{heard_s}{dbg}",
-              end="", flush=True)
+        info = f"{prefix}{lb_s}{heard_s}{dbg}"
+        print(f"\r\033[K{info}")
 
         good, fb = _do_feedback(last_raw, w.word, w.ipa, h)
         if good:
-            print(f",  {DIM}{fb}{RST}")
+            print(f"\033[A\r\033[K{info},  {DIM}{fb}{RST}")
             break
-        print()
 
         if cont:
             k = wait_key(2)
