@@ -195,7 +195,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.8):
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
             if spoke and peak_raw > 1000:
                 break
-        clear_line()
+        print(f"\r\033[K{prefix}", end="", flush=True)
         samples = np.frombuffer(raw, dtype=np.int16)
         peak = int(np.max(np.abs(samples)))
         dur = len(samples) / SAMPLE_RATE
@@ -454,8 +454,8 @@ def select_group(h):
                 pass
 
 
-def _do_feedback(raw, word, ipa, h=None):
-    """Returns (good, feedback_text)."""
+def _do_feedback(raw, word, ipa, info, h=None):
+    """Returns (good, feedback_text). Info line already printed."""
     try:
         fb = get_feedback(raw, word, ipa)
     except Exception as e:
@@ -463,7 +463,10 @@ def _do_feedback(raw, word, ipa, h=None):
         print(f"  {DIM}Feedback error: {e}{RST}")
         return False, ""
     good = fb.strip().lower().startswith("good")
-    if not good:
+    status()
+    if good:
+        print(f"\033[A\r\033[K{info},  {DIM}{fb}{RST}")
+    else:
         print(f"  {DIM}{fb}{RST}")
         speak(re.sub(r'[\"\'()"/]', '', fb))
     if h and word in h["words"]:
@@ -519,10 +522,9 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
         info = f"{prefix}{lb_s}{heard_s}{dbg}"
         print(f"\r\033[K{info}")
 
-        good, fb = _do_feedback(last_raw, w.word, w.ipa, h)
+        good, fb = _do_feedback(last_raw, w.word, w.ipa, info, h)
         if good:
             best = 100
-            print(f"\033[A\r\033[K{info},  {DIM}{fb}{RST}")
             break
 
         if cont:
