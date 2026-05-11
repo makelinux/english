@@ -3,24 +3,30 @@
 CLI tools for practicing English pronunciation and estimating
 vocabulary size.
 
-### Why not just AI voice chat?
+### Benefits over practicing with humans
 
-- Replays your recording so you hear yourself - builds
+- Available any time, practice whenever you want
+- Repeat the same word 20 times comfortably
+- Echoes your recording so you hear yourself
+- Impartial, tireless feedback on every attempt
+- Systematically targets your weak phonemes
+- Useful for pronunciation homework practice
+
+### Benefits over AI voice chat
+
+- Echoes your recording so you hear yourself - builds
   self-awareness and self-correction habits
 - Objective scoring via speech recognition and audio
-  similarity, not subjective AI judgment
-- AI feedback is direct and specific, not sycophantic -
-  good pronunciation gets just "Good", not praise
-- No cliches like "Great job!" or "Keep it up!"
-- Targets specific phonemes you struggle with, not
-  free-form conversation
+  similarity
+- Direct feedback - good pronunciation gets just "Good"
+- Targets specific phonemes, structured progression
 
 ## pronounce.py
 
 Pronunciation practice - phoneme drills, tongue twisters,
 pangram assessment:
 - Speaks each word via Gemini TTS (gTTS fallback)
-- Records and replays your attempt so you hear yourself
+- Records and echoes your attempt so you hear yourself
 - Scores via speech recognition, audio similarity shown
   for reference
 - AI feedback after each attempt
