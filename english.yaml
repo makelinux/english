@@ -1082,6 +1082,48 @@ twisters:
   - text: >-
       The sixth sick sheik's sixth sheep's sick.
     group: sh_ch
+  - text: >-
+      Five fine fresh fish for you.
+    group: f_v
+  - text: >-
+      Singing Sammy sang songs on sinking sand.
+    group: ng_sound
+  - text: >-
+      Toy boat, toy boat, toy boat.
+    group: diphthongs
+  - text: >-
+      The rain in Spain stays mainly in the plain.
+    group: ei_ai
+  - text: >-
+      Around the rugged rocks the ragged rascal ran.
+    group: r_vowels
+  - text: >-
+      A knapsack strap snapped and slapped the knight's knee.
+    group: silent_letters
+  - text: >-
+      She should shun the sunny salon.
+    group: schwa
+  - text: >-
+      National rationing of rations is irrational.
+    group: tion_sion
+  - text: >-
+      Imagine an imaginary menagerie manager
+      managing an imaginary menagerie.
+    group: j_dj
+  - text: >-
+      Hugh, the huge man, held a humongous hose.
+    group: h_sound
+  - text: >-
+      Casual clothes are provisional for leisurely
+      excursions.
+    group: zh_sound
+  - text: >-
+      I thought I thought of thinking of thanking you.
+    group: ough_spellings
+  - text: >-
+      Photograph the photographer photographing
+      the photographs.
+    group: word_stress
 
 prompts:
   sysprompt: >-
