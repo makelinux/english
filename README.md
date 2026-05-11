@@ -30,8 +30,10 @@ Practice words grouped by phoneme:
 ./pronounce.py              # interactive group selection
 ./pronounce.py -g th_voiced # practice specific group
 ./pronounce.py -w           # auto-select weakest group
+./pronounce.py -o           # auto-select least recently practiced group
 ./pronounce.py -c           # continuous mode (no Enter between words)
 ./pronounce.py -cw          # continuous + weakest group
+./pronounce.py -co          # continuous + least recent group
 ./pronounce.py -t "ship"    # practice a specific word
 ./pronounce.py --list       # list all phoneme groups
 ./pronounce.py --stats      # show performance stats
@@ -40,11 +42,9 @@ Practice words grouped by phoneme:
 ./pronounce.py -d           # debug info (duration, peak, selfcheck)
 ./pronounce.py --assess              # pangram pronunciation assessment
 ./pronounce.py --twisters            # tongue twisters with AI feedback
-./pronounce.py --match-voice         # find TTS voice closest to yours
+./pronounce.py --twisters -c         # tongue twisters, continuous mode
 ./pronounce.py --voice puck          # choose TTS voice
 ./pronounce.py --test-services       # test API connectivity
-./pronounce.py --test-feedback       # test AI feedback accuracy
-./pronounce.py --test-sim            # test audio similarity
 ```
 
 ### Sample output
@@ -69,6 +69,10 @@ Continuous mode (`-c`):
 - `p` - pause
 - `s` - skip
 - `q` - quit
+
+Group selection:
+- `?` - weakest group (random from bottom 3)
+- `/` - least recently practiced group
 
 ### Scoring
 

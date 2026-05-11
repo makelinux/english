@@ -625,58 +625,95 @@ def assess(h, cont=False, debug=False):
     practice_phonemes(gid, h, cont, debug)
 
 
-def practice_twisters(h):
+def practice_twisters(h, cont=False):
     print(f"\nTongue twisters\n")
+    if cont:
+        print(f"{DIM}Keys: [s]kip  [p]ause  [q]uit{RST}\n")
+        set_cbreak()
     rec = sr.Recognizer()
-    for i, tw in enumerate(data.twisters):
-        text = tw["text"]
-        gid = tw.get("group", "")
-        gn = data.phonemes[gid].name if gid in data.phonemes else ""
-        lbl = f"  {i + 1}/{len(data.twisters)}"
-        if gn:
-            lbl += f"  ({gn})"
-        print(lbl)
-        print(f"  {text}")
-        print()
-        print(f"  {DIM}Listen...{RST}", end="", flush=True)
-        speak(text)
-        print("\r\033[K", end="")
-        ensure_ref(text, cfg.get("sim_voice"))
-        pw = len(text.split())
-        while True:
-            heard, pct, sim, peak, dur, raw, key = record_word(
-                text, rec, "  ", duration=15, pause=1.5)
-            if key == 'q':
-                return
+    if "twisters" not in h:
+        h["twisters"] = {}
+    twisters = sorted(data.twisters,
+                      key=lambda t: h["twisters"].get(t["text"], ""))
+    try:
+        for i, tw in enumerate(twisters):
+            text = tw["text"]
+            gid = tw.get("group", "")
+            gn = data.phonemes[gid].name if gid in data.phonemes else ""
+            lbl = f"  {i + 1}/{len(twisters)}"
+            if gn:
+                lbl += f"  ({gn})"
+            print(lbl)
+            print(f"  {text}")
+            print()
+            print(f"  {DIM}Listen...{RST}", end="", flush=True)
+            speak(text)
+            print("\r\033[K", end="")
+            ensure_ref(text, cfg.get("sim_voice"))
+            pw = len(text.split())
+            while True:
+                heard, pct, sim, peak, dur, raw, key = record_word(
+                    text, rec, "  ", duration=15, pause=1.5)
+                if key == 'q':
+                    return
+                if key == 's':
+                    raw = None
+                    break
+                if not raw:
+                    continue
+                hw = len(heard.split()) if heard else 0
+                if hw < pw * 0.5:
+                    print(f"  Too short ({hw}/{pw} words). Try again.")
+                    continue
+                break
             if not raw:
                 continue
-            hw = len(heard.split()) if heard else 0
-            if hw < pw * 0.5:
-                print(f"  Too short ({hw}/{pw} words). Try again.")
-                continue
-            break
-        clear_line()
-        if heard:
-            print(f"  Heard: {heard}")
-        if sim:
-            print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
-        nxt = f"[Enter] next  " if i < len(data.twisters) - 1 else ""
-        print(f"\n  {DIM}{nxt}[f]eedback  [q]uit{RST}", end="",
-              flush=True)
-        c = wait_key(None)
-        print()
-        if c == 'q':
-            break
-        if c == 'f':
-            try:
-                fb = _ask_ai(raw, data.prompts.twister.format(text=text))
-            except Exception as e:
-                print(f"  Feedback error: {e}")
-                continue
-            print(f"  {fb}")
-            if fb.strip() != "Good":
-                speak(re.sub(r'[\"\'()"/]', '', fb))
-        print()
+            clear_line()
+            if heard:
+                print(f"  Heard: {heard}")
+            if sim:
+                print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
+            h["twisters"][text] = str(date.today())
+            if cont:
+                try:
+                    fb = _ask_ai(raw, data.prompts.twister.format(text=text))
+                except Exception as e:
+                    print(f"  Feedback error: {e}")
+                    continue
+                print(f"  {fb}")
+                if fb.strip() != "Good":
+                    speak(re.sub(r'[\"\'()"/]', '', fb))
+                print()
+                k = wait_key(1)
+                if k == 'q':
+                    break
+                if k == 'p':
+                    print(f"  {DIM}Paused. Any key...{RST}",
+                          end="", flush=True)
+                    wait_key(None)
+                    clear_line()
+            else:
+                nxt = f"[Enter] next  " if i < len(twisters) - 1 else ""
+                print(f"\n  {DIM}{nxt}[f]eedback  [q]uit{RST}", end="",
+                      flush=True)
+                c = wait_key(None)
+                print()
+                if c == 'q':
+                    break
+                if c == 'f':
+                    try:
+                        fb = _ask_ai(raw,
+                                     data.prompts.twister.format(text=text))
+                    except Exception as e:
+                        print(f"  Feedback error: {e}")
+                        continue
+                    print(f"  {fb}")
+                    if fb.strip() != "Good":
+                        speak(re.sub(r'[\"\'()"/]', '', fb))
+                print()
+    finally:
+        if cont:
+            restore_term()
 
 
 def practice_phonemes(gid, h, cont=False, debug=False):
@@ -988,7 +1025,7 @@ def main():
         return
     if a.twisters:
         try:
-            practice_twisters(h)
+            practice_twisters(h, a.continuous)
         except KeyboardInterrupt:
             pass
         finally:
@@ -1036,7 +1073,7 @@ def main():
         if c == 'a':
             assess(h, a.continuous, a.debug)
         elif c == 't':
-            practice_twisters(h)
+            practice_twisters(h, a.continuous)
         elif c == 'p':
             _run_phonemes(a, h)
         else:
