@@ -54,8 +54,7 @@ pangram assessment:
 1/10: foot  /fʊt/  heard: food
   You said "food". Try shorter vowel, like "book".
   Final sound should be a crisp 't', not 'd'.
-1/10: foot  /fʊt/  heard: foot
-  Good
+1/10: foot  /fʊt/  heard: foot,  Good
 
 ```
 
@@ -87,12 +86,12 @@ is used for sentences (assess/twisters) where it's more
 reliable than for single words.
 
 History uses EMA (exponential moving average) so recent
-performance weighs more. `--weak` picks the group with
-lowest EMA score.
+performance weighs more. `--weak` picks randomly from the
+3 weakest groups.
 
 ### Phoneme groups
 
-22 groups, 220 words covering:
+22 groups, 224 words covering:
 - th voiced/voiceless, sh/ch, r/l, v/w, s/z, f/v
 - vowel pairs, diphthongs, schwa, eɪ/aɪ
 - silent letters, word stress, -ed endings, -tion/-sion
@@ -116,9 +115,7 @@ openai:
   audio_format: image_url  # or input_audio, input_file
 ```
 
-Use `--test-services` to check API connectivity.\
-Use `--test-feedback` to verify accuracy - plays mismatched
-words and checks that the AI detects errors.
+Use `--test-services` to check API connectivity.
 
 ### Calibration
 
@@ -188,4 +185,4 @@ python3 -c "import nltk; nltk.download('wordnet')"
   - `history.yaml` - practice history
   - `calibration.yaml` - mic/speaker calibration
   - `ref/` - cached TTS reference audio (per voice)
-  - `config.yaml` - OpenAI-compatible API settings
+  - `config.yaml` - voice, API settings
