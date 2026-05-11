@@ -38,6 +38,7 @@ from audio import (
 DATA = Path(__file__).parent / "english.yaml"
 HIST = CONF_DIR / "history.yaml"
 CFG_FILE = CONF_DIR / "config.yaml"
+FB_LOG = CONF_DIR / "feedback.log"
 
 cfg = Box(default_box=True)
 data = Box()
@@ -461,6 +462,11 @@ def select_group(h):
                 pass
 
 
+def _log_feedback(word, fb):
+    with open(FB_LOG, "a") as f:
+        f.write(f"{date.today()} {word}: {fb}\n")
+
+
 def _do_feedback(raw, word, ipa, info, h=None):
     """Returns (good, feedback_text). Info line already printed."""
     try:
@@ -476,6 +482,7 @@ def _do_feedback(raw, word, ipa, info, h=None):
     else:
         print(f"  {DIM}{fb}{RST}")
         speak(re.sub(r'[\"\'()"/]', '', fb))
+    _log_feedback(word, fb)
     if h and word in h["words"]:
         h["words"][word]["feedback"] = fb
     return good, fb
@@ -681,6 +688,7 @@ def practice_twisters(h, cont=False):
                     print(f"  Feedback error: {e}")
                     continue
                 print(f"  {fb}")
+                _log_feedback(text, fb)
                 if fb.strip() != "Good":
                     speak(re.sub(r'[\"\'()"/]', '', fb))
                 print()
@@ -708,6 +716,7 @@ def practice_twisters(h, cont=False):
                         print(f"  Feedback error: {e}")
                         continue
                     print(f"  {fb}")
+                    _log_feedback(text, fb)
                     if fb.strip() != "Good":
                         speak(re.sub(r'[\"\'()"/]', '', fb))
                 print()
