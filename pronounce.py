@@ -260,6 +260,7 @@ def update_history(h, gid, word, pct):
     g["attempts"] += 1
     g["correct"] += s
     g["ema"] = g.get("ema", s) * (1 - EMA_ALPHA) + s * EMA_ALPHA
+    g["last"] = str(date.today())
 
 
 def _no_ipa():
@@ -423,7 +424,8 @@ def select_group(h):
             tag = f" {acc:.0%}" if acc >= 0 else " new"
             names.append(f"{g.name}{tag}")
         print(f"  {k} - {' / '.join(names)}")
-    print(f"  ? - weakest group (auto-select)")
+    print(f"  ? - weakest group")
+    print(f"  / - least recent group")
     print()
 
     while True:
@@ -434,6 +436,11 @@ def select_group(h):
             accs = [(gid, group_accuracy(h, gid)) for gid in data.phonemes]
             accs.sort(key=lambda x: x[1])
             return random.choice([g for g, _ in accs[:3]])
+        if c == '/':
+            by_date = [(gid, h["groups"].get(gid, {}).get("last", ""))
+                       for gid in data.phonemes]
+            by_date.sort(key=lambda x: x[1])
+            return random.choice([g for g, _ in by_date[:3]])
         if c in keys:
             gids = keys[c]
             if len(gids) == 1:
@@ -588,7 +595,9 @@ def _assess_one(text, ipa):
 def assess(h, cont=False, debug=False):
     print(f"\nPronunciation assessment\n")
     weak = []
-    for p in data.pangrams:
+    pangrams = list(data.pangrams)
+    random.shuffle(pangrams)
+    for p in pangrams:
         text = p.get("text", p) if isinstance(p, dict) else p
         ipa = p.get("ipa", "") if isinstance(p, dict) else ""
         w, raw = _assess_one(text, ipa)
@@ -907,6 +916,8 @@ def main():
                    help="practice specific group by id")
     p.add_argument("--weak", "-w", action="store_true",
                    help="auto-select weakest group")
+    p.add_argument("--old", "-o", action="store_true",
+                   help="auto-select least recently practiced group")
     p.add_argument("--continuous", "-c", action="store_true",
                    help="continuous mode, no Enter between words")
     p.add_argument("--debug", "-d", action="store_true",
@@ -1001,7 +1012,7 @@ def main():
         quick_calibrate()
         print("\r\033[K", end="")
 
-    if a.group or a.weak:
+    if a.group or a.weak or a.old:
         _run_phonemes(a, h)
         return
 
@@ -1055,6 +1066,11 @@ def _run_phonemes(a, h):
                 for gid in data.phonemes.keys()]
         accs.sort(key=lambda x: x[1])
         gid = random.choice([g for g, _ in accs[:3]])
+    elif a.old:
+        by_date = [(gid, h["groups"].get(gid, {}).get("last", ""))
+                   for gid in data.phonemes.keys()]
+        by_date.sort(key=lambda x: x[1])
+        gid = random.choice([g for g, _ in by_date[:3]])
     else:
         try:
             gid = select_group(h)
