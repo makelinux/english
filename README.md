@@ -17,12 +17,13 @@ vocabulary size.
 
 ## pronounce.py
 
-Practice words grouped by phoneme:
+Pronunciation practice - phoneme drills, tongue twisters,
+pangram assessment:
 - Speaks each word via Gemini TTS (gTTS fallback)
 - Records and replays your attempt so you hear yourself
 - Scores via speech recognition, audio similarity shown
   for reference
-- AI feedback on demand
+- AI feedback after each attempt
 
 ### Usage
 
