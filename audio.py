@@ -127,6 +127,22 @@ def _gemini_tts_wav(text, v=None):
         return None
 
 
+REF_MAX_MB = 200
+
+
+def _trim_ref_cache():
+    """Remove least recently accessed files if cache exceeds REF_MAX_MB."""
+    files = list(REF_DIR.glob("*.wav"))
+    total = sum(f.stat().st_size for f in files)
+    if total <= REF_MAX_MB * 1024 * 1024:
+        return
+    files.sort(key=lambda f: f.stat().st_atime)
+    while total > REF_MAX_MB * 1024 * 1024 * 0.8 and files:
+        f = files.pop(0)
+        total -= f.stat().st_size
+        f.unlink()
+
+
 def ensure_ref(word, v=None):
     """Cache reference audio - Gemini TTS first, gTTS fallback."""
     v = v or voice
@@ -143,6 +159,7 @@ def ensure_ref(word, v=None):
         seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE) \
                   .set_sample_width(SAMPLE_WIDTH)
     seg.export(str(p), format="wav")
+    _trim_ref_cache()
     return p
 
 
