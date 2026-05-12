@@ -168,7 +168,7 @@ def stt_score(expected, heard):
     return 0
 
 
-def record_word(word, rec, prefix="", duration=5, pause=0.8):
+def record_word(word, rec, prefix="", duration=5, pause=0.5):
     """Returns (heard, pct, sim, peak, dur, raw, key)."""
     bars = []
 

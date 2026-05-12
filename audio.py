@@ -315,7 +315,7 @@ def record_audio(duration=5, pause=0.8, on_chunk=None, check_keys=False):
                     is_speech = False
             if is_speech:
                 speech_run += 1
-                if speech_run >= 8:
+                if speech_run >= 4:
                     speech_started = True
                 silence = 0
             elif speech_started:
