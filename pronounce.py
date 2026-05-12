@@ -268,6 +268,14 @@ def _no_ipa():
     return "" if os.getenv("GOOGLE_API_KEY") else " No IPA symbols."
 
 
+def _load_audio_file(path):
+    """Load any audio file, return raw PCM bytes (16kHz mono 16-bit)."""
+    from pydub import AudioSegment
+    seg = AudioSegment.from_file(path)
+    seg = seg.set_channels(1).set_frame_rate(SAMPLE_RATE).set_sample_width(SAMPLE_WIDTH)
+    return seg.raw_data
+
+
 def _ask_ai(raw, prompt):
     """Send audio + prompt to Gemini or OpenAI, return response text."""
     wav = _raw_to_wav(raw)
@@ -925,9 +933,19 @@ def calibrate():
 def test_services():
     raw = _ref_raw("hello")
     p = data.prompts.feedback.format(word="hello", ipa="/hɛˈloʊ/")
+    def _test_model(model):
+        import google.generativeai as genai
+        m = genai.GenerativeModel(model,
+                                  system_instruction=data.prompts.sysprompt)
+        r = m.generate_content([
+            p, {"mime_type": "audio/wav", "data": _raw_to_wav(raw)},
+        ])
+        return r.text.strip()
     svcs = [
         ("gemini-flash-latest feedback", lambda:
          _ask_gemini(_raw_to_wav(raw), p)),
+        ("gemini-3.1-flash-lite feedback", lambda:
+         _test_model("gemini-3.1-flash-lite")),
         ("gemini-3.1-flash-tts TTS", lambda:
          _gemini_tts_wav("test")),
     ]
@@ -978,6 +996,8 @@ def main():
                    help="assess pronunciation with a pangram")
     p.add_argument("--twisters", action="store_true",
                    help="practice tongue twisters with feedback")
+    p.add_argument("--file", "-f",
+                   help="audio file for offline feedback")
     p.add_argument("--voice",
                    help="TTS voice (list, male, female, random, or name)")
     a = p.parse_args()
@@ -1019,6 +1039,37 @@ def main():
         return
     if a.stats:
         show_stats(h)
+        return
+    if a.file:
+        raw = _load_audio_file(a.file)
+        text = a.text
+        if not text:
+            rec = sr.Recognizer()
+            try:
+                heard = rec.recognize_google(raw_to_sr_audio(raw))
+            except (sr.UnknownValueError, sr.RequestError):
+                heard = ""
+            if heard:
+                print(f"  {DIM}heard: {heard}{RST}")
+                if a.twisters:
+                    best, best_tw = 0, None
+                    for tw in data.twisters:
+                        s = SequenceMatcher(None, heard.lower(),
+                                            tw["text"].lower()).ratio()
+                        if s > best:
+                            best, best_tw = s, tw
+                    if best >= 0.3:
+                        text = best_tw["text"]
+                        print(f"  {DIM}matched: {text}{RST}")
+            if not text:
+                for i, tw in enumerate(data.twisters):
+                    print(f"  {i + 1:2d}. {tw['text']}")
+                text = data.twisters[int(input("  #: ")) - 1]["text"]
+        print(f"\n  {text}")
+        fb = _ask_ai(raw, data.prompts.twister.format(text=text))
+        status()
+        print(f"  {fb}")
+        _log_feedback(text, fb)
         return
     if a.calibrate:
         calibrate()
