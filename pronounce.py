@@ -733,10 +733,23 @@ def practice_twisters(h, cont=False):
             restore_term()
 
 
+_VOWEL_CHART = f"""\
+{DIM}        Front  Central  Back
+Close    iː  ɪ            ʊ  uː
+Mid      eɪ       ə        oʊ
+Open-mid ɛ                    ɔː
+Open     æ        ʌ        ɑː{RST}"""
+
+_VOWEL_GROUPS = {"vowel_pairs", "diphthongs", "schwa", "ei_ai", "r_vowels"}
+
+
 def practice_phonemes(gid, h, cont=False, debug=False):
     g = data.phonemes[gid]
     print(f"\n{g.name}")
     print(f"  {g.description}")
+    if gid in _VOWEL_GROUPS:
+        print()
+        print(_VOWEL_CHART)
     print()
 
     if cont:
