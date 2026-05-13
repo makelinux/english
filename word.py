@@ -13,7 +13,16 @@ from wordfreq import zipf_frequency, top_n_list
 
 _cefr = CEFRAnalyzer()
 _lem = WordNetLemmatizer()
-_freq_rank = {w: i for i, w in enumerate(top_n_list('en', 100000))}
+_top = {w: i + 1 for i, w in enumerate(top_n_list('en', 1000))}
+
+
+def _rank(w, freq):
+    r = _top.get(w) or _top.get(w.lower())
+    if r is not None:
+        return r
+    if freq <= 0:
+        return None
+    return max(1, int(10 ** (5.6618 - 0.1667 * freq - 0.0732 * freq**2)))
 
 
 def translate(w, lang):
@@ -32,10 +41,13 @@ def translate(w, lang):
 
 def word_header(w, lang=None):
     freq = zipf_frequency(w, 'en')
-    rank = _freq_rank.get(w)
+    rank = _rank(w, freq)
     h = f"{w}  freq={freq:.1f}"
-    if rank:
-        h += f"  rank={rank:,}/100k"
+    if rank is not None:
+        if rank >= 1000:
+            h += f"  rank={rank // 1000}K"
+        else:
+            h += f"  rank={rank}"
     lvl = _cefr.get_average_word_level_CEFR(w)
     if lvl:
         h += f"  {lvl}"
