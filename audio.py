@@ -61,7 +61,8 @@ VOICES_ALL = VOICES_MALE + VOICES_FEMALE
 cal = {"bias": 0, "scale": 70, "top_db": 20, "delay": 0.3}
 calibrated = False
 _peak_max = 0.2
-voice = "Puck"
+sim_voice = "gTTS"
+tutor_voice = "Puck"
 
 DIM = "\033[2m"
 RST = "\033[0m"
@@ -92,7 +93,7 @@ def save_calibration():
 def get_ref_path(word, v=None):
     import hashlib
     name = word if len(word) < 80 else hashlib.md5(word.encode()).hexdigest()
-    return REF_DIR / f"{name}-{v or voice}.wav"
+    return REF_DIR / f"{name}-{v or sim_voice}.wav"
 
 
 def _gemini_tts_wav(text, v=None):
@@ -110,7 +111,7 @@ def _gemini_tts_wav(text, v=None):
                 speech_config=types.SpeechConfig(
                     voice_config=types.VoiceConfig(
                         prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name=v or voice
+                            voice_name=v or sim_voice
                         )
                     )
                 )
@@ -145,7 +146,7 @@ def _trim_ref_cache():
 
 def ensure_ref(word, v=None):
     """Cache reference audio - Gemini TTS first, gTTS fallback."""
-    v = v or voice
+    v = v or sim_voice
     p = get_ref_path(word, v)
     if p.exists():
         return p
@@ -163,9 +164,9 @@ def ensure_ref(word, v=None):
     return p
 
 
-def speak(text):
+def speak(text, v=None):
     try:
-        ref = ensure_ref(text)
+        ref = ensure_ref(text, v)
         seg = AudioSegment.from_wav(str(ref))
         seg = seg + (-10)
         with pasimple.PaSimple(
@@ -181,6 +182,10 @@ def speak(text):
         subprocess.run(
             ["espeak-ng", "-s", "130", "-v", "en-us", text],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def speak_tutor(text):
+    speak(text, tutor_voice)
 
 
 def extract_mfcc(samples, sr_rate=SAMPLE_RATE):

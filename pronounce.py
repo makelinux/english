@@ -28,7 +28,7 @@ from audio import (
     VOICES_MALE, VOICES_FEMALE, VOICES_ALL, _BARS,
     cal, DIM, RST,
     load_calibration, save_calibration, quick_calibrate, CAL_FILE,
-    status, record_audio, play_raw, speak,
+    status, record_audio, play_raw, speak, speak_tutor,
     ensure_ref, get_ref_path, audio_similarity,
     normalize_volume, extract_mfcc, dtw_distance,
     raw_to_sr_audio, _raw_to_wav, _gemini_tts_wav, _ref_raw,
@@ -50,8 +50,12 @@ def load_cfg():
             c = yaml.safe_load(f)
         if c:
             cfg.update(c)
-    if cfg.get("voice"):
-        audio.voice = cfg.voice
+    if cfg.get("voice") and not cfg.get("sim_voice"):
+        cfg.sim_voice = cfg.pop("voice")
+    if cfg.get("sim_voice"):
+        audio.sim_voice = cfg.sim_voice
+    if cfg.get("tutor_voice"):
+        audio.tutor_voice = cfg.tutor_voice
 
 
 def save_cfg():
@@ -183,7 +187,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.5,
               f"Listening{''.join(bars)}🎤", end="", flush=True)
 
     try:
-        sim_ref = get_ref_path(word, cfg.get("sim_voice"))
+        sim_ref = get_ref_path(word)
         key = None
         while True:
             raw, spoke, key = record_audio(
@@ -281,8 +285,10 @@ def _ask_ai(raw, prompt):
     """Send audio + prompt to Gemini or OpenAI, return response text."""
     wav = _raw_to_wav(raw)
     if cfg.openai:
-        return _ask_openai(wav, prompt)
-    return _ask_gemini(wav, prompt)
+        fb = _ask_openai(wav, prompt)
+    else:
+        fb = _ask_gemini(wav, prompt)
+    return re.sub(r'"(\w+)([.,])"', r'"\1"\2', fb)
 
 
 def _ask_gemini(wav, prompt):
@@ -348,8 +354,7 @@ def _ask_openai(wav, prompt):
 
 def get_feedback(raw, word, ipa):
     p = data.prompts.feedback.format(word=word, ipa=ipa)
-    fb = _ask_ai(raw, p)
-    return re.sub(r'"(\w+)\."', r'"\1".', fb)
+    return _ask_ai(raw, p)
 
 
 def get_assessment(raw, text):
@@ -490,7 +495,7 @@ def _do_feedback(raw, word, ipa, info, h=None):
         print(f"\033[A\r\033[K{info},  {DIM}{fb}{RST}")
     else:
         print(f"  {DIM}{fb}{RST}")
-        speak(re.sub(r'[\"\'()"/]', '', fb))
+        speak_tutor(re.sub(r'[\"\'()"/,.]', '', fb))
     _log_feedback(word, fb)
     if h and word in h["words"]:
         h["words"][word]["feedback"] = fb
@@ -501,7 +506,6 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
     """Practice one word with retries. Returns (best_pct, last_raw).
     best_pct=-1 means quit. prev=(raw, word, ipa) for feedback fallback."""
     ensure_ref(w.word)
-    ensure_ref(w.word, cfg.get("sim_voice"))
 
     prefix = f"{num}{w.word}  {w.ipa}  "
     best = 0
@@ -583,7 +587,7 @@ def _assess_one(text, ipa):
     print(f"  {DIM}Listen first...{RST}", end="", flush=True)
     speak(text)
     print("\r\033[K", end="")
-    ensure_ref(text, cfg.get("sim_voice"))
+    ensure_ref(text)
     rec = sr.Recognizer()
     pw = len(text.split())
     while True:
@@ -660,7 +664,7 @@ def practice_twisters(h, cont=False):
             if gn:
                 lbl += f"  ({gn})"
             print(lbl)
-            ensure_ref(text, cfg.get("sim_voice"))
+            ensure_ref(text)
             pw = len(text.split())
             while True:
                 print(f"  {text}")
@@ -701,7 +705,7 @@ def practice_twisters(h, cont=False):
                     print(f"  {fb}")
                     _log_feedback(text, fb)
                     if fb.strip() != "Good":
-                        speak(re.sub(r'[\"\'()"/]', '', fb))
+                        speak_tutor(re.sub(r'[\"\'()"/,.]', '', fb))
                 if cont:
                     print()
                     k = wait_key(1)
@@ -1020,13 +1024,13 @@ def main():
             print("Female:", ", ".join(VOICES_FEMALE))
             return
         elif v == "random":
-            audio.voice = random.choice(VOICES_ALL)
+            audio.sim_voice = random.choice(VOICES_ALL)
         elif v == "male":
-            audio.voice = random.choice(VOICES_MALE)
+            audio.sim_voice = random.choice(VOICES_MALE)
         elif v == "female":
-            audio.voice = random.choice(VOICES_FEMALE)
+            audio.sim_voice = random.choice(VOICES_FEMALE)
         else:
-            audio.voice = next((x for x in VOICES_ALL if x.lower() == v), v)
+            audio.sim_voice = next((x for x in VOICES_ALL if x.lower() == v), v)
     if a.test_rec:
         test_rec()
         return
@@ -1035,7 +1039,7 @@ def main():
     load_cfg()
 
     if a.voice:
-        cfg.voice = audio.voice
+        cfg.sim_voice = audio.sim_voice
         save_cfg()
     load_data()
     build_ipa_map()
