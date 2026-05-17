@@ -97,7 +97,7 @@ performance weighs more. `--weak` picks randomly from the
 
 ### Phoneme groups
 
-22 groups, 224 words covering:
+22 groups, 332 words covering:
 - th voiced/voiceless, sh/ch, r/l, v/w, s/z, f/v
 - vowel pairs, diphthongs, schwa, eɪ/aɪ
 - silent letters, word stress, -ed endings, -tion/-sion

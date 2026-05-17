@@ -44,6 +44,26 @@ phonemes:
         ipa: /briːð/
         example: Take a moment to breathe deeply.
         difficulty: 2
+      - word: mother
+        ipa: /ˈmʌðər/
+        example: My mother makes great soup.
+        difficulty: 1
+      - word: father
+        ipa: /ˈfɑːðər/
+        example: His father is a doctor.
+        difficulty: 1
+      - word: other
+        ipa: /ˈʌðər/
+        example: Give me the other one.
+        difficulty: 1
+      - word: smooth
+        ipa: /smuːð/
+        example: The surface is very smooth.
+        difficulty: 2
+      - word: rather
+        ipa: /ˈræðər/
+        example: I would rather stay home.
+        difficulty: 2
 
   th_voiceless:
     name: 'th voiceless (θ)'
@@ -90,6 +110,26 @@ phonemes:
         ipa: /ˌmæθəˈmætɪks/
         example: She studies mathematics at university.
         difficulty: 3
+      - word: tooth
+        ipa: /tuːθ/
+        example: I lost a tooth as a kid.
+        difficulty: 1
+      - word: mouth
+        ipa: /maʊθ/
+        example: Open your mouth wide.
+        difficulty: 1
+      - word: health
+        ipa: /hɛlθ/
+        example: Good health is priceless.
+        difficulty: 2
+      - word: birthday
+        ipa: /ˈbɜːrθdeɪ/
+        example: Happy birthday to you.
+        difficulty: 2
+      - word: both
+        ipa: /boʊθ/
+        example: Both options are good.
+        difficulty: 1
 
   sh_ch:
     name: sh (ʃ) and ch (tʃ)
@@ -136,6 +176,26 @@ phonemes:
         ipa: /ˈtʃæmpiənʃɪp/
         example: They won the championship last year.
         difficulty: 3
+      - word: share
+        ipa: /ʃɛr/
+        example: Let me share this with you.
+        difficulty: 1
+      - word: cheap
+        ipa: /tʃiːp/
+        example: That was really cheap.
+        difficulty: 1
+      - word: crash
+        ipa: /kræʃ/
+        example: We heard a loud crash outside.
+        difficulty: 2
+      - word: charge
+        ipa: /tʃɑːrdʒ/
+        example: How much do they charge?
+        difficulty: 2
+      - word: cushion
+        ipa: /ˈkʊʃən/
+        example: Sit on this cushion.
+        difficulty: 2
 
   r_l:
     name: r and l contrast
@@ -182,6 +242,26 @@ phonemes:
         ipa: /ˈlɪtərəli/
         example: I literally just arrived.
         difficulty: 3
+      - word: rice
+        ipa: /raɪs/
+        example: I had rice for dinner.
+        difficulty: 1
+      - word: lice
+        ipa: /laɪs/
+        example: The school checked for lice.
+        difficulty: 1
+      - word: arrive
+        ipa: /əˈraɪv/
+        example: When will the train arrive?
+        difficulty: 2
+      - word: alive
+        ipa: /əˈlaɪv/
+        example: The fish is still alive.
+        difficulty: 2
+      - word: coral
+        ipa: /ˈkɔːrəl/
+        example: The coral reef is colorful.
+        difficulty: 2
 
   vowel_pairs:
     name: vowel pairs (æ/ɛ, iː/ɪ, uː/ʊ)
@@ -228,6 +308,26 @@ phonemes:
         ipa: /fʊt/
         example: I hurt my foot yesterday.
         difficulty: 1
+      - word: pan
+        ipa: /pæn/
+        example: Heat the pan on the stove.
+        difficulty: 1
+      - word: pen
+        ipa: /pɛn/
+        example: Can I borrow your pen?
+        difficulty: 1
+      - word: sheep
+        ipa: /ʃiːp/
+        example: The sheep grazed on the hill.
+        difficulty: 1
+      - word: fool
+        ipa: /fuːl/
+        example: Don't be a fool.
+        difficulty: 1
+      - word: full
+        ipa: /fʊl/
+        example: The glass is full.
+        difficulty: 1
 
   silent_letters:
     name: silent letters
@@ -273,6 +373,26 @@ phonemes:
       - word: kernel
         ipa: /ˈkɜːrnəl/
         example: The kernel of the idea was simple.
+        difficulty: 2
+      - word: climb
+        ipa: /klaɪm/
+        example: We had to climb the hill.
+        difficulty: 1
+      - word: psalm
+        ipa: /sɑːm/
+        example: The choir sang a psalm.
+        difficulty: 2
+      - word: receipt
+        ipa: /rɪˈsiːt/
+        example: Keep the receipt for the return.
+        difficulty: 2
+      - word: subtle
+        ipa: /ˈsʌtəl/
+        example: There is a subtle difference.
+        difficulty: 2
+      - word: muscle
+        ipa: /ˈmʌsəl/
+        example: He pulled a muscle during exercise.
         difficulty: 2
 
   word_stress:
@@ -324,6 +444,22 @@ phonemes:
         ipa: /ˌæksɪˈdɛntəli/
         example: I accidentally deleted the file.
         difficulty: 3
+      - word: address
+        ipa: /ˈædrɛs/ (noun) /əˈdrɛs/ (verb)
+        example: Please address this to the right address.
+        difficulty: 2
+      - word: permit
+        ipa: /ˈpɜːrmɪt/ (noun) /pərˈmɪt/ (verb)
+        example: You need a permit to park here.
+        difficulty: 2
+      - word: content
+        ipa: /ˈkɑːntɛnt/ (noun) /kənˈtɛnt/ (adjective)
+        example: She is content with the content.
+        difficulty: 2
+      - word: development
+        ipa: /dɪˈvɛləpmənt/
+        example: The project is under development.
+        difficulty: 3
 
   v_w:
     name: v and w contrast
@@ -369,6 +505,26 @@ phonemes:
       - word: viewpoint
         ipa: /ˈvjuːˌpɔɪnt/
         example: Consider a different viewpoint.
+        difficulty: 2
+      - word: voice
+        ipa: /vɔɪs/
+        example: She has a beautiful voice.
+        difficulty: 1
+      - word: winter
+        ipa: /ˈwɪntər/
+        example: Winter is cold here.
+        difficulty: 1
+      - word: twelve
+        ipa: /twɛlv/
+        example: There are twelve months in a year.
+        difficulty: 2
+      - word: however
+        ipa: /haʊˈɛvər/
+        example: However, I disagree with that.
+        difficulty: 2
+      - word: everywhere
+        ipa: /ˈɛvriˌwɛr/
+        example: Snow was falling everywhere.
         difficulty: 2
 
   s_z:
@@ -416,6 +572,26 @@ phonemes:
         ipa: /ˈɛksərˌsaɪz/
         example: Daily exercise keeps you healthy.
         difficulty: 2
+      - word: peace
+        ipa: /piːs/
+        example: We all want world peace.
+        difficulty: 1
+      - word: peas
+        ipa: /piːz/
+        example: Pass the peas please.
+        difficulty: 1
+      - word: advice
+        ipa: /ədˈvaɪs/
+        example: That was good advice.
+        difficulty: 2
+      - word: advise
+        ipa: /ədˈvaɪz/
+        example: I would advise caution.
+        difficulty: 2
+      - word: phase
+        ipa: /feɪz/
+        example: It is just a phase.
+        difficulty: 2
 
   diphthongs:
     name: diphthongs (aɪ, aʊ, eɪ, oʊ, ɔɪ)
@@ -462,6 +638,26 @@ phonemes:
         ipa: /ɪmˈplɔɪmənt/
         example: She found employment quickly.
         difficulty: 3
+      - word: noise
+        ipa: /nɔɪz/
+        example: What is that noise?
+        difficulty: 1
+      - word: town
+        ipa: /taʊn/
+        example: We drove through a small town.
+        difficulty: 1
+      - word: play
+        ipa: /pleɪ/
+        example: The children went out to play.
+        difficulty: 1
+      - word: height
+        ipa: /haɪt/
+        example: What is your height?
+        difficulty: 2
+      - word: choice
+        ipa: /tʃɔɪs/
+        example: You have a choice to make.
+        difficulty: 1
 
   consonant_clusters:
     name: consonant clusters
@@ -520,6 +716,22 @@ phonemes:
         ipa: /ɡræs/
         example: The grass is green after the rain.
         difficulty: 1
+      - word: scream
+        ipa: /skriːm/
+        example: I heard a loud scream.
+        difficulty: 2
+      - word: shrimp
+        ipa: /ʃrɪmp/
+        example: We ordered grilled shrimp.
+        difficulty: 2
+      - word: squid
+        ipa: /skwɪd/
+        example: The squid swam away quickly.
+        difficulty: 2
+      - word: straight
+        ipa: /streɪt/
+        example: Go straight ahead.
+        difficulty: 2
 
   ed_endings:
     name: -ed endings (t/d/ɪd)
@@ -566,6 +778,26 @@ phonemes:
         ipa: /kəˈlæpst/
         example: The building collapsed suddenly.
         difficulty: 3
+      - word: watched
+        ipa: /wɑːtʃt/
+        example: We watched the sunset.
+        difficulty: 1
+      - word: opened
+        ipa: /ˈoʊpənd/
+        example: She opened the window.
+        difficulty: 1
+      - word: painted
+        ipa: /ˈpeɪntɪd/
+        example: They painted the fence white.
+        difficulty: 2
+      - word: breathed
+        ipa: /briːðd/
+        example: He breathed a sigh of relief.
+        difficulty: 2
+      - word: wished
+        ipa: /wɪʃt/
+        example: She wished for a sunny day.
+        difficulty: 1
 
   schwa:
     name: 'schwa (ə)'
@@ -611,6 +843,26 @@ phonemes:
       - word: comfortable
         ipa: /ˈkʌmftərbəl/
         example: Make yourself comfortable.
+        difficulty: 2
+      - word: suppose
+        ipa: /səˈpoʊz/
+        example: I suppose you are right.
+        difficulty: 2
+      - word: available
+        ipa: /əˈveɪləbəl/
+        example: Is this seat available?
+        difficulty: 2
+      - word: familiar
+        ipa: /fəˈmɪljər/
+        example: That name sounds familiar.
+        difficulty: 2
+      - word: original
+        ipa: /əˈrɪdʒɪnəl/
+        example: Keep the original document.
+        difficulty: 3
+      - word: opinion
+        ipa: /əˈpɪnjən/
+        example: What is your opinion on this?
         difficulty: 2
 
   ng_sound:
@@ -658,6 +910,26 @@ phonemes:
         ipa: /dɪˈstɪŋɡwɪʃ/
         example: It is hard to distinguish the two.
         difficulty: 3
+      - word: tongue
+        ipa: /tʌŋ/
+        example: Bite your tongue.
+        difficulty: 1
+      - word: younger
+        ipa: /ˈjʌŋɡər/
+        example: She is two years younger.
+        difficulty: 2
+      - word: among
+        ipa: /əˈmʌŋ/
+        example: He sat among the crowd.
+        difficulty: 2
+      - word: belonging
+        ipa: /bɪˈlɔːŋɪŋ/
+        example: A sense of belonging is important.
+        difficulty: 2
+      - word: nothing
+        ipa: /ˈnʌθɪŋ/
+        example: There is nothing to worry about.
+        difficulty: 2
 
   j_dj:
     name: 'j (dʒ) and y (j)'
@@ -703,6 +975,26 @@ phonemes:
       - word: beyond
         ipa: /bɪˈjɑːnd/
         example: The view beyond is stunning.
+        difficulty: 2
+      - word: judge
+        ipa: /dʒʌdʒ/
+        example: The judge made a fair ruling.
+        difficulty: 1
+      - word: gentle
+        ipa: /ˈdʒɛntəl/
+        example: He has a gentle nature.
+        difficulty: 2
+      - word: yesterday
+        ipa: /ˈjɛstərdeɪ/
+        example: I saw her yesterday.
+        difficulty: 1
+      - word: year
+        ipa: /jɪr/
+        example: This year went by fast.
+        difficulty: 1
+      - word: budget
+        ipa: /ˈbʌdʒɪt/
+        example: We need to cut the budget.
         difficulty: 2
 
   ei_ai:
@@ -750,6 +1042,26 @@ phonemes:
         ipa: /rɪˈmaɪndər/
         example: Set a reminder for tomorrow.
         difficulty: 2
+      - word: weight
+        ipa: /weɪt/
+        example: Check the weight of the bag.
+        difficulty: 2
+      - word: brain
+        ipa: /breɪn/
+        example: Use your brain to solve this.
+        difficulty: 1
+      - word: design
+        ipa: /dɪˈzaɪn/
+        example: The design looks modern.
+        difficulty: 2
+      - word: flight
+        ipa: /flaɪt/
+        example: The flight was delayed.
+        difficulty: 1
+      - word: mistake
+        ipa: /mɪˈsteɪk/
+        example: Everyone makes a mistake sometimes.
+        difficulty: 2
 
   ough_spellings:
     name: ough variations
@@ -796,6 +1108,26 @@ phonemes:
         ipa: /θruːˈaʊt/
         example: It rained throughout the day.
         difficulty: 3
+      - word: rough
+        ipa: /rʌf/
+        example: The road was rough and bumpy.
+        difficulty: 2
+      - word: bought
+        ipa: /bɔːt/
+        example: I bought a new phone.
+        difficulty: 1
+      - word: drought
+        ipa: /draʊt/
+        example: The drought lasted all summer.
+        difficulty: 2
+      - word: ought
+        ipa: /ɔːt/
+        example: You ought to be careful.
+        difficulty: 2
+      - word: plough
+        ipa: /plaʊ/
+        example: The farmer used a plough.
+        difficulty: 2
 
   r_vowels:
     name: vowel + r (ɜːr, ɑːr, ɔːr, ɪr, ɛr)
@@ -842,6 +1174,26 @@ phonemes:
         ipa: /pərˈtɪkjələr/
         example: Any particular reason?
         difficulty: 3
+      - word: learn
+        ipa: /lɜːrn/
+        example: You can learn a lot from books.
+        difficulty: 1
+      - word: garden
+        ipa: /ˈɡɑːrdən/
+        example: The garden is full of flowers.
+        difficulty: 1
+      - word: board
+        ipa: /bɔːrd/
+        example: Write it on the board.
+        difficulty: 1
+      - word: near
+        ipa: /nɪr/
+        example: The store is near my house.
+        difficulty: 1
+      - word: square
+        ipa: /skwɛr/
+        example: Meet me at the town square.
+        difficulty: 2
 
   zh_sound:
     name: 'zh sound (ʒ)'
@@ -887,6 +1239,26 @@ phonemes:
       - word: explosion
         ipa: /ɪkˈsploʊʒən/
         example: We heard a loud explosion.
+        difficulty: 3
+      - word: occasion
+        ipa: /əˈkeɪʒən/
+        example: It was a special occasion.
+        difficulty: 2
+      - word: casual
+        ipa: /ˈkæʒuəl/
+        example: The dress code is casual.
+        difficulty: 2
+      - word: beige
+        ipa: /beɪʒ/
+        example: The walls are painted beige.
+        difficulty: 2
+      - word: closure
+        ipa: /ˈkloʊʒər/
+        example: The road closure caused delays.
+        difficulty: 2
+      - word: seizure
+        ipa: /ˈsiːʒər/
+        example: The seizure of goods was sudden.
         difficulty: 3
 
   h_sound:
@@ -934,6 +1306,26 @@ phonemes:
         ipa: /pərˈhæps/
         example: Perhaps we should wait.
         difficulty: 2
+      - word: huge
+        ipa: /hjuːdʒ/
+        example: That is a huge building.
+        difficulty: 2
+      - word: humor
+        ipa: /ˈhjuːmər/
+        example: He has a good sense of humor.
+        difficulty: 2
+      - word: herb
+        ipa: /ɜːrb/
+        example: Add a fresh herb to the dish.
+        difficulty: 2
+      - word: honor
+        ipa: /ˈɑːnər/
+        example: It is an honor to be here.
+        difficulty: 2
+      - word: horizon
+        ipa: /həˈraɪzən/
+        example: The sun set beyond the horizon.
+        difficulty: 2
 
   tion_sion:
     name: -tion and -sion endings
@@ -980,6 +1372,26 @@ phonemes:
         ipa: /ˌkɑːmprɪˈhɛnʃən/
         example: Reading comprehension is key.
         difficulty: 3
+      - word: operation
+        ipa: /ˌɑːpəˈreɪʃən/
+        example: The operation was a success.
+        difficulty: 2
+      - word: conversation
+        ipa: /ˌkɑːnvərˈseɪʃən/
+        example: We had a long conversation.
+        difficulty: 2
+      - word: conclusion
+        ipa: /kənˈkluːʒən/
+        example: What is your conclusion?
+        difficulty: 2
+      - word: description
+        ipa: /dɪˈskrɪpʃən/
+        example: Write a brief description.
+        difficulty: 2
+      - word: imagination
+        ipa: /ɪˌmædʒɪˈneɪʃən/
+        example: Use your imagination.
+        difficulty: 3
 
   f_v:
     name: f and v contrast
@@ -1025,6 +1437,26 @@ phonemes:
       - word: believe
         ipa: /bɪˈliːv/
         example: I believe in you.
+        difficulty: 2
+      - word: proof
+        ipa: /pruːf/
+        example: We need proof of purchase.
+        difficulty: 1
+      - word: prove
+        ipa: /pruːv/
+        example: Can you prove your claim?
+        difficulty: 1
+      - word: life
+        ipa: /laɪf/
+        example: Life is full of surprises.
+        difficulty: 1
+      - word: live
+        ipa: /lɪv/
+        example: Where do you live?
+        difficulty: 1
+      - word: relief
+        ipa: /rɪˈliːf/
+        example: It was such a relief.
         difficulty: 2
 
 pangrams:
@@ -1183,3 +1615,9 @@ stt_equiv:
   - [hour, our]
   - [borough, burrow]
   - [colonel, kernel]
+  - [peace, piece]
+  - [weight, wait]
+  - [board, bored]
+  - [muscle, mussel]
+  - [plough, plow]
+  - [straight, strait]
