@@ -64,6 +64,11 @@ def save_cfg():
         yaml.dump(cfg.to_dict(), f)
 
 
+def _parse_word(s):
+    i = s.index(' /')
+    return Box(word=s[:i], ipa=s[i + 1:])
+
+
 def load_data():
     with open(DATA) as f:
         raw = yaml.safe_load(f)
@@ -71,10 +76,13 @@ def load_data():
     data = Box(raw)
     data.prompts.sysprompt = data.prompts.sysprompt.format(no_ipa=_no_ipa())
     data.stt_equiv = [set(g) for g in data.stt_equiv or []]
+    for g in data.phonemes.values():
+        g.words = [_parse_word(w) for w in g.words.strip().split('\n')]
     data.twisters = []
     for gid, g in data.phonemes.items():
-        for t in g.get("twisters", []):
-            data.twisters.append({"text": t, "group": gid})
+        for t in (g.twisters or "").strip().split('\n'):
+            if t:
+                data.twisters.append({"text": t, "group": gid})
 
 
 def load_history():
@@ -1128,7 +1136,7 @@ def main():
                 if wd.word.lower() == a.text.lower():
                     ipa = wd.ipa
                     break
-        w = Box({"word": a.text, "ipa": ipa})
+        w = Box(word=a.text, ipa=ipa)
         rec = sr.Recognizer()
         practice_word(w, rec, debug=a.debug)
         return

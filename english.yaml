@@ -3,906 +3,538 @@ phonemes:
     name: 'th voiced (ð)'
     key: t
     description: 'as in "this", "that" - tongue between teeth, vibrate'
-    words:
-      - word: this
-        ipa: /ðɪs/
-      - word: that
-        ipa: /ðæt/
-      - word: the
-        ipa: /ðə/
-      - word: there
-        ipa: /ðɛr/
-      - word: they
-        ipa: /ðeɪ/
-      - word: these
-        ipa: /ðiːz/
-      - word: those
-        ipa: /ðoʊz/
-      - word: weather
-        ipa: /ˈwɛðər/
-      - word: together
-        ipa: /təˈɡɛðər/
-      - word: breathe
-        ipa: /briːð/
-      - word: mother
-        ipa: /ˈmʌðər/
-      - word: father
-        ipa: /ˈfɑːðər/
-      - word: other
-        ipa: /ˈʌðər/
-      - word: smooth
-        ipa: /smuːð/
-      - word: rather
-        ipa: /ˈræðər/
-      - word: whether
-        ipa: /ˈwɛðər/
-    twisters:
-      - >-
-        Whether the weather is warm, whether the weather is hot, we
-        have to put up with the weather, whether we like it or not.
+    words: |
+      this /ðɪs/
+      that /ðæt/
+      the /ðə/
+      there /ðɛr/
+      they /ðeɪ/
+      these /ðiːz/
+      those /ðoʊz/
+      weather /ˈwɛðər/
+      together /təˈɡɛðər/
+      breathe /briːð/
+      mother /ˈmʌðər/
+      father /ˈfɑːðər/
+      other /ˈʌðər/
+      smooth /smuːð/
+      rather /ˈræðər/
+      whether /ˈwɛðər/
+    twisters: |
+      Whether the weather is warm, whether the weather is hot, we have to put up with the weather, whether we like it or not.
 
   th_voiceless:
     name: 'th voiceless (θ)'
     key: t
     description: 'as in "think", "bath" - tongue between teeth, no vibration'
-    words:
-      - word: think
-        ipa: /θɪŋk/
-      - word: thing
-        ipa: /θɪŋ/
-      - word: three
-        ipa: /θriː/
-      - word: thank
-        ipa: /θæŋk/
-      - word: thought
-        ipa: /θɔːt/
-      - word: through
-        ipa: /θruː/
-      - word: Thursday
-        ipa: /ˈθɜːrzdeɪ/
-      - word: beneath
-        ipa: /bɪˈniːθ/
-      - word: growth
-        ipa: /ɡroʊθ/
-      - word: mathematics
-        ipa: /ˌmæθəˈmætɪks/
-      - word: tooth
-        ipa: /tuːθ/
-      - word: mouth
-        ipa: /maʊθ/
-      - word: health
-        ipa: /hɛlθ/
-      - word: birthday
-        ipa: /ˈbɜːrθdeɪ/
-      - word: both
-        ipa: /boʊθ/
-      - word: thirty
-        ipa: /ˈθɜːrti/
-      - word: thieves
-        ipa: /θiːvz/
-    twisters:
-      - >-
-        The thirty-three thieves thought that they thrilled the
-        throne throughout Thursday.
+    words: |
+      think /θɪŋk/
+      thing /θɪŋ/
+      three /θriː/
+      thank /θæŋk/
+      thought /θɔːt/
+      through /θruː/
+      Thursday /ˈθɜːrzdeɪ/
+      beneath /bɪˈniːθ/
+      growth /ɡroʊθ/
+      mathematics /ˌmæθəˈmætɪks/
+      tooth /tuːθ/
+      mouth /maʊθ/
+      health /hɛlθ/
+      birthday /ˈbɜːrθdeɪ/
+      both /boʊθ/
+      thirty /ˈθɜːrti/
+      thieves /θiːvz/
+    twisters: |
+      The thirty-three thieves thought that they thrilled the throne throughout Thursday.
 
   sh_ch:
     name: sh (ʃ) and ch (tʃ)
     key: s
     description: sh - lips rounded, air through wide tongue; ch - starts with t then sh
-    words:
-      - word: ship
-        ipa: /ʃɪp/
-      - word: shop
-        ipa: /ʃɑːp/
-      - word: she
-        ipa: /ʃiː/
-      - word: wish
-        ipa: /wɪʃ/
-      - word: chip
-        ipa: /tʃɪp/
-      - word: church
-        ipa: /tʃɜːrtʃ/
-      - word: catch
-        ipa: /kætʃ/
-      - word: watch
-        ipa: /wɑːtʃ/
-      - word: machine
-        ipa: /məˈʃiːn/
-      - word: championship
-        ipa: /ˈtʃæmpiənʃɪp/
-      - word: share
-        ipa: /ʃɛr/
-      - word: cheap
-        ipa: /tʃiːp/
-      - word: crash
-        ipa: /kræʃ/
-      - word: charge
-        ipa: /tʃɑːrdʒ/
-      - word: cushion
-        ipa: /ˈkʊʃən/
-      - word: seashells
-        ipa: /ˈsiːˌʃɛlz/
-      - word: seashore
-        ipa: /ˈsiːˌʃɔːr/
-    twisters:
-      - She sells seashells by the seashore.
-      - The sixth sick sheik's sixth sheep's sick.
+    words: |
+      ship /ʃɪp/
+      shop /ʃɑːp/
+      she /ʃiː/
+      wish /wɪʃ/
+      chip /tʃɪp/
+      church /tʃɜːrtʃ/
+      catch /kætʃ/
+      watch /wɑːtʃ/
+      machine /məˈʃiːn/
+      championship /ˈtʃæmpiənʃɪp/
+      share /ʃɛr/
+      cheap /tʃiːp/
+      crash /kræʃ/
+      charge /tʃɑːrdʒ/
+      cushion /ˈkʊʃən/
+      seashells /ˈsiːˌʃɛlz/
+      seashore /ˈsiːˌʃɔːr/
+    twisters: |
+      She sells seashells by the seashore.
+      The sixth sick sheik's sixth sheep's sick.
 
   r_l:
     name: r and l contrast
     key: r
     description: r - tongue curled back, no contact; l - tongue touches ridge behind teeth
-    words:
-      - word: right
-        ipa: /raɪt/
-      - word: light
-        ipa: /laɪt/
-      - word: red
-        ipa: /rɛd/
-      - word: led
-        ipa: /lɛd/
-      - word: road
-        ipa: /roʊd/
-      - word: load
-        ipa: /loʊd/
-      - word: really
-        ipa: /ˈriːəli/
-      - word: rarely
-        ipa: /ˈrɛrli/
-      - word: parallel
-        ipa: /ˈpærəˌlɛl/
-      - word: literally
-        ipa: /ˈlɪtərəli/
-      - word: rice
-        ipa: /raɪs/
-      - word: lice
-        ipa: /laɪs/
-      - word: arrive
-        ipa: /əˈraɪv/
-      - word: alive
-        ipa: /əˈlaɪv/
-      - word: coral
-        ipa: /ˈkɔːrəl/
-      - word: lorry
-        ipa: /ˈlɔːri/
-    twisters:
-      - Red lorry, yellow lorry, red lorry, yellow lorry.
+    words: |
+      right /raɪt/
+      light /laɪt/
+      red /rɛd/
+      led /lɛd/
+      road /roʊd/
+      load /loʊd/
+      really /ˈriːəli/
+      rarely /ˈrɛrli/
+      parallel /ˈpærəˌlɛl/
+      literally /ˈlɪtərəli/
+      rice /raɪs/
+      lice /laɪs/
+      arrive /əˈraɪv/
+      alive /əˈlaɪv/
+      coral /ˈkɔːrəl/
+      lorry /ˈlɔːri/
+    twisters: |
+      Red lorry, yellow lorry, red lorry, yellow lorry.
 
   vowel_pairs:
     name: vowel pairs (æ/ɛ, iː/ɪ, uː/ʊ)
     key: v
     description: distinguish short vs long and similar vowels
-    words:
-      - word: bat
-        ipa: /bæt/
-      - word: bet
-        ipa: /bɛt/
-      - word: seat
-        ipa: /siːt/
-      - word: sit
-        ipa: /sɪt/
-      - word: pool
-        ipa: /puːl/
-      - word: pull
-        ipa: /pʊl/
-      - word: man
-        ipa: /mæn/
-      - word: men
-        ipa: /mɛn/
-      - word: food
-        ipa: /fuːd/
-      - word: foot
-        ipa: /fʊt/
-      - word: pan
-        ipa: /pæn/
-      - word: pen
-        ipa: /pɛn/
-      - word: sheep
-        ipa: /ʃiːp/
-      - word: fool
-        ipa: /fuːl/
-      - word: full
-        ipa: /fʊl/
-      - word: unique
-        ipa: /juːˈniːk/
-    twisters:
-      - Unique New York, you know you need unique New York.
+    words: |
+      bat /bæt/
+      bet /bɛt/
+      seat /siːt/
+      sit /sɪt/
+      pool /puːl/
+      pull /pʊl/
+      man /mæn/
+      men /mɛn/
+      food /fuːd/
+      foot /fʊt/
+      pan /pæn/
+      pen /pɛn/
+      sheep /ʃiːp/
+      fool /fuːl/
+      full /fʊl/
+      unique /juːˈniːk/
+    twisters: |
+      Unique New York, you know you need unique New York.
 
   silent_letters:
     name: silent letters
     key: i
     description: letters written but not pronounced
-    words:
-      - word: knife
-        ipa: /naɪf/
-      - word: know
-        ipa: /noʊ/
-      - word: write
-        ipa: /raɪt/
-      - word: wrong
-        ipa: /rɔːŋ/
-      - word: comb
-        ipa: /koʊm/
-      - word: doubt
-        ipa: /daʊt/
-      - word: island
-        ipa: /ˈaɪlənd/
-      - word: castle
-        ipa: /ˈkæsəl/
-      - word: Wednesday
-        ipa: /ˈwɛnzdeɪ/
-      - word: kernel
-        ipa: /ˈkɜːrnəl/
-      - word: climb
-        ipa: /klaɪm/
-      - word: psalm
-        ipa: /sɑːm/
-      - word: receipt
-        ipa: /rɪˈsiːt/
-      - word: subtle
-        ipa: /ˈsʌtəl/
-      - word: muscle
-        ipa: /ˈmʌsəl/
-      - word: knight
-        ipa: /naɪt/
-      - word: knee
-        ipa: /niː/
-    twisters:
-      - A knapsack strap snapped and slapped the knight's knee.
+    words: |
+      knife /naɪf/
+      know /noʊ/
+      write /raɪt/
+      wrong /rɔːŋ/
+      comb /koʊm/
+      doubt /daʊt/
+      island /ˈaɪlənd/
+      castle /ˈkæsəl/
+      Wednesday /ˈwɛnzdeɪ/
+      kernel /ˈkɜːrnəl/
+      climb /klaɪm/
+      psalm /sɑːm/
+      receipt /rɪˈsiːt/
+      subtle /ˈsʌtəl/
+      muscle /ˈmʌsəl/
+      knight /naɪt/
+      knee /niː/
+    twisters: |
+      A knapsack strap snapped and slapped the knight's knee.
 
   word_stress:
     name: word stress patterns
     key: w
     description: correct syllable emphasis changes meaning and clarity
-    words:
-      - word: present
-        ipa: /ˈprɛzənt/ (noun) /prɪˈzɛnt/ (verb)
-      - word: record
-        ipa: /ˈrɛkərd/ (noun) /rɪˈkɔːrd/ (verb)
-      - word: desert
-        ipa: /ˈdɛzərt/ (noun) /dɪˈzɜːrt/ (verb)
-      - word: photograph
-        ipa: /ˈfoʊtəˌɡræf/
-      - word: photography
-        ipa: /fəˈtɑːɡrəfi/
-      - word: photographic
-        ipa: /ˌfoʊtəˈɡræfɪk/
-      - word: economy
-        ipa: /ɪˈkɑːnəmi/
-      - word: economic
-        ipa: /ˌiːkəˈnɑːmɪk/
-      - word: comfortable
-        ipa: /ˈkʌmftərbəl/
-      - word: vegetable
-        ipa: /ˈvɛdʒtəbəl/
-      - word: accidentally
-        ipa: /ˌæksɪˈdɛntəli/
-      - word: address
-        ipa: /ˈædrɛs/ (noun) /əˈdrɛs/ (verb)
-      - word: permit
-        ipa: /ˈpɜːrmɪt/ (noun) /pərˈmɪt/ (verb)
-      - word: content
-        ipa: /ˈkɑːntɛnt/ (noun) /kənˈtɛnt/ (adjective)
-      - word: development
-        ipa: /dɪˈvɛləpmənt/
-      - word: photographer
-        ipa: /fəˈtɑːɡrəfər/
-    twisters:
-      - Photograph the photographer photographing the photographs.
+    words: |
+      present /ˈprɛzənt/ (noun) /prɪˈzɛnt/ (verb)
+      record /ˈrɛkərd/ (noun) /rɪˈkɔːrd/ (verb)
+      desert /ˈdɛzərt/ (noun) /dɪˈzɜːrt/ (verb)
+      photograph /ˈfoʊtəˌɡræf/
+      photography /fəˈtɑːɡrəfi/
+      photographic /ˌfoʊtəˈɡræfɪk/
+      economy /ɪˈkɑːnəmi/
+      economic /ˌiːkəˈnɑːmɪk/
+      comfortable /ˈkʌmftərbəl/
+      vegetable /ˈvɛdʒtəbəl/
+      accidentally /ˌæksɪˈdɛntəli/
+      address /ˈædrɛs/ (noun) /əˈdrɛs/ (verb)
+      permit /ˈpɜːrmɪt/ (noun) /pərˈmɪt/ (verb)
+      content /ˈkɑːntɛnt/ (noun) /kənˈtɛnt/ (adjective)
+      development /dɪˈvɛləpmənt/
+      photographer /fəˈtɑːɡrəfər/
+    twisters: |
+      Photograph the photographer photographing the photographs.
 
   v_w:
     name: v and w contrast
     key: a
     description: v - upper teeth on lower lip, vibrate; w - lips rounded, no teeth
-    words:
-      - word: very
-        ipa: /ˈvɛri/
-      - word: west
-        ipa: /wɛst/
-      - word: vine
-        ipa: /vaɪn/
-      - word: wine
-        ipa: /waɪn/
-      - word: vet
-        ipa: /vɛt/
-      - word: wet
-        ipa: /wɛt/
-      - word: vowel
-        ipa: /ˈvaʊəl/
-      - word: wave
-        ipa: /weɪv/
-      - word: revolution
-        ipa: /ˌrɛvəˈluːʃən/
-      - word: viewpoint
-        ipa: /ˈvjuːˌpɔɪnt/
-      - word: voice
-        ipa: /vɔɪs/
-      - word: winter
-        ipa: /ˈwɪntər/
-      - word: twelve
-        ipa: /twɛlv/
-      - word: however
-        ipa: /haʊˈɛvər/
-      - word: everywhere
-        ipa: /ˈɛvriˌwɛr/
-      - word: wood
-        ipa: /wʊd/
-    twisters:
-      - >-
-        How much wood would a woodchuck chuck if a woodchuck could
-        chuck wood?
+    words: |
+      very /ˈvɛri/
+      west /wɛst/
+      vine /vaɪn/
+      wine /waɪn/
+      vet /vɛt/
+      wet /wɛt/
+      vowel /ˈvaʊəl/
+      wave /weɪv/
+      revolution /ˌrɛvəˈluːʃən/
+      viewpoint /ˈvjuːˌpɔɪnt/
+      voice /vɔɪs/
+      winter /ˈwɪntər/
+      twelve /twɛlv/
+      however /haʊˈɛvər/
+      everywhere /ˈɛvriˌwɛr/
+      wood /wʊd/
+    twisters: |
+      How much wood would a woodchuck chuck if a woodchuck could chuck wood?
 
   s_z:
     name: s and z contrast
     key: z
     description: s - voiceless hiss; z - voiced buzz, same tongue position
-    words:
-      - word: sip
-        ipa: /sɪp/
-      - word: zip
-        ipa: /zɪp/
-      - word: bus
-        ipa: /bʌs/
-      - word: buzz
-        ipa: /bʌz/
-      - word: price
-        ipa: /praɪs/
-      - word: prize
-        ipa: /praɪz/
-      - word: loose
-        ipa: /luːs/
-      - word: lose
-        ipa: /luːz/
-      - word: excuse
-        ipa: /ɪkˈskjuːs/ (noun) /ɪkˈskjuːz/ (verb)
-      - word: exercise
-        ipa: /ˈɛksərˌsaɪz/
-      - word: peace
-        ipa: /piːs/
-      - word: peas
-        ipa: /piːz/
-      - word: advice
-        ipa: /ədˈvaɪs/
-      - word: advise
-        ipa: /ədˈvaɪz/
-      - word: phase
-        ipa: /feɪz/
-      - word: fuzzy
-        ipa: /ˈfʌzi/
-      - word: six
-        ipa: /sɪks/
-    twisters:
-      - >-
-        Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair, Fuzzy Wuzzy
-        wasn't fuzzy, was he?
-      - Six slippery snails slid slowly seaward.
+    words: |
+      sip /sɪp/
+      zip /zɪp/
+      bus /bʌs/
+      buzz /bʌz/
+      price /praɪs/
+      prize /praɪz/
+      loose /luːs/
+      lose /luːz/
+      excuse /ɪkˈskjuːs/ (noun) /ɪkˈskjuːz/ (verb)
+      exercise /ˈɛksərˌsaɪz/
+      peace /piːs/
+      peas /piːz/
+      advice /ədˈvaɪs/
+      advise /ədˈvaɪz/
+      phase /feɪz/
+      fuzzy /ˈfʌzi/
+      six /sɪks/
+    twisters: |
+      Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair, Fuzzy Wuzzy wasn't fuzzy, was he?
+      Six slippery snails slid slowly seaward.
 
   diphthongs:
     name: diphthongs (aɪ, aʊ, eɪ, oʊ, ɔɪ)
     key: d
     description: two vowel sounds gliding together in one syllable
-    words:
-      - word: time
-        ipa: /taɪm/
-      - word: house
-        ipa: /haʊs/
-      - word: day
-        ipa: /deɪ/
-      - word: go
-        ipa: /ɡoʊ/
-      - word: boy
-        ipa: /bɔɪ/
-      - word: around
-        ipa: /əˈraʊnd/
-      - word: enjoying
-        ipa: /ɪnˈdʒɔɪɪŋ/
-      - word: idea
-        ipa: /aɪˈdɪə/
-      - word: radio
-        ipa: /ˈreɪdiˌoʊ/
-      - word: employment
-        ipa: /ɪmˈplɔɪmənt/
-      - word: noise
-        ipa: /nɔɪz/
-      - word: town
-        ipa: /taʊn/
-      - word: play
-        ipa: /pleɪ/
-      - word: height
-        ipa: /haɪt/
-      - word: choice
-        ipa: /tʃɔɪs/
-      - word: boat
-        ipa: /boʊt/
-    twisters:
-      - Toy boat, toy boat, toy boat.
+    words: |
+      time /taɪm/
+      house /haʊs/
+      day /deɪ/
+      go /ɡoʊ/
+      boy /bɔɪ/
+      around /əˈraʊnd/
+      enjoying /ɪnˈdʒɔɪɪŋ/
+      idea /aɪˈdɪə/
+      radio /ˈreɪdiˌoʊ/
+      employment /ɪmˈplɔɪmənt/
+      noise /nɔɪz/
+      town /taʊn/
+      play /pleɪ/
+      height /haɪt/
+      choice /tʃɔɪs/
+      boat /boʊt/
+    twisters: |
+      Toy boat, toy boat, toy boat.
 
   consonant_clusters:
     name: consonant clusters
     key: c
     description: multiple consonants together, don't add extra vowels
-    words:
-      - word: street
-        ipa: /striːt/
-      - word: strong
-        ipa: /strɔːŋ/
-      - word: splash
-        ipa: /splæʃ/
-      - word: spring
-        ipa: /sprɪŋ/
-      - word: world
-        ipa: /wɜːrld/
-      - word: strength
-        ipa: /strɛŋθ/
-      - word: twelfth
-        ipa: /twɛlfθ/
-      - word: texts
-        ipa: /tɛksts/
-      - word: asked
-        ipa: /æskt/
-      - word: glimpse
-        ipa: /ɡlɪmps/
-      - word: glass
-        ipa: /ɡlæs/
-      - word: class
-        ipa: /klæs/
-      - word: grass
-        ipa: /ɡræs/
-      - word: scream
-        ipa: /skriːm/
-      - word: shrimp
-        ipa: /ʃrɪmp/
-      - word: squid
-        ipa: /skwɪd/
-      - word: straight
-        ipa: /streɪt/
-    twisters:
-      - Peter Piper picked a peck of pickled peppers.
-      - A proper copper coffee pot.
+    words: |
+      street /striːt/
+      strong /strɔːŋ/
+      splash /splæʃ/
+      spring /sprɪŋ/
+      world /wɜːrld/
+      strength /strɛŋθ/
+      twelfth /twɛlfθ/
+      texts /tɛksts/
+      asked /æskt/
+      glimpse /ɡlɪmps/
+      glass /ɡlæs/
+      class /klæs/
+      grass /ɡræs/
+      scream /skriːm/
+      shrimp /ʃrɪmp/
+      squid /skwɪd/
+      straight /streɪt/
+    twisters: |
+      Peter Piper picked a peck of pickled peppers.
+      A proper copper coffee pot.
 
   ed_endings:
     name: -ed endings (t/d/ɪd)
     key: e
     description: 'after voiceless -> /t/, voiced -> /d/, t or d -> /ɪd/'
-    words:
-      - word: walked
-        ipa: /wɔːkt/
-      - word: played
-        ipa: /pleɪd/
-      - word: wanted
-        ipa: /ˈwɑːntɪd/
-      - word: stopped
-        ipa: /stɑːpt/
-      - word: called
-        ipa: /kɔːld/
-      - word: needed
-        ipa: /ˈniːdɪd/
-      - word: laughed
-        ipa: /læft/
-      - word: organized
-        ipa: /ˈɔːrɡənaɪzd/
-      - word: decided
-        ipa: /dɪˈsaɪdɪd/
-      - word: collapsed
-        ipa: /kəˈlæpst/
-      - word: watched
-        ipa: /wɑːtʃt/
-      - word: opened
-        ipa: /ˈoʊpənd/
-      - word: painted
-        ipa: /ˈpeɪntɪd/
-      - word: breathed
-        ipa: /briːðd/
-      - word: wished
-        ipa: /wɪʃt/
-    twisters:
-      - Fred fed Ted bread and Ted fed Fred bread.
+    words: |
+      walked /wɔːkt/
+      played /pleɪd/
+      wanted /ˈwɑːntɪd/
+      stopped /stɑːpt/
+      called /kɔːld/
+      needed /ˈniːdɪd/
+      laughed /læft/
+      organized /ˈɔːrɡənaɪzd/
+      decided /dɪˈsaɪdɪd/
+      collapsed /kəˈlæpst/
+      watched /wɑːtʃt/
+      opened /ˈoʊpənd/
+      painted /ˈpeɪntɪd/
+      breathed /briːðd/
+      wished /wɪʃt/
+    twisters: |
+      Fred fed Ted bread and Ted fed Fred bread.
 
   schwa:
     name: 'schwa (ə)'
     key: e
     description: 'most common English vowel - short, relaxed, unstressed'
-    words:
-      - word: about
-        ipa: /əˈbaʊt/
-      - word: banana
-        ipa: /bəˈnænə/
-      - word: problem
-        ipa: /ˈprɑːbləm/
-      - word: support
-        ipa: /səˈpɔːrt/
-      - word: common
-        ipa: /ˈkɑːmən/
-      - word: again
-        ipa: /əˈɡɛn/
-      - word: possible
-        ipa: /ˈpɑːsəbəl/
-      - word: general
-        ipa: /ˈdʒɛnərəl/
-      - word: particular
-        ipa: /pərˈtɪkjələr/
-      - word: comfortable
-        ipa: /ˈkʌmftərbəl/
-      - word: suppose
-        ipa: /səˈpoʊz/
-      - word: available
-        ipa: /əˈveɪləbəl/
-      - word: familiar
-        ipa: /fəˈmɪljər/
-      - word: original
-        ipa: /əˈrɪdʒɪnəl/
-      - word: opinion
-        ipa: /əˈpɪnjən/
-      - word: salon
-        ipa: /səˈlɑːn/
-    twisters:
-      - She should shun the sunny salon.
+    words: |
+      about /əˈbaʊt/
+      banana /bəˈnænə/
+      problem /ˈprɑːbləm/
+      support /səˈpɔːrt/
+      common /ˈkɑːmən/
+      again /əˈɡɛn/
+      possible /ˈpɑːsəbəl/
+      general /ˈdʒɛnərəl/
+      particular /pərˈtɪkjələr/
+      comfortable /ˈkʌmftərbəl/
+      suppose /səˈpoʊz/
+      available /əˈveɪləbəl/
+      familiar /fəˈmɪljər/
+      original /əˈrɪdʒɪnəl/
+      opinion /əˈpɪnjən/
+      salon /səˈlɑːn/
+    twisters: |
+      She should shun the sunny salon.
 
   ng_sound:
     name: 'ng sound (ŋ)'
     key: n
     description: 'back of tongue touches soft palate, air through nose'
-    words:
-      - word: sing
-        ipa: /sɪŋ/
-      - word: ring
-        ipa: /rɪŋ/
-      - word: long
-        ipa: /lɔːŋ/
-      - word: singing
-        ipa: /ˈsɪŋɪŋ/
-      - word: finger
-        ipa: /ˈfɪŋɡər/
-      - word: anger
-        ipa: /ˈæŋɡər/
-      - word: thinking
-        ipa: /ˈθɪŋkɪŋ/
-      - word: hanging
-        ipa: /ˈhæŋɪŋ/
-      - word: English
-        ipa: /ˈɪŋɡlɪʃ/
-      - word: distinguish
-        ipa: /dɪˈstɪŋɡwɪʃ/
-      - word: tongue
-        ipa: /tʌŋ/
-      - word: younger
-        ipa: /ˈjʌŋɡər/
-      - word: among
-        ipa: /əˈmʌŋ/
-      - word: belonging
-        ipa: /bɪˈlɔːŋɪŋ/
-      - word: nothing
-        ipa: /ˈnʌθɪŋ/
-      - word: sang
-        ipa: /sæŋ/
-      - word: sinking
-        ipa: /ˈsɪŋkɪŋ/
-    twisters:
-      - Singing Sammy sang songs on sinking sand.
+    words: |
+      sing /sɪŋ/
+      ring /rɪŋ/
+      long /lɔːŋ/
+      singing /ˈsɪŋɪŋ/
+      finger /ˈfɪŋɡər/
+      anger /ˈæŋɡər/
+      thinking /ˈθɪŋkɪŋ/
+      hanging /ˈhæŋɪŋ/
+      English /ˈɪŋɡlɪʃ/
+      distinguish /dɪˈstɪŋɡwɪʃ/
+      tongue /tʌŋ/
+      younger /ˈjʌŋɡər/
+      among /əˈmʌŋ/
+      belonging /bɪˈlɔːŋɪŋ/
+      nothing /ˈnʌθɪŋ/
+      sang /sæŋ/
+      sinking /ˈsɪŋkɪŋ/
+    twisters: |
+      Singing Sammy sang songs on sinking sand.
 
   j_dj:
     name: 'j (dʒ) and y (j)'
     key: j
     description: 'j/g - tongue touches roof then releases with buzz; y - tongue near palate, glide'
-    words:
-      - word: joke
-        ipa: /dʒoʊk/
-      - word: yoke
-        ipa: /joʊk/
-      - word: jet
-        ipa: /dʒɛt/
-      - word: yet
-        ipa: /jɛt/
-      - word: juice
-        ipa: /dʒuːs/
-      - word: use
-        ipa: /juːz/ (verb) /juːs/ (noun)
-      - word: major
-        ipa: /ˈmeɪdʒər/
-      - word: young
-        ipa: /jʌŋ/
-      - word: jealous
-        ipa: /ˈdʒɛləs/
-      - word: beyond
-        ipa: /bɪˈjɑːnd/
-      - word: judge
-        ipa: /dʒʌdʒ/
-      - word: gentle
-        ipa: /ˈdʒɛntəl/
-      - word: yesterday
-        ipa: /ˈjɛstərdeɪ/
-      - word: year
-        ipa: /jɪr/
-      - word: budget
-        ipa: /ˈbʌdʒɪt/
-      - word: imagine
-        ipa: /ɪˈmædʒɪn/
-      - word: manager
-        ipa: /ˈmænɪdʒər/
-    twisters:
-      - >-
-        Imagine an imaginary menagerie manager managing an imaginary
-        menagerie.
+    words: |
+      joke /dʒoʊk/
+      yoke /joʊk/
+      jet /dʒɛt/
+      yet /jɛt/
+      juice /dʒuːs/
+      use /juːz/ (verb) /juːs/ (noun)
+      major /ˈmeɪdʒər/
+      young /jʌŋ/
+      jealous /ˈdʒɛləs/
+      beyond /bɪˈjɑːnd/
+      judge /dʒʌdʒ/
+      gentle /ˈdʒɛntəl/
+      yesterday /ˈjɛstərdeɪ/
+      year /jɪr/
+      budget /ˈbʌdʒɪt/
+      imagine /ɪˈmædʒɪn/
+      manager /ˈmænɪdʒər/
+    twisters: |
+      Imagine an imaginary menagerie manager managing an imaginary menagerie.
 
   ei_ai:
     name: 'eɪ and aɪ diphthongs'
     key: y
     description: 'eɪ as in "day" - glide from eh to ee; aɪ as in "my" - glide from ah to ee'
-    words:
-      - word: main
-        ipa: /meɪn/
-      - word: mind
-        ipa: /maɪnd/
-      - word: rain
-        ipa: /reɪn/
-      - word: fine
-        ipa: /faɪn/
-      - word: train
-        ipa: /treɪn/
-      - word: kind
-        ipa: /kaɪnd/
-      - word: explain
-        ipa: /ɪkˈspleɪn/
-      - word: behind
-        ipa: /bɪˈhaɪnd/
-      - word: maintain
-        ipa: /meɪnˈteɪn/
-      - word: reminder
-        ipa: /rɪˈmaɪndər/
-      - word: weight
-        ipa: /weɪt/
-      - word: brain
-        ipa: /breɪn/
-      - word: design
-        ipa: /dɪˈzaɪn/
-      - word: flight
-        ipa: /flaɪt/
-      - word: mistake
-        ipa: /mɪˈsteɪk/
-      - word: plain
-        ipa: /pleɪn/
-    twisters:
-      - The rain in Spain stays mainly in the plain.
+    words: |
+      main /meɪn/
+      mind /maɪnd/
+      rain /reɪn/
+      fine /faɪn/
+      train /treɪn/
+      kind /kaɪnd/
+      explain /ɪkˈspleɪn/
+      behind /bɪˈhaɪnd/
+      maintain /meɪnˈteɪn/
+      reminder /rɪˈmaɪndər/
+      weight /weɪt/
+      brain /breɪn/
+      design /dɪˈzaɪn/
+      flight /flaɪt/
+      mistake /mɪˈsteɪk/
+      plain /pleɪn/
+    twisters: |
+      The rain in Spain stays mainly in the plain.
 
   ough_spellings:
     name: ough variations
     key: o
     description: same spelling, different sounds - must memorize each
-    words:
-      - word: though
-        ipa: /ðoʊ/
-      - word: through
-        ipa: /θruː/
-      - word: tough
-        ipa: /tʌf/
-      - word: cough
-        ipa: /kɔːf/
-      - word: thought
-        ipa: /θɔːt/
-      - word: enough
-        ipa: /ɪˈnʌf/
-      - word: dough
-        ipa: /doʊ/
-      - word: thorough
-        ipa: /ˈθɜːroʊ/
-      - word: borough
-        ipa: /ˈbɜːroʊ/
-      - word: throughout
-        ipa: /θruːˈaʊt/
-      - word: rough
-        ipa: /rʌf/
-      - word: bought
-        ipa: /bɔːt/
-      - word: drought
-        ipa: /draʊt/
-      - word: ought
-        ipa: /ɔːt/
-      - word: plough
-        ipa: /plaʊ/
-    twisters:
-      - I thought I thought of thinking of thanking you.
+    words: |
+      though /ðoʊ/
+      through /θruː/
+      tough /tʌf/
+      cough /kɔːf/
+      thought /θɔːt/
+      enough /ɪˈnʌf/
+      dough /doʊ/
+      thorough /ˈθɜːroʊ/
+      borough /ˈbɜːroʊ/
+      throughout /θruːˈaʊt/
+      rough /rʌf/
+      bought /bɔːt/
+      drought /draʊt/
+      ought /ɔːt/
+      plough /plaʊ/
+    twisters: |
+      I thought I thought of thinking of thanking you.
 
   r_vowels:
     name: vowel + r (ɜːr, ɑːr, ɔːr, ɪr, ɛr)
     key: l
     description: r colors the vowel before it, each combination sounds different
-    words:
-      - word: bird
-        ipa: /bɜːrd/
-      - word: work
-        ipa: /wɜːrk/
-      - word: car
-        ipa: /kɑːr/
-      - word: door
-        ipa: /dɔːr/
-      - word: here
-        ipa: /hɪr/
-      - word: care
-        ipa: /kɛr/
-      - word: nurse
-        ipa: /nɜːrs/
-      - word: heart
-        ipa: /hɑːrt/
-      - word: earth
-        ipa: /ɜːrθ/
-      - word: particular
-        ipa: /pərˈtɪkjələr/
-      - word: learn
-        ipa: /lɜːrn/
-      - word: garden
-        ipa: /ˈɡɑːrdən/
-      - word: board
-        ipa: /bɔːrd/
-      - word: near
-        ipa: /nɪr/
-      - word: square
-        ipa: /skwɛr/
-    twisters:
-      - Around the rugged rocks the ragged rascal ran.
+    words: |
+      bird /bɜːrd/
+      work /wɜːrk/
+      car /kɑːr/
+      door /dɔːr/
+      here /hɪr/
+      care /kɛr/
+      nurse /nɜːrs/
+      heart /hɑːrt/
+      earth /ɜːrθ/
+      particular /pərˈtɪkjələr/
+      learn /lɜːrn/
+      garden /ˈɡɑːrdən/
+      board /bɔːrd/
+      near /nɪr/
+      square /skwɛr/
+    twisters: |
+      Around the rugged rocks the ragged rascal ran.
 
   zh_sound:
     name: 'zh sound (ʒ)'
     key: k
     description: 'like sh but voiced - tongue same as sh, add vibration'
-    words:
-      - word: vision
-        ipa: /ˈvɪʒən/
-      - word: measure
-        ipa: /ˈmɛʒər/
-      - word: pleasure
-        ipa: /ˈplɛʒər/
-      - word: usual
-        ipa: /ˈjuːʒuəl/
-      - word: decision
-        ipa: /dɪˈsɪʒən/
-      - word: television
-        ipa: /ˈtɛləˌvɪʒən/
-      - word: garage
-        ipa: /ɡəˈrɑːʒ/
-      - word: massage
-        ipa: /məˈsɑːʒ/
-      - word: treasure
-        ipa: /ˈtrɛʒər/
-      - word: explosion
-        ipa: /ɪkˈsploʊʒən/
-      - word: occasion
-        ipa: /əˈkeɪʒən/
-      - word: casual
-        ipa: /ˈkæʒuəl/
-      - word: beige
-        ipa: /beɪʒ/
-      - word: closure
-        ipa: /ˈkloʊʒər/
-      - word: seizure
-        ipa: /ˈsiːʒər/
-      - word: leisurely
-        ipa: /ˈlɛʒərli/
-    twisters:
-      - Casual clothes are provisional for leisurely excursions.
+    words: |
+      vision /ˈvɪʒən/
+      measure /ˈmɛʒər/
+      pleasure /ˈplɛʒər/
+      usual /ˈjuːʒuəl/
+      decision /dɪˈsɪʒən/
+      television /ˈtɛləˌvɪʒən/
+      garage /ɡəˈrɑːʒ/
+      massage /məˈsɑːʒ/
+      treasure /ˈtrɛʒər/
+      explosion /ɪkˈsploʊʒən/
+      occasion /əˈkeɪʒən/
+      casual /ˈkæʒuəl/
+      beige /beɪʒ/
+      closure /ˈkloʊʒər/
+      seizure /ˈsiːʒər/
+      leisurely /ˈlɛʒərli/
+    twisters: |
+      Casual clothes are provisional for leisurely excursions.
 
   h_sound:
     name: h sound
     key: h
     description: gentle breath of air from throat, don't drop or add it
-    words:
-      - word: hat
-        ipa: /hæt/
-      - word: help
-        ipa: /hɛlp/
-      - word: hour
-        ipa: /aʊər/
-      - word: honest
-        ipa: /ˈɑːnɪst/
-      - word: behind
-        ipa: /bɪˈhaɪnd/
-      - word: ahead
-        ipa: /əˈhɛd/
-      - word: heir
-        ipa: /ɛr/
-      - word: exhaust
-        ipa: /ɪɡˈzɔːst/
-      - word: vehicle
-        ipa: /ˈviːɪkəl/
-      - word: perhaps
-        ipa: /pərˈhæps/
-      - word: huge
-        ipa: /hjuːdʒ/
-      - word: humor
-        ipa: /ˈhjuːmər/
-      - word: herb
-        ipa: /ɜːrb/
-      - word: honor
-        ipa: /ˈɑːnər/
-      - word: horizon
-        ipa: /həˈraɪzən/
-      - word: hose
-        ipa: /hoʊz/
-    twisters:
-      - Hugh, the huge man, held a humongous hose.
+    words: |
+      hat /hæt/
+      help /hɛlp/
+      hour /aʊər/
+      honest /ˈɑːnɪst/
+      behind /bɪˈhaɪnd/
+      ahead /əˈhɛd/
+      heir /ɛr/
+      exhaust /ɪɡˈzɔːst/
+      vehicle /ˈviːɪkəl/
+      perhaps /pərˈhæps/
+      huge /hjuːdʒ/
+      humor /ˈhjuːmər/
+      herb /ɜːrb/
+      honor /ˈɑːnər/
+      horizon /həˈraɪzən/
+      hose /hoʊz/
+    twisters: |
+      Hugh, the huge man, held a humongous hose.
 
   tion_sion:
     name: -tion and -sion endings
     key: g
     description: '-tion = /ʃən/, -sion = /ʒən/ or /ʃən/ depending on context'
-    words:
-      - word: nation
-        ipa: /ˈneɪʃən/
-      - word: question
-        ipa: /ˈkwɛstʃən/
-      - word: education
-        ipa: /ˌɛdʒʊˈkeɪʃən/
-      - word: attention
-        ipa: /əˈtɛnʃən/
-      - word: version
-        ipa: /ˈvɜːrʒən/
-      - word: confusion
-        ipa: /kənˈfjuːʒən/
-      - word: suggestion
-        ipa: /səˈdʒɛstʃən/
-      - word: permission
-        ipa: /pərˈmɪʃən/
-      - word: pronunciation
-        ipa: /prəˌnʌnsiˈeɪʃən/
-      - word: comprehension
-        ipa: /ˌkɑːmprɪˈhɛnʃən/
-      - word: operation
-        ipa: /ˌɑːpəˈreɪʃən/
-      - word: conversation
-        ipa: /ˌkɑːnvərˈseɪʃən/
-      - word: conclusion
-        ipa: /kənˈkluːʒən/
-      - word: description
-        ipa: /dɪˈskrɪpʃən/
-      - word: imagination
-        ipa: /ɪˌmædʒɪˈneɪʃən/
-      - word: national
-        ipa: /ˈnæʃənəl/
-      - word: irrational
-        ipa: /ɪˈræʃənəl/
-    twisters:
-      - National rationing of rations is irrational.
+    words: |
+      nation /ˈneɪʃən/
+      question /ˈkwɛstʃən/
+      education /ˌɛdʒʊˈkeɪʃən/
+      attention /əˈtɛnʃən/
+      version /ˈvɜːrʒən/
+      confusion /kənˈfjuːʒən/
+      suggestion /səˈdʒɛstʃən/
+      permission /pərˈmɪʃən/
+      pronunciation /prəˌnʌnsiˈeɪʃən/
+      comprehension /ˌkɑːmprɪˈhɛnʃən/
+      operation /ˌɑːpəˈreɪʃən/
+      conversation /ˌkɑːnvərˈseɪʃən/
+      conclusion /kənˈkluːʒən/
+      description /dɪˈskrɪpʃən/
+      imagination /ɪˌmædʒɪˈneɪʃən/
+      national /ˈnæʃənəl/
+      irrational /ɪˈræʃənəl/
+    twisters: |
+      National rationing of rations is irrational.
 
   f_v:
     name: f and v contrast
     key: f
     description: 'both use upper teeth on lower lip - f is voiceless, v is voiced'
-    words:
-      - word: fan
-        ipa: /fæn/
-      - word: van
-        ipa: /væn/
-      - word: safe
-        ipa: /seɪf/
-      - word: save
-        ipa: /seɪv/
-      - word: leaf
-        ipa: /liːf/
-      - word: leave
-        ipa: /liːv/
-      - word: half
-        ipa: /hæf/
-      - word: have
-        ipa: /hæv/
-      - word: belief
-        ipa: /bɪˈliːf/
-      - word: believe
-        ipa: /bɪˈliːv/
-      - word: proof
-        ipa: /pruːf/
-      - word: prove
-        ipa: /pruːv/
-      - word: life
-        ipa: /laɪf/
-      - word: live
-        ipa: /lɪv/
-      - word: relief
-        ipa: /rɪˈliːf/
-      - word: five
-        ipa: /faɪv/
-      - word: fish
-        ipa: /fɪʃ/
-    twisters:
-      - Five fine fresh fish for you.
+    words: |
+      fan /fæn/
+      van /væn/
+      safe /seɪf/
+      save /seɪv/
+      leaf /liːf/
+      leave /liːv/
+      half /hæf/
+      have /hæv/
+      belief /bɪˈliːf/
+      believe /bɪˈliːv/
+      proof /pruːf/
+      prove /pruːv/
+      life /laɪf/
+      live /lɪv/
+      relief /rɪˈliːf/
+      five /faɪv/
+      fish /fɪʃ/
+    twisters: |
+      Five fine fresh fish for you.
 
 pangrams:
   - text: >-
