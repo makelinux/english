@@ -123,6 +123,20 @@ openai:
 
 Use `--test-services` to check API connectivity.
 
+### TTS voices
+
+Two configurable voices in
+`~/.config/english-pronounce/config.yaml`:
+- `sim_voice` - reference pronunciation (default gTTS)
+- `tutor_voice` - AI feedback speech (default Puck)
+
+Best Gemini TTS voices (5/5 on tongue twister test):\
+male - Achird, Algieba, Alnilam, Zubenelgenubi\
+female - Erinome, Pulcherrima
+
+Use `--voice <name>` to set sim_voice, or edit
+config.yaml directly.
+
 ### Calibration
 
 Audio similarity requires calibration. Calibration requires
