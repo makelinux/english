@@ -75,7 +75,15 @@ def load_data():
     global data
     data = Box(raw)
     data.prompts.sysprompt = data.prompts.sysprompt.format(no_ipa=_no_ipa())
-    data.stt_equiv = [set(g) for g in data.stt_equiv or []]
+    aliases = {}
+    for line in (data.stt_aliases or "").strip().split('\n'):
+        if line:
+            k, v = line.split(None, 1)
+            aliases[k] = v
+    data.stt_aliases = aliases
+    data.homophones = [set(line.split())
+                       for line in (data.homophones or "").strip().split('\n')
+                       if line]
     for g in data.phonemes.values():
         g.words = [_parse_word(w) for w in g.words.strip().split('\n')]
     data.twisters = []
@@ -170,7 +178,7 @@ def stt_score(expected, heard):
     a = data.stt_aliases
     if a and (a.get(e) == h or a.get(h) == e):
         return 100
-    for group in data.stt_equiv:
+    for group in data.homophones:
         if e in group and h in group:
             return 100
     for words in ipa_to_words.values():

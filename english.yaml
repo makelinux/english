@@ -577,43 +577,43 @@ prompts:
     Otherwise describe what needs improvement in 2-3
     sentences. Focus on the sounds this twister targets.
 
-stt_aliases:
-  zero: "0"
-  one: "1"
-  two: "2"
-  three: "3"
-  four: "4"
-  five: "5"
-  six: "6"
-  seven: "7"
-  eight: "8"
-  nine: "9"
-  ten: "10"
-  eleven: "11"
-  twelfth: "12"
-  twelve: "12"
-  laughed: loft
-  sea: see
-  road: rode
+stt_aliases: |
+  zero 0
+  one 1
+  two 2
+  three 3
+  four 4
+  five 5
+  six 6
+  seven 7
+  eight 8
+  nine 9
+  ten 10
+  eleven 11
+  twelfth 12
+  twelve 12
+  laughed loft
 
-stt_equiv:
-  - [heir, air, err, are, hare, hair]
-  - [there, their, "they're"]
-  - [right, write, rite]
-  - [know, "no"]
-  - [through, threw]
-  - [main, mane, maine]
-  - [red, read]
-  - [led, lead]
-  - [hour, our]
-  - [borough, burrow]
-  - [colonel, kernel]
-  - [peace, piece]
-  - [weight, wait]
-  - [board, bored]
-  - [muscle, mussel]
-  - [plough, plow]
-  - [straight, strait]
-  - [knight, night]
-  - [plain, plane]
-  - [wood, would]
+homophones: |
+  heir air err are hare hair
+  there their they're
+  right write rite
+  know no
+  through threw
+  main mane maine
+  red read
+  led lead
+  hour our
+  borough burrow
+  colonel kernel
+  peace piece
+  weight wait
+  board bored
+  muscle mussel
+  plough plow
+  straight strait
+  knight night
+  plain plane
+  wood would
+  sea see
+  road rode
