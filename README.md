@@ -192,3 +192,9 @@ python3 -c "import nltk; nltk.download('wordnet')"
   - `calibration.yaml` - mic/speaker calibration
   - `ref/` - cached TTS reference audio (per voice)
   - `config.yaml` - voice, API settings
+
+## Known issues
+
+- gTTS inserts a pause after about 15 words, making
+  long sentences sound unnatural
+- Gemini TTS has higher latency than gTTS
