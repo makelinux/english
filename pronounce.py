@@ -168,7 +168,8 @@ def stt_score(expected, heard):
     return 0
 
 
-def record_word(word, rec, prefix="", duration=5, pause=0.5):
+def record_word(word, rec, prefix="", duration=5, pause=0.5,
+                hint="[s]kip [q]uit"):
     """Returns (heard, pct, sim, peak, dur, raw, key)."""
     bars = []
 
@@ -178,7 +179,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.5):
         mx = audio._peak_max if audio._peak_max > 1e-6 else 1.0
         bars.append(_BARS[min(8, int(peak / mx * 8))])
         print(f"\r\033[K{prefix}"
-              f"{DIM}[s]kip [q]uit{RST} "
+              f"{DIM}{hint}{RST} "
               f"Listening{''.join(bars)}🎤", end="", flush=True)
 
     try:
@@ -643,7 +644,7 @@ def assess(h, cont=False, debug=False):
 def practice_twisters(h, cont=False):
     print(f"\nTongue twisters\n")
     if cont:
-        print(f"{DIM}Keys: [s]kip  [p]ause  [q]uit{RST}\n")
+        print(f"{DIM}Keys: [s]kip  [r]epeat  [p]ause  [q]uit{RST}\n")
         set_cbreak()
     rec = sr.Recognizer()
     if "twisters" not in h:
@@ -659,75 +660,71 @@ def practice_twisters(h, cont=False):
             if gn:
                 lbl += f"  ({gn})"
             print(lbl)
-            print(f"  {text}")
-            print()
-            print(f"  {DIM}Listen...{RST}", end="", flush=True)
-            speak(text)
-            print("\r\033[K", end="")
             ensure_ref(text, cfg.get("sim_voice"))
             pw = len(text.split())
             while True:
-                heard, pct, sim, peak, dur, raw, key = record_word(
-                    text, rec, "  ", duration=15, pause=1.5)
-                if key == 'q':
-                    return
-                if key == 's':
-                    raw = None
+                print(f"  {text}")
+                print(f"  {DIM}Listen...{RST}", end="", flush=True)
+                speak(text)
+                clear_line()
+                while True:
+                    heard, pct, sim, peak, dur, raw, key = record_word(
+                        text, rec, "  ", duration=15, pause=1.5,
+                        hint="[n]ext [q]uit")
+                    if key == 'q':
+                        return
+                    if key in ('s', 'n'):
+                        raw = None
+                        break
+                    if not raw:
+                        continue
+                    hw = len(heard.split()) if heard else 0
+                    if hw < pw * 0.5:
+                        print(f"  Too short ({hw}/{pw} words). Try again.")
+                        continue
                     break
                 if not raw:
-                    continue
-                hw = len(heard.split()) if heard else 0
-                if hw < pw * 0.5:
-                    print(f"  Too short ({hw}/{pw} words). Try again.")
-                    continue
-                break
-            if not raw:
-                continue
-            clear_line()
-            if heard:
-                print(f"  Heard: {heard}")
-            if sim:
-                print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
-            h["twisters"][text] = str(date.today())
-            if cont:
+                    break
+                clear_line()
+                if heard:
+                    print(f"  Heard: {heard}")
+                if sim:
+                    print(f"  Audio similarity: {sim_color(sim)}{sim}%{RST}")
+                h["twisters"][text] = str(date.today())
                 try:
-                    fb = _ask_ai(raw, data.prompts.twister.format(text=text))
+                    fb = _ask_ai(raw,
+                                 data.prompts.twister.format(text=text))
                 except Exception as e:
                     print(f"  Feedback error: {e}")
-                    continue
-                print(f"  {fb}")
-                _log_feedback(text, fb)
-                if fb.strip() != "Good":
-                    speak(re.sub(r'[\"\'()"/]', '', fb))
-                print()
-                k = wait_key(1)
-                if k == 'q':
-                    break
-                if k == 'p':
-                    print(f"  {DIM}Paused. Any key...{RST}",
-                          end="", flush=True)
-                    wait_key(None)
-                    clear_line()
-            else:
-                nxt = f"[Enter] next  " if i < len(twisters) - 1 else ""
-                print(f"\n  {DIM}{nxt}[f]eedback  [q]uit{RST}", end="",
-                      flush=True)
-                c = wait_key(None)
-                print()
-                if c == 'q':
-                    break
-                if c == 'f':
-                    try:
-                        fb = _ask_ai(raw,
-                                     data.prompts.twister.format(text=text))
-                    except Exception as e:
-                        print(f"  Feedback error: {e}")
-                        continue
+                    fb = None
+                if fb:
                     print(f"  {fb}")
                     _log_feedback(text, fb)
                     if fb.strip() != "Good":
                         speak(re.sub(r'[\"\'()"/]', '', fb))
-                print()
+                if cont:
+                    print()
+                    k = wait_key(1)
+                    if k == 'q':
+                        return
+                    if k == 'p':
+                        print(f"  {DIM}Paused. Any key...{RST}",
+                              end="", flush=True)
+                        wait_key(None)
+                        clear_line()
+                    if k != 'r':
+                        break
+                else:
+                    nxt = "[n]ext  " if i < len(twisters) - 1 else ""
+                    print(f"\n  {DIM}{nxt}[r]epeat  [q]uit{RST}",
+                          end="", flush=True)
+                    c = wait_key(None)
+                    clear_line()
+                    if c == 'q':
+                        return
+                    if c != 'r':
+                        break
+            print()
     finally:
         if cont:
             restore_term()
