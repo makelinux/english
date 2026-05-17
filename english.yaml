@@ -49,6 +49,9 @@ phonemes:
       - word: rather
         ipa: /ˈræðər/
         difficulty: 2
+      - word: whether
+        ipa: /ˈwɛðər/
+        difficulty: 2
     twisters:
       - >-
         Whether the weather is warm, whether the weather is hot, we
@@ -104,6 +107,12 @@ phonemes:
       - word: both
         ipa: /boʊθ/
         difficulty: 1
+      - word: thirty
+        ipa: /ˈθɜːrti/
+        difficulty: 1
+      - word: thieves
+        ipa: /θiːvz/
+        difficulty: 2
     twisters:
       - >-
         The thirty-three thieves thought that they thrilled the
@@ -159,6 +168,12 @@ phonemes:
       - word: cushion
         ipa: /ˈkʊʃən/
         difficulty: 2
+      - word: seashells
+        ipa: /ˈsiːˌʃɛlz/
+        difficulty: 3
+      - word: seashore
+        ipa: /ˈsiːˌʃɔːr/
+        difficulty: 2
     twisters:
       - She sells seashells by the seashore.
       - The sixth sick sheik's sixth sheep's sick.
@@ -213,6 +228,9 @@ phonemes:
       - word: coral
         ipa: /ˈkɔːrəl/
         difficulty: 2
+      - word: lorry
+        ipa: /ˈlɔːri/
+        difficulty: 2
     twisters:
       - Red lorry, yellow lorry, red lorry, yellow lorry.
 
@@ -266,6 +284,9 @@ phonemes:
       - word: full
         ipa: /fʊl/
         difficulty: 1
+      - word: unique
+        ipa: /juːˈniːk/
+        difficulty: 2
     twisters:
       - Unique New York, you know you need unique New York.
 
@@ -319,6 +340,12 @@ phonemes:
       - word: muscle
         ipa: /ˈmʌsəl/
         difficulty: 2
+      - word: knight
+        ipa: /naɪt/
+        difficulty: 2
+      - word: knee
+        ipa: /niː/
+        difficulty: 1
     twisters:
       - A knapsack strap snapped and slapped the knight's knee.
 
@@ -371,6 +398,9 @@ phonemes:
         difficulty: 2
       - word: development
         ipa: /dɪˈvɛləpmənt/
+        difficulty: 3
+      - word: photographer
+        ipa: /fəˈtɑːɡrəfər/
         difficulty: 3
     twisters:
       - Photograph the photographer photographing the photographs.
@@ -425,6 +455,9 @@ phonemes:
       - word: everywhere
         ipa: /ˈɛvriˌwɛr/
         difficulty: 2
+      - word: wood
+        ipa: /wʊd/
+        difficulty: 1
     twisters:
       - >-
         How much wood would a woodchuck chuck if a woodchuck could
@@ -480,6 +513,12 @@ phonemes:
       - word: phase
         ipa: /feɪz/
         difficulty: 2
+      - word: fuzzy
+        ipa: /ˈfʌzi/
+        difficulty: 1
+      - word: six
+        ipa: /sɪks/
+        difficulty: 1
     twisters:
       - >-
         Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair, Fuzzy Wuzzy
@@ -535,6 +574,9 @@ phonemes:
         difficulty: 2
       - word: choice
         ipa: /tʃɔɪs/
+        difficulty: 1
+      - word: boat
+        ipa: /boʊt/
         difficulty: 1
     twisters:
       - Toy boat, toy boat, toy boat.
@@ -702,6 +744,9 @@ phonemes:
       - word: opinion
         ipa: /əˈpɪnjən/
         difficulty: 2
+      - word: salon
+        ipa: /səˈlɑːn/
+        difficulty: 2
     twisters:
       - She should shun the sunny salon.
 
@@ -755,6 +800,12 @@ phonemes:
       - word: nothing
         ipa: /ˈnʌθɪŋ/
         difficulty: 2
+      - word: sang
+        ipa: /sæŋ/
+        difficulty: 1
+      - word: sinking
+        ipa: /ˈsɪŋkɪŋ/
+        difficulty: 2
     twisters:
       - Singing Sammy sang songs on sinking sand.
 
@@ -807,6 +858,12 @@ phonemes:
         difficulty: 1
       - word: budget
         ipa: /ˈbʌdʒɪt/
+        difficulty: 2
+      - word: imagine
+        ipa: /ɪˈmædʒɪn/
+        difficulty: 2
+      - word: manager
+        ipa: /ˈmænɪdʒər/
         difficulty: 2
     twisters:
       - >-
@@ -863,6 +920,9 @@ phonemes:
       - word: mistake
         ipa: /mɪˈsteɪk/
         difficulty: 2
+      - word: plain
+        ipa: /pleɪn/
+        difficulty: 1
     twisters:
       - The rain in Spain stays mainly in the plain.
 
@@ -1022,6 +1082,9 @@ phonemes:
       - word: seizure
         ipa: /ˈsiːʒər/
         difficulty: 3
+      - word: leisurely
+        ipa: /ˈlɛʒərli/
+        difficulty: 2
     twisters:
       - Casual clothes are provisional for leisurely excursions.
 
@@ -1075,6 +1138,9 @@ phonemes:
       - word: horizon
         ipa: /həˈraɪzən/
         difficulty: 2
+      - word: hose
+        ipa: /hoʊz/
+        difficulty: 1
     twisters:
       - Hugh, the huge man, held a humongous hose.
 
@@ -1127,6 +1193,12 @@ phonemes:
         difficulty: 2
       - word: imagination
         ipa: /ɪˌmædʒɪˈneɪʃən/
+        difficulty: 3
+      - word: national
+        ipa: /ˈnæʃənəl/
+        difficulty: 2
+      - word: irrational
+        ipa: /ɪˈræʃənəl/
         difficulty: 3
     twisters:
       - National rationing of rations is irrational.
@@ -1181,6 +1253,12 @@ phonemes:
       - word: relief
         ipa: /rɪˈliːf/
         difficulty: 2
+      - word: five
+        ipa: /faɪv/
+        difficulty: 1
+      - word: fish
+        ipa: /fɪʃ/
+        difficulty: 1
     twisters:
       - Five fine fresh fish for you.
 
@@ -1262,3 +1340,6 @@ stt_equiv:
   - [muscle, mussel]
   - [plough, plow]
   - [straight, strait]
+  - [knight, night]
+  - [plain, plane]
+  - [wood, would]
