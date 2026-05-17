@@ -311,8 +311,7 @@ def record_audio(duration=5, pause=0.8, on_chunk=None, check_keys=False):
                     pk_n = 0
             if check_keys and select.select([sys.stdin], [], [], 0)[0]:
                 key = sys.stdin.read(1)
-                if speech_started:
-                    break
+                break
             is_speech = vad.is_speech(c, SAMPLE_RATE)
             # reject keyboard clicks: speech has more low-freq energy
             if is_speech:

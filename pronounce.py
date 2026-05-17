@@ -660,7 +660,7 @@ def practice_twisters(h, cont=False):
     print(f"\nTongue twisters\n")
     if cont:
         print(f"{DIM}Keys: [s]kip  [r]epeat  [p]ause  [q]uit{RST}\n")
-        set_cbreak()
+    set_cbreak()
     rec = sr.Recognizer()
     if "twisters" not in h:
         h["twisters"] = {}
@@ -742,8 +742,7 @@ def practice_twisters(h, cont=False):
                         break
             print()
     finally:
-        if cont:
-            restore_term()
+        restore_term()
 
 
 _VOWEL_CHART = f"""\
