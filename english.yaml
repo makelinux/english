@@ -6,52 +6,36 @@ phonemes:
     words:
       - word: this
         ipa: /ðɪs/
-        difficulty: 1
       - word: that
         ipa: /ðæt/
-        difficulty: 1
       - word: the
         ipa: /ðə/
-        difficulty: 1
       - word: there
         ipa: /ðɛr/
-        difficulty: 1
       - word: they
         ipa: /ðeɪ/
-        difficulty: 1
       - word: these
         ipa: /ðiːz/
-        difficulty: 1
       - word: those
         ipa: /ðoʊz/
-        difficulty: 1
       - word: weather
         ipa: /ˈwɛðər/
-        difficulty: 2
       - word: together
         ipa: /təˈɡɛðər/
-        difficulty: 2
       - word: breathe
         ipa: /briːð/
-        difficulty: 2
       - word: mother
         ipa: /ˈmʌðər/
-        difficulty: 1
       - word: father
         ipa: /ˈfɑːðər/
-        difficulty: 1
       - word: other
         ipa: /ˈʌðər/
-        difficulty: 1
       - word: smooth
         ipa: /smuːð/
-        difficulty: 2
       - word: rather
         ipa: /ˈræðər/
-        difficulty: 2
       - word: whether
         ipa: /ˈwɛðər/
-        difficulty: 2
     twisters:
       - >-
         Whether the weather is warm, whether the weather is hot, we
@@ -64,55 +48,38 @@ phonemes:
     words:
       - word: think
         ipa: /θɪŋk/
-        difficulty: 1
       - word: thing
         ipa: /θɪŋ/
-        difficulty: 1
       - word: three
         ipa: /θriː/
-        difficulty: 1
       - word: thank
         ipa: /θæŋk/
-        difficulty: 1
       - word: thought
         ipa: /θɔːt/
-        difficulty: 2
       - word: through
         ipa: /θruː/
-        difficulty: 2
       - word: Thursday
         ipa: /ˈθɜːrzdeɪ/
-        difficulty: 2
       - word: beneath
         ipa: /bɪˈniːθ/
-        difficulty: 2
       - word: growth
         ipa: /ɡroʊθ/
-        difficulty: 2
       - word: mathematics
         ipa: /ˌmæθəˈmætɪks/
-        difficulty: 3
       - word: tooth
         ipa: /tuːθ/
-        difficulty: 1
       - word: mouth
         ipa: /maʊθ/
-        difficulty: 1
       - word: health
         ipa: /hɛlθ/
-        difficulty: 2
       - word: birthday
         ipa: /ˈbɜːrθdeɪ/
-        difficulty: 2
       - word: both
         ipa: /boʊθ/
-        difficulty: 1
       - word: thirty
         ipa: /ˈθɜːrti/
-        difficulty: 1
       - word: thieves
         ipa: /θiːvz/
-        difficulty: 2
     twisters:
       - >-
         The thirty-three thieves thought that they thrilled the
@@ -125,55 +92,38 @@ phonemes:
     words:
       - word: ship
         ipa: /ʃɪp/
-        difficulty: 1
       - word: shop
         ipa: /ʃɑːp/
-        difficulty: 1
       - word: she
         ipa: /ʃiː/
-        difficulty: 1
       - word: wish
         ipa: /wɪʃ/
-        difficulty: 1
       - word: chip
         ipa: /tʃɪp/
-        difficulty: 1
       - word: church
         ipa: /tʃɜːrtʃ/
-        difficulty: 2
       - word: catch
         ipa: /kætʃ/
-        difficulty: 1
       - word: watch
         ipa: /wɑːtʃ/
-        difficulty: 1
       - word: machine
         ipa: /məˈʃiːn/
-        difficulty: 2
       - word: championship
         ipa: /ˈtʃæmpiənʃɪp/
-        difficulty: 3
       - word: share
         ipa: /ʃɛr/
-        difficulty: 1
       - word: cheap
         ipa: /tʃiːp/
-        difficulty: 1
       - word: crash
         ipa: /kræʃ/
-        difficulty: 2
       - word: charge
         ipa: /tʃɑːrdʒ/
-        difficulty: 2
       - word: cushion
         ipa: /ˈkʊʃən/
-        difficulty: 2
       - word: seashells
         ipa: /ˈsiːˌʃɛlz/
-        difficulty: 3
       - word: seashore
         ipa: /ˈsiːˌʃɔːr/
-        difficulty: 2
     twisters:
       - She sells seashells by the seashore.
       - The sixth sick sheik's sixth sheep's sick.
@@ -185,52 +135,36 @@ phonemes:
     words:
       - word: right
         ipa: /raɪt/
-        difficulty: 1
       - word: light
         ipa: /laɪt/
-        difficulty: 1
       - word: red
         ipa: /rɛd/
-        difficulty: 1
       - word: led
         ipa: /lɛd/
-        difficulty: 1
       - word: road
         ipa: /roʊd/
-        difficulty: 1
       - word: load
         ipa: /loʊd/
-        difficulty: 1
       - word: really
         ipa: /ˈriːəli/
-        difficulty: 2
       - word: rarely
         ipa: /ˈrɛrli/
-        difficulty: 2
       - word: parallel
         ipa: /ˈpærəˌlɛl/
-        difficulty: 3
       - word: literally
         ipa: /ˈlɪtərəli/
-        difficulty: 3
       - word: rice
         ipa: /raɪs/
-        difficulty: 1
       - word: lice
         ipa: /laɪs/
-        difficulty: 1
       - word: arrive
         ipa: /əˈraɪv/
-        difficulty: 2
       - word: alive
         ipa: /əˈlaɪv/
-        difficulty: 2
       - word: coral
         ipa: /ˈkɔːrəl/
-        difficulty: 2
       - word: lorry
         ipa: /ˈlɔːri/
-        difficulty: 2
     twisters:
       - Red lorry, yellow lorry, red lorry, yellow lorry.
 
@@ -241,52 +175,36 @@ phonemes:
     words:
       - word: bat
         ipa: /bæt/
-        difficulty: 1
       - word: bet
         ipa: /bɛt/
-        difficulty: 1
       - word: seat
         ipa: /siːt/
-        difficulty: 1
       - word: sit
         ipa: /sɪt/
-        difficulty: 1
       - word: pool
         ipa: /puːl/
-        difficulty: 1
       - word: pull
         ipa: /pʊl/
-        difficulty: 1
       - word: man
         ipa: /mæn/
-        difficulty: 1
       - word: men
         ipa: /mɛn/
-        difficulty: 1
       - word: food
         ipa: /fuːd/
-        difficulty: 1
       - word: foot
         ipa: /fʊt/
-        difficulty: 1
       - word: pan
         ipa: /pæn/
-        difficulty: 1
       - word: pen
         ipa: /pɛn/
-        difficulty: 1
       - word: sheep
         ipa: /ʃiːp/
-        difficulty: 1
       - word: fool
         ipa: /fuːl/
-        difficulty: 1
       - word: full
         ipa: /fʊl/
-        difficulty: 1
       - word: unique
         ipa: /juːˈniːk/
-        difficulty: 2
     twisters:
       - Unique New York, you know you need unique New York.
 
@@ -297,55 +215,38 @@ phonemes:
     words:
       - word: knife
         ipa: /naɪf/
-        difficulty: 1
       - word: know
         ipa: /noʊ/
-        difficulty: 1
       - word: write
         ipa: /raɪt/
-        difficulty: 1
       - word: wrong
         ipa: /rɔːŋ/
-        difficulty: 1
       - word: comb
         ipa: /koʊm/
-        difficulty: 2
       - word: doubt
         ipa: /daʊt/
-        difficulty: 2
       - word: island
         ipa: /ˈaɪlənd/
-        difficulty: 2
       - word: castle
         ipa: /ˈkæsəl/
-        difficulty: 2
       - word: Wednesday
         ipa: /ˈwɛnzdeɪ/
-        difficulty: 2
       - word: kernel
         ipa: /ˈkɜːrnəl/
-        difficulty: 2
       - word: climb
         ipa: /klaɪm/
-        difficulty: 1
       - word: psalm
         ipa: /sɑːm/
-        difficulty: 2
       - word: receipt
         ipa: /rɪˈsiːt/
-        difficulty: 2
       - word: subtle
         ipa: /ˈsʌtəl/
-        difficulty: 2
       - word: muscle
         ipa: /ˈmʌsəl/
-        difficulty: 2
       - word: knight
         ipa: /naɪt/
-        difficulty: 2
       - word: knee
         ipa: /niː/
-        difficulty: 1
     twisters:
       - A knapsack strap snapped and slapped the knight's knee.
 
@@ -356,52 +257,36 @@ phonemes:
     words:
       - word: present
         ipa: /ˈprɛzənt/ (noun) /prɪˈzɛnt/ (verb)
-        difficulty: 2
       - word: record
         ipa: /ˈrɛkərd/ (noun) /rɪˈkɔːrd/ (verb)
-        difficulty: 2
       - word: desert
         ipa: /ˈdɛzərt/ (noun) /dɪˈzɜːrt/ (verb)
-        difficulty: 2
       - word: photograph
         ipa: /ˈfoʊtəˌɡræf/
-        difficulty: 2
       - word: photography
         ipa: /fəˈtɑːɡrəfi/
-        difficulty: 3
       - word: photographic
         ipa: /ˌfoʊtəˈɡræfɪk/
-        difficulty: 3
       - word: economy
         ipa: /ɪˈkɑːnəmi/
-        difficulty: 2
       - word: economic
         ipa: /ˌiːkəˈnɑːmɪk/
-        difficulty: 3
       - word: comfortable
         ipa: /ˈkʌmftərbəl/
-        difficulty: 2
       - word: vegetable
         ipa: /ˈvɛdʒtəbəl/
-        difficulty: 2
       - word: accidentally
         ipa: /ˌæksɪˈdɛntəli/
-        difficulty: 3
       - word: address
         ipa: /ˈædrɛs/ (noun) /əˈdrɛs/ (verb)
-        difficulty: 2
       - word: permit
         ipa: /ˈpɜːrmɪt/ (noun) /pərˈmɪt/ (verb)
-        difficulty: 2
       - word: content
         ipa: /ˈkɑːntɛnt/ (noun) /kənˈtɛnt/ (adjective)
-        difficulty: 2
       - word: development
         ipa: /dɪˈvɛləpmənt/
-        difficulty: 3
       - word: photographer
         ipa: /fəˈtɑːɡrəfər/
-        difficulty: 3
     twisters:
       - Photograph the photographer photographing the photographs.
 
@@ -412,52 +297,36 @@ phonemes:
     words:
       - word: very
         ipa: /ˈvɛri/
-        difficulty: 1
       - word: west
         ipa: /wɛst/
-        difficulty: 1
       - word: vine
         ipa: /vaɪn/
-        difficulty: 1
       - word: wine
         ipa: /waɪn/
-        difficulty: 1
       - word: vet
         ipa: /vɛt/
-        difficulty: 1
       - word: wet
         ipa: /wɛt/
-        difficulty: 1
       - word: vowel
         ipa: /ˈvaʊəl/
-        difficulty: 2
       - word: wave
         ipa: /weɪv/
-        difficulty: 1
       - word: revolution
         ipa: /ˌrɛvəˈluːʃən/
-        difficulty: 3
       - word: viewpoint
         ipa: /ˈvjuːˌpɔɪnt/
-        difficulty: 2
       - word: voice
         ipa: /vɔɪs/
-        difficulty: 1
       - word: winter
         ipa: /ˈwɪntər/
-        difficulty: 1
       - word: twelve
         ipa: /twɛlv/
-        difficulty: 2
       - word: however
         ipa: /haʊˈɛvər/
-        difficulty: 2
       - word: everywhere
         ipa: /ˈɛvriˌwɛr/
-        difficulty: 2
       - word: wood
         ipa: /wʊd/
-        difficulty: 1
     twisters:
       - >-
         How much wood would a woodchuck chuck if a woodchuck could
@@ -470,55 +339,38 @@ phonemes:
     words:
       - word: sip
         ipa: /sɪp/
-        difficulty: 1
       - word: zip
         ipa: /zɪp/
-        difficulty: 1
       - word: bus
         ipa: /bʌs/
-        difficulty: 1
       - word: buzz
         ipa: /bʌz/
-        difficulty: 1
       - word: price
         ipa: /praɪs/
-        difficulty: 1
       - word: prize
         ipa: /praɪz/
-        difficulty: 1
       - word: loose
         ipa: /luːs/
-        difficulty: 2
       - word: lose
         ipa: /luːz/
-        difficulty: 2
       - word: excuse
         ipa: /ɪkˈskjuːs/ (noun) /ɪkˈskjuːz/ (verb)
-        difficulty: 2
       - word: exercise
         ipa: /ˈɛksərˌsaɪz/
-        difficulty: 2
       - word: peace
         ipa: /piːs/
-        difficulty: 1
       - word: peas
         ipa: /piːz/
-        difficulty: 1
       - word: advice
         ipa: /ədˈvaɪs/
-        difficulty: 2
       - word: advise
         ipa: /ədˈvaɪz/
-        difficulty: 2
       - word: phase
         ipa: /feɪz/
-        difficulty: 2
       - word: fuzzy
         ipa: /ˈfʌzi/
-        difficulty: 1
       - word: six
         ipa: /sɪks/
-        difficulty: 1
     twisters:
       - >-
         Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair, Fuzzy Wuzzy
@@ -532,52 +384,36 @@ phonemes:
     words:
       - word: time
         ipa: /taɪm/
-        difficulty: 1
       - word: house
         ipa: /haʊs/
-        difficulty: 1
       - word: day
         ipa: /deɪ/
-        difficulty: 1
       - word: go
         ipa: /ɡoʊ/
-        difficulty: 1
       - word: boy
         ipa: /bɔɪ/
-        difficulty: 1
       - word: around
         ipa: /əˈraʊnd/
-        difficulty: 2
       - word: enjoying
         ipa: /ɪnˈdʒɔɪɪŋ/
-        difficulty: 2
       - word: idea
         ipa: /aɪˈdɪə/
-        difficulty: 2
       - word: radio
         ipa: /ˈreɪdiˌoʊ/
-        difficulty: 2
       - word: employment
         ipa: /ɪmˈplɔɪmənt/
-        difficulty: 3
       - word: noise
         ipa: /nɔɪz/
-        difficulty: 1
       - word: town
         ipa: /taʊn/
-        difficulty: 1
       - word: play
         ipa: /pleɪ/
-        difficulty: 1
       - word: height
         ipa: /haɪt/
-        difficulty: 2
       - word: choice
         ipa: /tʃɔɪs/
-        difficulty: 1
       - word: boat
         ipa: /boʊt/
-        difficulty: 1
     twisters:
       - Toy boat, toy boat, toy boat.
 
@@ -588,55 +424,38 @@ phonemes:
     words:
       - word: street
         ipa: /striːt/
-        difficulty: 1
       - word: strong
         ipa: /strɔːŋ/
-        difficulty: 1
       - word: splash
         ipa: /splæʃ/
-        difficulty: 2
       - word: spring
         ipa: /sprɪŋ/
-        difficulty: 1
       - word: world
         ipa: /wɜːrld/
-        difficulty: 2
       - word: strength
         ipa: /strɛŋθ/
-        difficulty: 3
       - word: twelfth
         ipa: /twɛlfθ/
-        difficulty: 3
       - word: texts
         ipa: /tɛksts/
-        difficulty: 2
       - word: asked
         ipa: /æskt/
-        difficulty: 2
       - word: glimpse
         ipa: /ɡlɪmps/
-        difficulty: 2
       - word: glass
         ipa: /ɡlæs/
-        difficulty: 1
       - word: class
         ipa: /klæs/
-        difficulty: 1
       - word: grass
         ipa: /ɡræs/
-        difficulty: 1
       - word: scream
         ipa: /skriːm/
-        difficulty: 2
       - word: shrimp
         ipa: /ʃrɪmp/
-        difficulty: 2
       - word: squid
         ipa: /skwɪd/
-        difficulty: 2
       - word: straight
         ipa: /streɪt/
-        difficulty: 2
     twisters:
       - Peter Piper picked a peck of pickled peppers.
       - A proper copper coffee pot.
@@ -648,49 +467,34 @@ phonemes:
     words:
       - word: walked
         ipa: /wɔːkt/
-        difficulty: 1
       - word: played
         ipa: /pleɪd/
-        difficulty: 1
       - word: wanted
         ipa: /ˈwɑːntɪd/
-        difficulty: 1
       - word: stopped
         ipa: /stɑːpt/
-        difficulty: 1
       - word: called
         ipa: /kɔːld/
-        difficulty: 1
       - word: needed
         ipa: /ˈniːdɪd/
-        difficulty: 1
       - word: laughed
         ipa: /læft/
-        difficulty: 2
       - word: organized
         ipa: /ˈɔːrɡənaɪzd/
-        difficulty: 2
       - word: decided
         ipa: /dɪˈsaɪdɪd/
-        difficulty: 2
       - word: collapsed
         ipa: /kəˈlæpst/
-        difficulty: 3
       - word: watched
         ipa: /wɑːtʃt/
-        difficulty: 1
       - word: opened
         ipa: /ˈoʊpənd/
-        difficulty: 1
       - word: painted
         ipa: /ˈpeɪntɪd/
-        difficulty: 2
       - word: breathed
         ipa: /briːðd/
-        difficulty: 2
       - word: wished
         ipa: /wɪʃt/
-        difficulty: 1
     twisters:
       - Fred fed Ted bread and Ted fed Fred bread.
 
@@ -701,52 +505,36 @@ phonemes:
     words:
       - word: about
         ipa: /əˈbaʊt/
-        difficulty: 1
       - word: banana
         ipa: /bəˈnænə/
-        difficulty: 1
       - word: problem
         ipa: /ˈprɑːbləm/
-        difficulty: 1
       - word: support
         ipa: /səˈpɔːrt/
-        difficulty: 2
       - word: common
         ipa: /ˈkɑːmən/
-        difficulty: 1
       - word: again
         ipa: /əˈɡɛn/
-        difficulty: 1
       - word: possible
         ipa: /ˈpɑːsəbəl/
-        difficulty: 2
       - word: general
         ipa: /ˈdʒɛnərəl/
-        difficulty: 2
       - word: particular
         ipa: /pərˈtɪkjələr/
-        difficulty: 3
       - word: comfortable
         ipa: /ˈkʌmftərbəl/
-        difficulty: 2
       - word: suppose
         ipa: /səˈpoʊz/
-        difficulty: 2
       - word: available
         ipa: /əˈveɪləbəl/
-        difficulty: 2
       - word: familiar
         ipa: /fəˈmɪljər/
-        difficulty: 2
       - word: original
         ipa: /əˈrɪdʒɪnəl/
-        difficulty: 3
       - word: opinion
         ipa: /əˈpɪnjən/
-        difficulty: 2
       - word: salon
         ipa: /səˈlɑːn/
-        difficulty: 2
     twisters:
       - She should shun the sunny salon.
 
@@ -757,55 +545,38 @@ phonemes:
     words:
       - word: sing
         ipa: /sɪŋ/
-        difficulty: 1
       - word: ring
         ipa: /rɪŋ/
-        difficulty: 1
       - word: long
         ipa: /lɔːŋ/
-        difficulty: 1
       - word: singing
         ipa: /ˈsɪŋɪŋ/
-        difficulty: 1
       - word: finger
         ipa: /ˈfɪŋɡər/
-        difficulty: 2
       - word: anger
         ipa: /ˈæŋɡər/
-        difficulty: 2
       - word: thinking
         ipa: /ˈθɪŋkɪŋ/
-        difficulty: 2
       - word: hanging
         ipa: /ˈhæŋɪŋ/
-        difficulty: 2
       - word: English
         ipa: /ˈɪŋɡlɪʃ/
-        difficulty: 2
       - word: distinguish
         ipa: /dɪˈstɪŋɡwɪʃ/
-        difficulty: 3
       - word: tongue
         ipa: /tʌŋ/
-        difficulty: 1
       - word: younger
         ipa: /ˈjʌŋɡər/
-        difficulty: 2
       - word: among
         ipa: /əˈmʌŋ/
-        difficulty: 2
       - word: belonging
         ipa: /bɪˈlɔːŋɪŋ/
-        difficulty: 2
       - word: nothing
         ipa: /ˈnʌθɪŋ/
-        difficulty: 2
       - word: sang
         ipa: /sæŋ/
-        difficulty: 1
       - word: sinking
         ipa: /ˈsɪŋkɪŋ/
-        difficulty: 2
     twisters:
       - Singing Sammy sang songs on sinking sand.
 
@@ -816,55 +587,38 @@ phonemes:
     words:
       - word: joke
         ipa: /dʒoʊk/
-        difficulty: 1
       - word: yoke
         ipa: /joʊk/
-        difficulty: 2
       - word: jet
         ipa: /dʒɛt/
-        difficulty: 1
       - word: yet
         ipa: /jɛt/
-        difficulty: 1
       - word: juice
         ipa: /dʒuːs/
-        difficulty: 1
       - word: use
         ipa: /juːz/ (verb) /juːs/ (noun)
-        difficulty: 1
       - word: major
         ipa: /ˈmeɪdʒər/
-        difficulty: 2
       - word: young
         ipa: /jʌŋ/
-        difficulty: 1
       - word: jealous
         ipa: /ˈdʒɛləs/
-        difficulty: 2
       - word: beyond
         ipa: /bɪˈjɑːnd/
-        difficulty: 2
       - word: judge
         ipa: /dʒʌdʒ/
-        difficulty: 1
       - word: gentle
         ipa: /ˈdʒɛntəl/
-        difficulty: 2
       - word: yesterday
         ipa: /ˈjɛstərdeɪ/
-        difficulty: 1
       - word: year
         ipa: /jɪr/
-        difficulty: 1
       - word: budget
         ipa: /ˈbʌdʒɪt/
-        difficulty: 2
       - word: imagine
         ipa: /ɪˈmædʒɪn/
-        difficulty: 2
       - word: manager
         ipa: /ˈmænɪdʒər/
-        difficulty: 2
     twisters:
       - >-
         Imagine an imaginary menagerie manager managing an imaginary
@@ -877,52 +631,36 @@ phonemes:
     words:
       - word: main
         ipa: /meɪn/
-        difficulty: 1
       - word: mind
         ipa: /maɪnd/
-        difficulty: 1
       - word: rain
         ipa: /reɪn/
-        difficulty: 1
       - word: fine
         ipa: /faɪn/
-        difficulty: 1
       - word: train
         ipa: /treɪn/
-        difficulty: 1
       - word: kind
         ipa: /kaɪnd/
-        difficulty: 1
       - word: explain
         ipa: /ɪkˈspleɪn/
-        difficulty: 2
       - word: behind
         ipa: /bɪˈhaɪnd/
-        difficulty: 2
       - word: maintain
         ipa: /meɪnˈteɪn/
-        difficulty: 2
       - word: reminder
         ipa: /rɪˈmaɪndər/
-        difficulty: 2
       - word: weight
         ipa: /weɪt/
-        difficulty: 2
       - word: brain
         ipa: /breɪn/
-        difficulty: 1
       - word: design
         ipa: /dɪˈzaɪn/
-        difficulty: 2
       - word: flight
         ipa: /flaɪt/
-        difficulty: 1
       - word: mistake
         ipa: /mɪˈsteɪk/
-        difficulty: 2
       - word: plain
         ipa: /pleɪn/
-        difficulty: 1
     twisters:
       - The rain in Spain stays mainly in the plain.
 
@@ -933,49 +671,34 @@ phonemes:
     words:
       - word: though
         ipa: /ðoʊ/
-        difficulty: 2
       - word: through
         ipa: /θruː/
-        difficulty: 2
       - word: tough
         ipa: /tʌf/
-        difficulty: 2
       - word: cough
         ipa: /kɔːf/
-        difficulty: 2
       - word: thought
         ipa: /θɔːt/
-        difficulty: 2
       - word: enough
         ipa: /ɪˈnʌf/
-        difficulty: 2
       - word: dough
         ipa: /doʊ/
-        difficulty: 2
       - word: thorough
         ipa: /ˈθɜːroʊ/
-        difficulty: 3
       - word: borough
         ipa: /ˈbɜːroʊ/
-        difficulty: 3
       - word: throughout
         ipa: /θruːˈaʊt/
-        difficulty: 3
       - word: rough
         ipa: /rʌf/
-        difficulty: 2
       - word: bought
         ipa: /bɔːt/
-        difficulty: 1
       - word: drought
         ipa: /draʊt/
-        difficulty: 2
       - word: ought
         ipa: /ɔːt/
-        difficulty: 2
       - word: plough
         ipa: /plaʊ/
-        difficulty: 2
     twisters:
       - I thought I thought of thinking of thanking you.
 
@@ -986,49 +709,34 @@ phonemes:
     words:
       - word: bird
         ipa: /bɜːrd/
-        difficulty: 1
       - word: work
         ipa: /wɜːrk/
-        difficulty: 1
       - word: car
         ipa: /kɑːr/
-        difficulty: 1
       - word: door
         ipa: /dɔːr/
-        difficulty: 1
       - word: here
         ipa: /hɪr/
-        difficulty: 1
       - word: care
         ipa: /kɛr/
-        difficulty: 1
       - word: nurse
         ipa: /nɜːrs/
-        difficulty: 2
       - word: heart
         ipa: /hɑːrt/
-        difficulty: 2
       - word: earth
         ipa: /ɜːrθ/
-        difficulty: 2
       - word: particular
         ipa: /pərˈtɪkjələr/
-        difficulty: 3
       - word: learn
         ipa: /lɜːrn/
-        difficulty: 1
       - word: garden
         ipa: /ˈɡɑːrdən/
-        difficulty: 1
       - word: board
         ipa: /bɔːrd/
-        difficulty: 1
       - word: near
         ipa: /nɪr/
-        difficulty: 1
       - word: square
         ipa: /skwɛr/
-        difficulty: 2
     twisters:
       - Around the rugged rocks the ragged rascal ran.
 
@@ -1039,52 +747,36 @@ phonemes:
     words:
       - word: vision
         ipa: /ˈvɪʒən/
-        difficulty: 2
       - word: measure
         ipa: /ˈmɛʒər/
-        difficulty: 2
       - word: pleasure
         ipa: /ˈplɛʒər/
-        difficulty: 2
       - word: usual
         ipa: /ˈjuːʒuəl/
-        difficulty: 2
       - word: decision
         ipa: /dɪˈsɪʒən/
-        difficulty: 2
       - word: television
         ipa: /ˈtɛləˌvɪʒən/
-        difficulty: 2
       - word: garage
         ipa: /ɡəˈrɑːʒ/
-        difficulty: 2
       - word: massage
         ipa: /məˈsɑːʒ/
-        difficulty: 2
       - word: treasure
         ipa: /ˈtrɛʒər/
-        difficulty: 2
       - word: explosion
         ipa: /ɪkˈsploʊʒən/
-        difficulty: 3
       - word: occasion
         ipa: /əˈkeɪʒən/
-        difficulty: 2
       - word: casual
         ipa: /ˈkæʒuəl/
-        difficulty: 2
       - word: beige
         ipa: /beɪʒ/
-        difficulty: 2
       - word: closure
         ipa: /ˈkloʊʒər/
-        difficulty: 2
       - word: seizure
         ipa: /ˈsiːʒər/
-        difficulty: 3
       - word: leisurely
         ipa: /ˈlɛʒərli/
-        difficulty: 2
     twisters:
       - Casual clothes are provisional for leisurely excursions.
 
@@ -1095,52 +787,36 @@ phonemes:
     words:
       - word: hat
         ipa: /hæt/
-        difficulty: 1
       - word: help
         ipa: /hɛlp/
-        difficulty: 1
       - word: hour
         ipa: /aʊər/
-        difficulty: 2
       - word: honest
         ipa: /ˈɑːnɪst/
-        difficulty: 2
       - word: behind
         ipa: /bɪˈhaɪnd/
-        difficulty: 1
       - word: ahead
         ipa: /əˈhɛd/
-        difficulty: 2
       - word: heir
         ipa: /ɛr/
-        difficulty: 3
       - word: exhaust
         ipa: /ɪɡˈzɔːst/
-        difficulty: 2
       - word: vehicle
         ipa: /ˈviːɪkəl/
-        difficulty: 2
       - word: perhaps
         ipa: /pərˈhæps/
-        difficulty: 2
       - word: huge
         ipa: /hjuːdʒ/
-        difficulty: 2
       - word: humor
         ipa: /ˈhjuːmər/
-        difficulty: 2
       - word: herb
         ipa: /ɜːrb/
-        difficulty: 2
       - word: honor
         ipa: /ˈɑːnər/
-        difficulty: 2
       - word: horizon
         ipa: /həˈraɪzən/
-        difficulty: 2
       - word: hose
         ipa: /hoʊz/
-        difficulty: 1
     twisters:
       - Hugh, the huge man, held a humongous hose.
 
@@ -1151,55 +827,38 @@ phonemes:
     words:
       - word: nation
         ipa: /ˈneɪʃən/
-        difficulty: 1
       - word: question
         ipa: /ˈkwɛstʃən/
-        difficulty: 1
       - word: education
         ipa: /ˌɛdʒʊˈkeɪʃən/
-        difficulty: 2
       - word: attention
         ipa: /əˈtɛnʃən/
-        difficulty: 2
       - word: version
         ipa: /ˈvɜːrʒən/
-        difficulty: 2
       - word: confusion
         ipa: /kənˈfjuːʒən/
-        difficulty: 2
       - word: suggestion
         ipa: /səˈdʒɛstʃən/
-        difficulty: 2
       - word: permission
         ipa: /pərˈmɪʃən/
-        difficulty: 2
       - word: pronunciation
         ipa: /prəˌnʌnsiˈeɪʃən/
-        difficulty: 3
       - word: comprehension
         ipa: /ˌkɑːmprɪˈhɛnʃən/
-        difficulty: 3
       - word: operation
         ipa: /ˌɑːpəˈreɪʃən/
-        difficulty: 2
       - word: conversation
         ipa: /ˌkɑːnvərˈseɪʃən/
-        difficulty: 2
       - word: conclusion
         ipa: /kənˈkluːʒən/
-        difficulty: 2
       - word: description
         ipa: /dɪˈskrɪpʃən/
-        difficulty: 2
       - word: imagination
         ipa: /ɪˌmædʒɪˈneɪʃən/
-        difficulty: 3
       - word: national
         ipa: /ˈnæʃənəl/
-        difficulty: 2
       - word: irrational
         ipa: /ɪˈræʃənəl/
-        difficulty: 3
     twisters:
       - National rationing of rations is irrational.
 
@@ -1210,55 +869,38 @@ phonemes:
     words:
       - word: fan
         ipa: /fæn/
-        difficulty: 1
       - word: van
         ipa: /væn/
-        difficulty: 1
       - word: safe
         ipa: /seɪf/
-        difficulty: 1
       - word: save
         ipa: /seɪv/
-        difficulty: 1
       - word: leaf
         ipa: /liːf/
-        difficulty: 1
       - word: leave
         ipa: /liːv/
-        difficulty: 1
       - word: half
         ipa: /hæf/
-        difficulty: 2
       - word: have
         ipa: /hæv/
-        difficulty: 1
       - word: belief
         ipa: /bɪˈliːf/
-        difficulty: 2
       - word: believe
         ipa: /bɪˈliːv/
-        difficulty: 2
       - word: proof
         ipa: /pruːf/
-        difficulty: 1
       - word: prove
         ipa: /pruːv/
-        difficulty: 1
       - word: life
         ipa: /laɪf/
-        difficulty: 1
       - word: live
         ipa: /lɪv/
-        difficulty: 1
       - word: relief
         ipa: /rɪˈliːf/
-        difficulty: 2
       - word: five
         ipa: /faɪv/
-        difficulty: 1
       - word: fish
         ipa: /fɪʃ/
-        difficulty: 1
     twisters:
       - Five fine fresh fish for you.
 
