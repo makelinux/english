@@ -481,6 +481,18 @@ def _log_feedback(word, fb):
         f.write(f"{date.today()} {word}: {fb}\n")
 
 
+_CLEAN_RE = re.compile(r'[\"\'()"/,.]')
+
+
+def _speak_feedback(fb):
+    for s in re.split(r'(?<=[.!]) ', fb):
+        s = s.strip()
+        if not s:
+            continue
+        print(f"  {DIM}{s}{RST}")
+        speak_tutor(_CLEAN_RE.sub('', s))
+
+
 def _do_feedback(raw, word, ipa, info, h=None):
     """Returns (good, feedback_text). Info line already printed."""
     try:
@@ -494,8 +506,7 @@ def _do_feedback(raw, word, ipa, info, h=None):
     if good:
         print(f"\033[A\r\033[K{info},  {DIM}{fb}{RST}")
     else:
-        print(f"  {DIM}{fb}{RST}")
-        speak_tutor(re.sub(r'[\"\'()"/,.]', '', fb))
+        _speak_feedback(fb)
     _log_feedback(word, fb)
     if h and word in h["words"]:
         h["words"][word]["feedback"] = fb
@@ -702,10 +713,11 @@ def practice_twisters(h, cont=False):
                     print(f"  Feedback error: {e}")
                     fb = None
                 if fb:
-                    print(f"  {fb}")
                     _log_feedback(text, fb)
-                    if fb.strip() != "Good":
-                        speak_tutor(re.sub(r'[\"\'()"/,.]', '', fb))
+                    if fb.strip() == "Good":
+                        print(f"  {DIM}{fb}{RST}")
+                    else:
+                        _speak_feedback(fb)
                 if cont:
                     print()
                     k = wait_key(1)
