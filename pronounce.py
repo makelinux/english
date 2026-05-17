@@ -71,6 +71,10 @@ def load_data():
     data = Box(raw)
     data.prompts.sysprompt = data.prompts.sysprompt.format(no_ipa=_no_ipa())
     data.stt_equiv = [set(g) for g in data.stt_equiv or []]
+    data.twisters = []
+    for gid, g in data.phonemes.items():
+        for t in g.get("twisters", []):
+            data.twisters.append({"text": t, "group": gid})
 
 
 def load_history():
