@@ -8,11 +8,9 @@ import urllib.request
 
 from cefrpy import CEFRAnalyzer
 from nltk.corpus import wordnet as wn
-from nltk.stem import WordNetLemmatizer
 from wordfreq import zipf_frequency, top_n_list
 
 _cefr = CEFRAnalyzer()
-_lem = WordNetLemmatizer()
 _top = {w: i + 1 for i, w in enumerate(top_n_list('en', 1000))}
 
 
@@ -60,24 +58,94 @@ def word_header(w, lang=None):
 p = argparse.ArgumentParser(description="English word lookup")
 p.add_argument("words", nargs="+", help="words to look up")
 p.add_argument("--lang", help="translate to language (e.g. ru, de, fr)")
+p.add_argument("-d", "--debug", action="store_true", help="dump all synsets")
 a = p.parse_args()
 
-def find_root(w):
-    """Find lemma/root trying all POS."""
-    for pos in ('v', 'n', 'a', 'r'):
-        r = _lem.lemmatize(w, pos)
-        if r != w:
-            return r
+_prefixes = sorted([
+    'un', 're', 'pre', 'dis', 'mis', 'over', 'under', 'out',
+    'in', 'im', 'ir', 'il', 'non', 'anti', 'de', 'en', 'em',
+    'inter', 'trans', 'super', 'semi', 'sub', 'co', 'counter',
+    'fore', 'mid', 'self', 'ex', 'post', 'bi', 'tri', 'multi',
+], key=len, reverse=True)
+
+_suffixes = sorted([
+    'ness', 'ment', 'able', 'ible', 'ful', 'less', 'ous',
+    'ive', 'al', 'ial', 'ation', 'tion', 'sion', 'er', 'or',
+    'ist', 'ism', 'ity', 'ence', 'ance', 'ly', 'ward', 'wise',
+    'ing', 'ed', 'en',
+], key=len, reverse=True)
+
+
+def _valid(w):
+    return len(w) >= 2 and wn.synsets(w)
+
+
+def _strip_suffix(w):
+    for s in _suffixes:
+        if not w.endswith(s) or len(w) <= len(s) + 1:
+            continue
+        base = w[:-len(s)]
+        if _valid(base):
+            return base, s
+        if base.endswith('i'):
+            c = base[:-1] + 'y'
+            if _valid(c):
+                return c, s
+        if _valid(base + 'e'):
+            return base + 'e', s
+        if len(base) >= 2 and base[-1] == base[-2]:
+            c = base[:-1]
+            if _valid(c):
+                return c, s
+    return w, None
+
+
+def _split_compound(w):
+    for i in range(3, len(w) - 2):
+        a, b = w[:i], w[i:]
+        if _valid(a) and _valid(b):
+            return a, b
     return None
+
+
+def split_morphemes(w):
+    w = w.lower()
+    prefix = None
+    for p in _prefixes:
+        if w.startswith(p) and len(w) > len(p) + 1:
+            rest = w[len(p):]
+            root, suffix = _strip_suffix(rest)
+            if _valid(root):
+                prefix = p
+                w = rest
+                break
+    root, suffix = _strip_suffix(w)
+    parts = []
+    if prefix:
+        parts.append(('prefix', prefix))
+    comp = _split_compound(root)
+    if comp:
+        parts.append(('root', comp[0]))
+        parts.append(('root', comp[1]))
+    else:
+        parts.append(('root', root))
+    if suffix:
+        parts.append(('suffix', suffix))
+    return parts
 
 for w in a.words:
     print(word_header(w, a.lang))
     ss = wn.synsets(w)
-    for s in ss[:5]:
+    for s in ss:
         cat = s.lexname().split('.', 1)[-1]
         defn = s.definition()
         d = f"{cat}: {defn}" if cat not in ("all", "ppl") else defn
-        print(f"  {d}")
+        if a.debug:
+            print(f"  [{s.name()}] {d}")
+            for ex in s.examples():
+                print(f"    e.g. {ex}")
+        else:
+            print(f"  {d}")
         for l in s.lemma_names():
             syn = l.replace('_', ' ')
             if syn.lower() != w:
@@ -98,6 +166,10 @@ for w in a.words:
             print(f"  (dictionaryapi.dev / Wiktionary)")
         except Exception as e:
             print(f"  no definition found ({e})")
-    root = find_root(w)
-    if root:
-        print(f"  root: {word_header(root, a.lang)}")
+    parts = split_morphemes(w)
+    if len(parts) > 1:
+        for label, m in parts:
+            if label == 'suffix':
+                print(f"  suffix: -{m}")
+            else:
+                print(f"  {label}: {word_header(m, a.lang)}")
