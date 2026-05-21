@@ -8,9 +8,11 @@ import urllib.request
 
 from cefrpy import CEFRAnalyzer
 from nltk.corpus import wordnet as wn
+from nltk.stem import WordNetLemmatizer
 from wordfreq import zipf_frequency, top_n_list
 
 _cefr = CEFRAnalyzer()
+_lem = WordNetLemmatizer()
 _top = {w: i + 1 for i, w in enumerate(top_n_list('en', 1000))}
 
 
@@ -173,3 +175,9 @@ for w in a.words:
                 print(f"  suffix: -{m}")
             else:
                 print(f"  {label}: {word_header(m, a.lang)}")
+    else:
+        for pos in ('v', 'n', 'a', 'r'):
+            r = _lem.lemmatize(w.lower(), pos)
+            if r != w.lower():
+                print(f"  base: {word_header(r, a.lang)}")
+                break
