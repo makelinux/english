@@ -77,16 +77,18 @@ def _load_words():
         words.append((i, b))
     # remove derived forms when base exists
     bases = {w for _, w in words}
-    _sfx = [('ness', 4), ('ly', 2), ('ment', 4), ('ful', 3),
+    _sfx = [('ably', 3), ('ibly', 3), ('ously', 3), ('ively', 3),
+            ('fulness', 3), ('lessly', 3), ('ically', 5),
+            ('ness', 4), ('ly', 2), ('ment', 4), ('ful', 3),
             ('less', 4), ('ity', 3), ('ism', 3), ('ist', 3),
             ('able', 3), ('ible', 3), ('ive', 3), ('ous', 3),
             ('tion', 3), ('sion', 3), ('er', 3), ('al', 3),
             ('ic', 5), ('ical', 5)]
-    _pfx = ['un', 'dis', 'mis', 'non', 'over',
-            'out', 'sub', 'super', 'anti', 'semi']
+    _pfx = ['un', 'dis', 'mis', 'non', 'over', 'out', 'sub',
+            'super', 'anti', 'semi', 'in', 'im', 'ir', 'il']
     def has_base(s):
         return s in bases or s + 'e' in bases or s + 'y' in bases \
-            or s[:-1] + 'y' in bases
+            or s[:-1] + 'y' in bases or s + 'ate' in bases
     def is_derived(w):
         for sfx, mn in _sfx:
             if w.endswith(sfx) and len(w) - len(sfx) >= mn:
@@ -246,10 +248,11 @@ def estimate():
     if not no_pts:
         y = yes_pts[0]
     result = (y + n) // 2
-    _, w = WORDS[result]
     pct = result * 100 // N
-    lvl = _cefr.get_average_word_level_CEFR(w)
-    lvl = str(lvl) if lvl else "?"
+    for threshold, lvl in [(10000, 'C2'), (6500, 'C1'), (4000, 'B2'),
+                           (2500, 'B1'), (1000, 'A2'), (0, 'A1')]:
+        if result >= threshold:
+            break
     print(f"\nEstimated vocabulary: ~{result:,} / {N:,}, {pct}%, level {lvl}")
     return result
 
