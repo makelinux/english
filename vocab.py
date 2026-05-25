@@ -43,6 +43,14 @@ RST = "\033[0m"
 _CACHE = os.path.expanduser("~/.config/english-pronounce/vocab_cache.yaml")
 
 
+def _circular(w, defn):
+    """Check if definition reuses the word or its stem."""
+    stem = w[:max(4, len(w) - 2)]
+    if len(stem) < 4:
+        return False
+    return any(t.startswith(stem) for t in defn.lower().split())
+
+
 def _load_words():
     """Load lemmatized words sorted by frequency, with definitions."""
     if os.path.exists(_CACHE):
@@ -69,7 +77,7 @@ def _load_words():
         # skip words where all definitions repeat the word
         good = [x for x in ss
                 if any(l[0].islower() for l in x.lemma_names())
-                and b not in x.definition().lower().split()]
+                and not _circular(b, x.definition())]
         if not good:
             continue
         seen.add(b)
@@ -139,7 +147,7 @@ def word_info(w):
         # prefer non-circular synsets with lowercase lemmas
         good = [x for x in s
                 if any(l[0].islower() for l in x.lemma_names())
-                and w not in x.definition().lower().split()]
+                and not _circular(w, x.definition())]
         syn = good[0] if good else s[0]
         cat = syn.lexname().split('.', 1)[-1]
         defn = syn.definition()
@@ -172,10 +180,10 @@ from nltk.corpus import wordnet as _wn
 _wn.synsets('test')  # preload
 
 
-def ask_word(w, norm=0):
+def ask_word(w, lo, hi):
     """Ask about one word. Returns True if known."""
-    pct = norm * 100 // N
-    print(f"  {norm:,} {pct}%  {w} ", end="", flush=True)
+    lp, hp = lo * 100 // N, hi * 100 // N
+    print(f"  {lp}-{hp}%  {w} ", end="", flush=True)
     threading.Thread(target=speak, args=(w,), daemon=True).start()
     while True:
         k = read_key()
@@ -226,7 +234,7 @@ def estimate():
             rank, w = WORDS[mid]
             if pts:
                 time.sleep(1)
-            known = ask_word(w, mid)
+            known = ask_word(w, lo, hi)
             pts.append((mid, known))
             if known:
                 lo = mid + 1
