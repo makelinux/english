@@ -63,13 +63,13 @@ def _load_words():
     for i, w in enumerate(wl):
         if i % 5000 == 0:
             print(f"\rLoading {i*100//len(wl)}%", end="", flush=True)
-        if not w.isalpha() or len(w) < 3:
+        if not w.isalpha() or len(w) < 4:
             continue
         b = w
         for pos in ('n', 'v', 'a', 'r'):
             b = lem.lemmatize(b, pos)
         ss = wn.synsets(b)
-        if len(b) < 3 or b in seen or not ss:
+        if len(b) < 4 or b in seen or not ss:
             continue
         if all(l[0].isupper() for s in ss for l in s.lemma_names()):
             continue
