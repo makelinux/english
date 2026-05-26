@@ -9,14 +9,13 @@ import termios
 import threading
 import time
 import tty
-
-import yaml
 import urllib.parse
 import urllib.request
 
+import yaml
 from cefrpy import CEFRAnalyzer
+from nltk.corpus import wordnet as wn
 from wordfreq import top_n_list, zipf_frequency
-from nltk.stem import WordNetLemmatizer
 
 _cefr = CEFRAnalyzer()
 _lang = None
@@ -56,7 +55,7 @@ def _load_words():
     if os.path.exists(_CACHE):
         with open(_CACHE) as f:
             return [tuple(w) for w in yaml.safe_load(f)]
-    from nltk.corpus import wordnet as wn
+    from nltk.stem import WordNetLemmatizer
     lem = WordNetLemmatizer()
     seen = set()
     words = []
@@ -74,7 +73,6 @@ def _load_words():
             continue
         if all(l[0].isupper() for s in ss for l in s.lemma_names()):
             continue
-        # skip words where all definitions repeat the word
         good = [x for x in ss
                 if any(l[0].islower() for l in x.lemma_names())
                 and not _circular(b, x.definition())]
@@ -93,7 +91,8 @@ def _load_words():
             ('tion', 3), ('sion', 3), ('er', 3), ('al', 3),
             ('ic', 5), ('ical', 5)]
     _pfx = ['un', 'dis', 'mis', 'non', 'over', 'out', 'sub',
-            'super', 'anti', 'semi', 'in', 'im', 'ir', 'il']
+            'super', 'anti', 'semi', 'in', 'im', 'ir', 'il',
+            'de', 're', 'pre']
     def has_base(s):
         return s in bases or s + 'e' in bases or s + 'y' in bases \
             or s[:-1] + 'y' in bases or s + 'ate' in bases
@@ -140,7 +139,6 @@ def read_key():
 
 def word_info(w):
     """Get definition, CEFR level, and frequency for a word."""
-    wn = _wn
     parts = []
     s = wn.synsets(w)
     if s:
@@ -176,8 +174,7 @@ def word_info(w):
 
 
 from pronounce import speak
-from nltk.corpus import wordnet as _wn
-_wn.synsets('test')  # preload
+wn.synsets('test')  # preload
 
 
 def ask_word(w, lo, hi):
@@ -219,7 +216,13 @@ def ask_word(w, lo, hi):
 
 
 def estimate():
-    """Pure bisection search for vocabulary boundary."""
+    """Fuzzy bisection search for vocabulary boundary.
+
+    Bounds move halfway to mid instead of jumping fully,
+    ~20 questions to converge. Stops when displayed lo%
+    and hi% match. Randomized ±1/6 spread reduces bias
+    from non-monotonic word difficulty.
+    """
     lo, hi = 0, N
     glob = WORDS[-1][0]
     print(f"Vocabulary size estimator ({N:,} normalized, {glob:,} global)")
@@ -227,8 +230,10 @@ def estimate():
 
     pts = []
     try:
-        while hi - lo > 25:
+        # stop when lo% == hi% (displayed percentages converge)
+        while lo * 100 // N < hi * 100 // N:
             mid = (lo + hi) // 2
+            # jitter ±1/6 of range to avoid always hitting same word
             spread = (hi - lo) // 6
             mid = random.randint(mid - spread, mid + spread)
             rank, w = WORDS[mid]
@@ -236,10 +241,12 @@ def estimate():
                 time.sleep(1)
             known = ask_word(w, lo, hi)
             pts.append((mid, known))
+            # move bounds halfway to mid (not fully) — tolerates
+            # ~20% wrong answers without ruining the estimate
             if known:
-                lo = mid + 1
+                lo = (lo + mid + 1) // 2
             else:
-                hi = mid
+                hi = (hi + mid) // 2
     except KeyboardInterrupt:
         if not pts:
             print("\nAborted.")
