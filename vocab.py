@@ -173,15 +173,17 @@ def word_info(w):
     return "  ".join(parts) or "?"
 
 
-from pronounce import speak
 wn.synsets('test')  # preload
+_silent = False
 
 
 def ask_word(w, lo, hi):
     """Ask about one word. Returns True if known."""
     lp, hp = lo * 100 // N, hi * 100 // N
     print(f"  {lp}-{hp}%  {w} ", end="", flush=True)
-    threading.Thread(target=speak, args=(w,), daemon=True).start()
+    if not _silent:
+        from pronounce import speak
+        threading.Thread(target=speak, args=(w,), daemon=True).start()
     while True:
         k = read_key()
         if k == '\x1b':
@@ -215,67 +217,112 @@ def ask_word(w, lo, hi):
     return known
 
 
-def estimate():
+def _search(ask_fn):
     """Fuzzy bisection search for vocabulary boundary.
 
     Bounds move halfway to mid instead of jumping fully,
     ~20 questions to converge. Stops when displayed lo%
     and hi% match. Randomized ±1/6 spread reduces bias
     from non-monotonic word difficulty.
+
+    ask_fn(word, lo, hi) -> bool (known or not)
     """
     lo, hi = 0, N
-    glob = WORDS[-1][0]
-    print(f"Vocabulary size estimator ({N:,} normalized, {glob:,} global)")
+    pts = []
+    # stop when displayed percentages converge or gap < 1%
+    while lo * 100 // N < hi * 100 // N and hi - lo > N // 100:
+        mid = (lo + hi) // 2
+        # jitter ±1/6 of range to avoid always hitting same word
+        spread = (hi - lo) // 6
+        mid = random.randint(mid - spread, mid + spread)
+        rank, w = WORDS[mid]
+        known = ask_fn(w, lo, hi)
+        pts.append((mid, known))
+        # move bounds halfway to mid (not fully) — tolerates
+        # ~20% wrong answers without ruining the estimate
+        if known:
+            lo = (lo + mid + 1) // 2
+        else:
+            hi = (hi + mid) // 2
+    # edge cases: all yes → knows everything, all no → knows nothing
+    if not any(not k for _, k in pts):
+        result = N
+    elif not any(k for _, k in pts):
+        result = 0
+    else:
+        result = (lo + hi) // 2
+    return result, len(pts)
+
+
+def estimate():
+    print(f"Vocabulary size estimator ({N // 1000}K words)")
     print(f"{DIM}y/right = know, n/left = don't, q = quit{RST}\n")
 
-    pts = []
-    try:
-        # stop when lo% == hi% (displayed percentages converge)
-        while lo * 100 // N < hi * 100 // N:
-            mid = (lo + hi) // 2
-            # jitter ±1/6 of range to avoid always hitting same word
-            spread = (hi - lo) // 6
-            mid = random.randint(mid - spread, mid + spread)
-            rank, w = WORDS[mid]
-            if pts:
-                time.sleep(1)
-            known = ask_word(w, lo, hi)
-            pts.append((mid, known))
-            # move bounds halfway to mid (not fully) — tolerates
-            # ~20% wrong answers without ruining the estimate
-            if known:
-                lo = (lo + mid + 1) // 2
-            else:
-                hi = (hi + mid) // 2
-    except KeyboardInterrupt:
-        if not pts:
-            print("\nAborted.")
-            return
-        print()
+    def ask(w, lo, hi):
+        if hasattr(estimate, '_first'):
+            time.sleep(1)
+        estimate._first = True
+        return ask_word(w, lo, hi)
 
-    # robust estimate: skip outliers by taking 2nd extremes
-    yes_pts = sorted((p for p, k in pts if k), reverse=True)
-    no_pts = sorted(p for p, k in pts if not k)
-    y = yes_pts[min(1, len(yes_pts) - 1)] if yes_pts else 0
-    n = no_pts[min(1, len(no_pts) - 1)] if no_pts else N
-    if not yes_pts:
-        n = no_pts[0]
-    if not no_pts:
-        y = yes_pts[0]
-    result = (y + n) // 2
+    try:
+        result, _ = _search(ask)
+    except KeyboardInterrupt:
+        print("\nAborted.")
+        return
+
     pct = result * 100 // N
     for threshold, lvl in [(10000, 'C2'), (6500, 'C1'), (4000, 'B2'),
                            (2500, 'B1'), (1000, 'A2'), (0, 'A1')]:
         if result >= threshold:
             break
-    print(f"\nEstimated vocabulary: ~{result:,} / {N:,}, {pct}%, level {lvl}")
+    rk = (result + 500) // 1000
+    print(f"\nEstimated vocabulary: ~{rk}K / {N // 1000}K, {pct}%, level {lvl}")
     return result
+
+
+def _test():
+    ok = True
+
+    r, n = _search(lambda w, lo, hi: True)
+    if r != N:
+        print(f"FAIL all-yes: expected {N}, got {r}")
+        ok = False
+    if n > 30:
+        print(f"FAIL all-yes: {n} iterations > 30")
+        ok = False
+
+    r, n = _search(lambda w, lo, hi: False)
+    if r != 0:
+        print(f"FAIL all-no: expected 0, got {r}")
+        ok = False
+    if n > 30:
+        print(f"FAIL all-no: {n} iterations > 30")
+        ok = False
+
+    boundary = N // 2
+    r, n = _search(lambda w, lo, hi: WORDS[(lo + hi) // 2][0] < WORDS[boundary][0])
+    pct = r * 100 // N
+    if not 40 <= pct <= 60:
+        print(f"FAIL 50% boundary: got {pct}%")
+        ok = False
+    if n > 30:
+        print(f"FAIL 50% boundary: {n} iterations > 30")
+        ok = False
+
+    if ok:
+        print(f"OK  all-yes=100% all-no=0% mid={pct}% iterations={n}")
+    return ok
 
 
 if __name__ == "__main__":
     import argparse
     p = argparse.ArgumentParser(description="Vocabulary size estimator")
     p.add_argument("--lang", help="translate to language (e.g. ru, de, fr)")
+    p.add_argument("-s", "--silent", action="store_true", help="no audio")
+    p.add_argument("--test", action="store_true", help="run self-test")
     a = p.parse_args()
     _lang = a.lang
+    _silent = a.silent
+    if a.test:
+        sys.exit(0 if _test() else 1)
     estimate()
