@@ -74,7 +74,7 @@ def load_data():
         raw = yaml.safe_load(f)
     global data
     data = Box(raw)
-    data.prompts.sysprompt = data.prompts.sysprompt.format(no_ipa=_no_ipa())
+    data.prompts.sysprompt = data.prompts.sysprompt.format(extra=_sysprompt_extra())
     aliases = {}
     for line in (data.stt_aliases or "").strip().split('\n'):
         if line:
@@ -289,8 +289,11 @@ def update_history(h, gid, word, pct):
     g["last"] = str(date.today())
 
 
-def _no_ipa():
-    return "" if os.getenv("GOOGLE_API_KEY") else " No IPA symbols."
+def _sysprompt_extra():
+    # gTTS can't render IPA and inserts pauses after ~15 words
+    if audio.tutor_voice == "gTTS":
+        return " No IPA symbols. No more than 15 words per sentence."
+    return ""
 
 
 def _load_audio_file(path):
