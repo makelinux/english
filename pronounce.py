@@ -560,7 +560,9 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
     best = 0
     last_raw = None
     lb_s = ""
+    tries = 0
     while True:
+        tries += 1
         clear_line()
         hide_cursor()
         if debug:
@@ -625,7 +627,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
             elif c == "s":
                 break
 
-    return best, last_raw
+    return best, last_raw, tries
 
 
 def _assess_one(text, ipa):
@@ -816,13 +818,13 @@ def practice_phonemes(gid, h, cont=False, debug=False):
 
     try:
         for i, w in enumerate(words):
-            best, raw = practice_word(
+            best, raw, tries = practice_word(
                 w, rec, f"{i + 1}/{len(words)}: ", cont, debug, prev, h)
             if raw:
                 prev = (raw, w.word, w.ipa)
             if best == -1:
                 break
-            results.append((w.word, best))
+            results.append((w.word, best, tries))
             update_history(h, gid, w.word, best)
 
             if i < len(words) - 1:
@@ -846,26 +848,12 @@ def practice_phonemes(gid, h, cont=False, debug=False):
         if cont:
             restore_term()
 
-    total = len(results)
-    if not total:
-        return
-    avg = sum(p for _, p in results) / total
-    good = sum(1 for _, p in results if p >= 80)
-    ok = sum(1 for _, p in results if 40 <= p < 80)
-    bad = sum(1 for _, p in results if p < 40)
-
-    print(f"\nSession summary")
-    print(f"  Words practiced: {total}")
-    print(f"  Average score: {avg:.0f}%")
-    print(f"  Good (>=80%): {good}")
-    print(f"  Needs work (40-79%): {ok}")
-    print(f"  Struggled (<40%): {bad}")
-
-    if bad:
-        print("\n  Words to focus on:")
-        for w, p in sorted(results, key=lambda x: x[1]):
-            if p < 40:
-                print(f"    {w} - {p}%")
+    hard = [(w, t) for w, _, t in results if t > 1]
+    if hard:
+        hard.sort(key=lambda x: -x[1])
+        print()
+        for w, t in hard:
+            print(f"  {w} - {t} tries")
 
     save_history(h)
 
