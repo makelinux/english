@@ -2,6 +2,7 @@
 """English pronunciation trainer - practice words grouped by phoneme."""
 
 import argparse
+import atexit
 import os
 import random
 import re
@@ -128,8 +129,20 @@ def clear_line():
     print("\r\033[K", end="", flush=True)
 
 
+def hide_cursor():
+    print("\033[?25l", end="", flush=True)
+
+
+def show_cursor():
+    print("\033[?25h", end="", flush=True)
+
+
+atexit.register(show_cursor)
+
+
 def wait_key(timeout=2):
     """Returns key pressed or None."""
+    show_cursor()
     if _term_saved:
         key = None
         while select.select([sys.stdin], [], [], 0)[0]:
@@ -210,6 +223,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.5,
         sim_ref = get_ref_path(word)
         key = None
         while True:
+            show_cursor()
             raw, spoke, key = record_audio(
                 duration=duration, pause=pause,
                 on_chunk=on_chunk,
@@ -221,6 +235,7 @@ def record_word(word, rec, prefix="", duration=5, pause=0.5,
             peak_raw = int(np.max(np.abs(np.frombuffer(raw, dtype=np.int16))))
             if spoke and peak_raw > 1000:
                 break
+        hide_cursor()
         print(f"\r\033[K{prefix}", end="", flush=True)
         samples = np.frombuffer(raw, dtype=np.int16)
         peak = int(np.max(np.abs(samples)))
@@ -547,6 +562,7 @@ def practice_word(w, rec, num="", cont=False, debug=False, prev=None, h=None):
     lb_s = ""
     while True:
         clear_line()
+        hide_cursor()
         if debug:
             lb = [None]
             t = threading.Thread(
@@ -618,6 +634,7 @@ def _assess_one(text, ipa):
     if ipa:
         print(f"  {DIM}{ipa}{RST}")
     print()
+    hide_cursor()
     print(f"  {DIM}Listen first...{RST}", end="", flush=True)
     speak(text)
     print("\r\033[K", end="")
@@ -702,6 +719,7 @@ def practice_twisters(h, cont=False):
             pw = len(text.split())
             while True:
                 print(f"  {text}")
+                hide_cursor()
                 print(f"  {DIM}Listen...{RST}", end="", flush=True)
                 speak(text)
                 clear_line()
