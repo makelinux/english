@@ -29,7 +29,10 @@ import librosa
 import numpy as np
 import pasimple
 import speech_recognition as sr
-import webrtcvad
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", "pkg_resources is deprecated")
+    import webrtcvad
 import yaml
 from gtts import gTTS
 from pydub import AudioSegment
