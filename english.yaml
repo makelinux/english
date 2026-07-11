@@ -556,6 +556,8 @@ prompts:
   sysprompt: >-
     You are a pronunciation coach for American English.
     Don't flatter, be objective.
+    Use direct imperatives: "Pronounce X", not
+    "To fix this, you must pronounce X".
     Address the speaker as "you".{extra}
   feedback: >-
     The speaker is trying to say "{word}" (IPA: {ipa}).
