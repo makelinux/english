@@ -448,8 +448,9 @@ def show_stats(h):
 def list_groups():
     print("\nPhoneme groups:\n")
     for gid, g in data.phonemes.items():
-        n = len(g.words)
-        print(f"  {gid:20s} - {g.name} ({n} words)")
+        words = ' '.join(w.word for w in g.words)
+        print(f"  {gid:20s} - {g.name}")
+        print(f"  {' ' * 20}   {DIM}{words}{RST}")
 
 
 def select_group(h):
@@ -476,7 +477,9 @@ def select_group(h):
             acc = group_accuracy(h, gid)
             tag = f" {acc:.0%}" if acc >= 0 else " new"
             names.append(f"{g.name}{tag}")
+        words = ' '.join(w.word for gid in gids for w in data.phonemes[gid].words)
         print(f"  {k} - {' / '.join(names)}")
+        print(f"      {DIM}{words}{RST}")
     print(f"  ? - weakest group")
     print(f"  / - least recent group")
     print()
@@ -486,9 +489,14 @@ def select_group(h):
         c = wait_key(None)
         clear_line()
         if c == '?':
-            accs = [(gid, group_accuracy(h, gid)) for gid in data.phonemes]
+            accs = [(gid, group_accuracy(h, gid))
+                    for gid in data.phonemes]
             accs.sort(key=lambda x: x[1])
-            return random.choice([g for g, _ in accs[:3]])
+            floor = accs[0][1] + 0.01
+            pool = [g for g, a in accs if a <= floor]
+            random.shuffle(pool)
+            pool.sort(key=lambda g: h["groups"].get(g, {}).get("last", ""))
+            return pool[0]
         if c == '/':
             by_date = [(gid, h["groups"].get(gid, {}).get("last", ""))
                        for gid in data.phonemes]
@@ -800,6 +808,9 @@ _VOWEL_GROUPS = {"vowel_pairs", "diphthongs", "schwa", "ei_ai", "r_vowels"}
 
 def practice_phonemes(gid, h, cont=False, debug=False):
     g = data.phonemes[gid]
+    if gid not in h["groups"]:
+        h["groups"][gid] = {"attempts": 0, "correct": 0}
+    h["groups"][gid]["last"] = str(date.today())
     print(f"\n{g.name}")
     print(f"  {g.description}")
     if gid in _VOWEL_GROUPS:
@@ -1164,7 +1175,13 @@ def main():
         print("\r\033[K", end="")
 
     if a.group or a.weak or a.old:
-        _run_phonemes(a, h)
+        try:
+            _run_phonemes(a, h)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            restore_term()
+            save_history(h)
         return
 
     print("English pronunciation trainer\n")
@@ -1216,7 +1233,12 @@ def _run_phonemes(a, h):
         accs = [(gid, group_accuracy(h, gid))
                 for gid in data.phonemes.keys()]
         accs.sort(key=lambda x: x[1])
-        gid = random.choice([g for g, _ in accs[:3]])
+        # include all groups within 1% of the weakest
+        floor = accs[0][1] + 0.01
+        pool = [g for g, a in accs if a <= floor]
+        random.shuffle(pool)
+        pool.sort(key=lambda g: h["groups"].get(g, {}).get("last", ""))
+        gid = pool[0]
     elif a.old:
         by_date = [(gid, h["groups"].get(gid, {}).get("last", ""))
                    for gid in data.phonemes.keys()]
