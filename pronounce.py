@@ -51,6 +51,10 @@ def load_cfg():
             c = yaml.safe_load(f)
         if c:
             cfg.update(c)
+    else:
+        cfg.sim_voice = audio.sim_voice
+        cfg.tutor_voice = audio.tutor_voice
+        save_cfg()
     if cfg.get("voice") and not cfg.get("sim_voice"):
         cfg.sim_voice = cfg.pop("voice")
     if cfg.get("sim_voice"):
