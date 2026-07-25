@@ -20,6 +20,8 @@ phonemes:
       smooth /smuːð/
       rather /ˈræðər/
       whether /ˈwɛðər/
+      then /ðɛn/
+      den /dɛn/
     twisters: |
       Whether the weather is warm, whether the weather is hot, we have to put up with the weather, whether we like it or not.
 
@@ -45,6 +47,11 @@ phonemes:
       both /boʊθ/
       thirty /ˈθɜːrti/
       thieves /θiːvz/
+      tree /triː/
+      free /friː/
+      sink /sɪŋk/
+      path /pæθ/
+      pass /pæs/
     twisters: |
       The thirty-three thieves thought that they thrilled the throne throughout Thursday.
 
@@ -99,7 +106,7 @@ phonemes:
       Red lorry, yellow lorry, red lorry, yellow lorry.
 
   vowel_pairs:
-    name: vowel pairs (æ/ɛ, iː/ɪ, uː/ʊ)
+    name: vowel pairs (æ/ɛ, iː/ɪ, uː/ʊ, ɔː/ʌ)
     key: v
     description: distinguish short vs long and similar vowels
     words: |
@@ -120,6 +127,33 @@ phonemes:
       sheep /ʃiːp/
       fool /fuːl/
       full /fʊl/
+      bought /bɔːt/
+      but /bʌt/
+      ought /ɔːt/
+      out /aʊt/
+      hot /hɑːt/
+      cot /kɑːt/
+      caught /kɔːt/
+      cut /kʌt/
+      luck /lʌk/
+      lock /lɑːk/
+      look /lʊk/
+      shut /ʃʌt/
+      shot /ʃɑːt/
+      wonder /ˈwʌndər/
+      wander /ˈwɑːndər/
+      dawn /dɔːn/
+      done /dʌn/
+      down /daʊn/
+      collar /ˈkɑːlər/
+      color /ˈkʌlər/
+      caller /ˈkɔːlər/
+      not /nɑːt/
+      nut /nʌt/
+      note /noʊt/
+      fill /fɪl/
+      feel /fiːl/
+      fell /fɛl/
       unique /juːˈniːk/
     twisters: |
       Unique New York, you know you need unique New York.
@@ -439,6 +473,15 @@ phonemes:
       square /skwɛr/
       borrow /ˈbɑːroʊ/
       borough /ˈbɜːroʊ/
+      were /wɜːr/
+      where /wɛr/
+      war /wɔːr/
+      bear /bɛr/
+      beer /bɪr/
+      bar /bɑːr/
+      hurt /hɜːrt/
+      far /fɑːr/
+      fur /fɜːr/
     twisters: |
       Around the rugged rocks the ragged rascal ran.
 
