@@ -333,16 +333,44 @@ def _ask_ai(raw, prompt):
     return re.sub(r'"(\w+)([.,])"', r'"\1"\2', fb)
 
 
+_last_gemini = 0
+_genai_client = None
+
+
 def _ask_gemini(wav, prompt):
-    import google.generativeai as genai
+    global _last_gemini, _genai_client
+    from google import genai
+    from google.genai import types
+    now = time.time()
+    gap = now - _last_gemini if _last_gemini else 0
     status(f"  {DIM}gemini-flash-latest ...{RST}")
-    m = genai.GenerativeModel("gemini-flash-latest",
-                              system_instruction=data.prompts.sysprompt)
-    r = m.generate_content([
-        prompt, {"mime_type": "audio/wav", "data": wav},
-    ])
-    status()
-    return r.text.strip()
+    if _genai_client is None:
+        _genai_client = genai.Client()
+    c = _genai_client
+    cfg = types.GenerateContentConfig(system_instruction=data.prompts.sysprompt)
+    for attempt in range(3):
+        try:
+            _last_gemini = time.time()
+            r = c.models.generate_content(
+                model="gemini-flash-latest",
+                contents=[
+                    prompt,
+                    types.Part.from_bytes(data=wav, mime_type="audio/wav"),
+                ],
+                config=cfg,
+            )
+            status()
+            return r.text.strip()
+        except Exception as e:
+            if attempt < 2 and ("400" in str(e) or "500" in str(e)):
+                status(f"  {DIM}retry {attempt + 1}, {len(wav)}B"
+                       f" gap={time.time() - now:.1f}s, {e}{RST}")
+                time.sleep(1)
+                continue
+            status()
+            raise Exception(
+                f"{e}, wav={len(wav)}B"
+                f" gap={gap:.1f}s prompt={prompt[:60]}")
 
 
 def _ask_openai(wav, prompt):
@@ -1003,12 +1031,18 @@ def test_services():
     raw = _ref_raw("hello")
     p = data.prompts.feedback.format(word="hello", ipa="/hɛˈloʊ/")
     def _test_model(model):
-        import google.generativeai as genai
-        m = genai.GenerativeModel(model,
-                                  system_instruction=data.prompts.sysprompt)
-        r = m.generate_content([
-            p, {"mime_type": "audio/wav", "data": _raw_to_wav(raw)},
-        ])
+        from google import genai
+        from google.genai import types
+        c = genai.Client()
+        cfg = types.GenerateContentConfig(system_instruction=data.prompts.sysprompt)
+        r = c.models.generate_content(
+            model=model,
+            contents=[
+                p,
+                types.Part.from_bytes(data=_raw_to_wav(raw), mime_type="audio/wav"),
+            ],
+            config=cfg,
+        )
         return r.text.strip()
     svcs = [
         ("gemini-flash-latest feedback", lambda:

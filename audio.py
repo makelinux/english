@@ -99,13 +99,19 @@ def get_ref_path(word, v=None):
     return REF_DIR / f"{name}-{v or sim_voice}.wav"
 
 
+_genai_client = None
+
+
 def _gemini_tts_wav(text, v=None):
     """Returns AudioSegment or None."""
+    global _genai_client
     try:
         from google import genai
         from google.genai import types
         status(f"  {DIM}gemini-3.1-flash-tts ...{RST}")
-        c = genai.Client()
+        if _genai_client is None:
+            _genai_client = genai.Client()
+        c = _genai_client
         r = c.models.generate_content(
             model="gemini-3.1-flash-tts-preview",
             contents=text,
