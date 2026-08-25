@@ -2,6 +2,7 @@
 """Look up English word info: frequency, definition, synonyms, CEFR, translation."""
 
 import argparse
+import inspect
 import json
 import urllib.parse
 import urllib.request
@@ -57,11 +58,22 @@ def word_header(w, lang=None):
     return h
 
 
+DIM = "\033[2m"
+RST = "\033[0m"
+_debug = False
+
+
+def _dbg(*args):
+    if _debug:
+        f = inspect.stack()[1]
+        print(f"  {DIM}word.py:{f.lineno} {' '.join(str(x) for x in args)}{RST}")
+
 p = argparse.ArgumentParser(description="English word lookup")
 p.add_argument("words", nargs="+", help="words to look up")
 p.add_argument("--lang", help="translate to language (e.g. ru, de, fr)")
 p.add_argument("-d", "--debug", action="store_true", help="dump all synsets")
 a = p.parse_args()
+_debug = a.debug
 
 _prefixes = sorted([
     'un', 're', 'pre', 'dis', 'mis', 'over', 'under', 'out',
@@ -87,17 +99,22 @@ def _strip_suffix(w):
         if not w.endswith(s) or len(w) <= len(s) + 1:
             continue
         base = w[:-len(s)]
+        _dbg(f"try -{s}: base={base}")
         if _valid(base):
+            _dbg(f"strip -{s} -> {base}")
             return base, s
         if base.endswith('i'):
             c = base[:-1] + 'y'
             if _valid(c):
+                _dbg(f"strip -{s}, i->y -> {c}")
                 return c, s
         if _valid(base + 'e'):
+            _dbg(f"strip -{s}, +e -> {base}e")
             return base + 'e', s
         if len(base) >= 2 and base[-1] == base[-2]:
             c = base[:-1]
             if _valid(c):
+                _dbg(f"strip -{s}, dedup -> {c}")
                 return c, s
     return w, None
 
@@ -106,18 +123,22 @@ def _split_compound(w):
     for i in range(3, len(w) - 2):
         a, b = w[:i], w[i:]
         if _valid(a) and _valid(b):
+            _dbg(f"compound: {a} + {b}")
             return a, b
     return None
 
 
 def split_morphemes(w):
     w = w.lower()
+    _dbg(f"morphemes: {w}")
     prefix = None
     for p in _prefixes:
         if w.startswith(p) and len(w) > len(p) + 1:
             rest = w[len(p):]
+            _dbg(f"try prefix {p}- rest={rest}")
             root, suffix = _strip_suffix(rest)
             if _valid(root):
+                _dbg(f"prefix {p}- root={root}")
                 prefix = p
                 w = rest
                 break
@@ -136,8 +157,10 @@ def split_morphemes(w):
     return parts
 
 for w in a.words:
+    _dbg(f"lookup: {w}")
     print(word_header(w, a.lang))
     ss = wn.synsets(w)
+    _dbg(f"synsets: {len(ss)}")
     for s in ss:
         cat = s.lexname().split('.', 1)[-1]
         defn = s.definition()
@@ -153,6 +176,7 @@ for w in a.words:
             if syn.lower() != w:
                 print(f"    {word_header(syn, a.lang)}")
     if not ss:
+        _dbg(f"no synsets, trying dictionaryapi")
         try:
             u = f"https://api.dictionaryapi.dev/api/v2/entries/en/{urllib.parse.quote(w)}"
             req = urllib.request.Request(u, headers={"User-Agent": "word.py"})
@@ -168,6 +192,7 @@ for w in a.words:
             print(f"  (dictionaryapi.dev / Wiktionary)")
         except Exception as e:
             print(f"  no definition found ({e})")
+    _dbg(f"lemmatize: {' '.join(f'{p}={_lem.lemmatize(w.lower(), p)}' for p in 'vnar')}")
     parts = split_morphemes(w)
     if len(parts) > 1:
         for label, m in parts:
