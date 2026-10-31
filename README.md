@@ -110,10 +110,11 @@ Groups and words are defined in `english.yaml`.
 
 - Gemini (default) - set `GOOGLE_API_KEY` env variable
 - Anthropic-compatible - set `ANTHROPIC_API_KEY`,
-  `ANTHROPIC_BASE_URL`, and comma-separated `ANTHROPIC_MODELS`
-  env variables
+  optional `ANTHROPIC_BASE_URL`, and comma-separated
+  `ANTHROPIC_MODELS` env variables
 - OpenAI-compatible - set `OPENAI_API_KEY`, `OPENAI_BASE_URL`,
-  and comma-separated `OPENAI_MODELS` env variables
+  optional `OPENAI_BASE_URL`, and comma-separated `OPENAI_MODELS`
+  env variables
 - OpenAI-compatible feedback (llama-stack, etc) - configure in
   `~/.config/english-pronounce/config.yaml`:
 

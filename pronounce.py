@@ -1030,8 +1030,7 @@ def calibrate():
 def test_anthropic_api():
     models = [m.strip() for m in
               os.getenv("ANTHROPIC_MODELS", "").split(",") if m.strip()]
-    if not (os.getenv("ANTHROPIC_API_KEY") and
-            os.getenv("ANTHROPIC_BASE_URL") and models):
+    if not (os.getenv("ANTHROPIC_API_KEY") and models):
         return []
 
     from anthropic import Anthropic
@@ -1046,7 +1045,8 @@ def test_anthropic_api():
         return next(b.text for b in r.content
                     if b.type == "text").strip()
 
-    return [(f"anthropic {m}", lambda m=m: ask(m)) for m in models]
+    url = os.getenv("ANTHROPIC_BASE_URL", "")
+    return [(f"anthropic {url} {m}", lambda m=m: ask(m)) for m in models]
 
 
 def test_openai_api():
@@ -1067,7 +1067,8 @@ def test_openai_api():
         )
         return r.choices[0].message.content.strip()
 
-    return [(f"openai {m}", lambda m=m: ask(m)) for m in models]
+    url = os.getenv("OPENAI_BASE_URL", "")
+    return [(f"openai {url} {m}", lambda m=m: ask(m)) for m in models]
 
 
 def test_services():
