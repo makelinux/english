@@ -1027,6 +1027,28 @@ def calibrate():
     print(f"\n  Saved to {CAL_FILE}")
 
 
+def test_anthropic_api():
+    models = [m.strip() for m in
+              os.getenv("ANTHROPIC_MODELS", "").split(",") if m.strip()]
+    if not (os.getenv("ANTHROPIC_API_KEY") and
+            os.getenv("ANTHROPIC_BASE_URL") and models):
+        return []
+
+    from anthropic import Anthropic
+    c = Anthropic()
+
+    def ask(m):
+        r = c.messages.create(
+            model=m,
+            max_tokens=512,
+            messages=[{"role": "user", "content": "Reply with exactly OK."}],
+        )
+        return next(b.text for b in r.content
+                    if b.type == "text").strip()
+
+    return [(f"anthropic {m}", lambda m=m: ask(m)) for m in models]
+
+
 def test_services():
     raw = _ref_raw("hello")
     p = data.prompts.feedback.format(word="hello", ipa="/hɛˈloʊ/")
@@ -1052,10 +1074,12 @@ def test_services():
         ("gemini-3.1-flash-tts TTS", lambda:
          _gemini_tts_wav("test")),
     ]
+
     if cfg.openai:
         m = cfg.openai.model or "gemini/gemini-2.5-flash"
         svcs.append((f"openai {m} feedback", lambda:
                      _ask_openai(_raw_to_wav(raw), p)))
+    svcs.extend(test_anthropic_api())
     svcs.append(("gTTS", lambda: speak("test")))
 
     for name, fn in svcs:
