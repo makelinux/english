@@ -112,7 +112,9 @@ Groups and words are defined in `english.yaml`.
 - Anthropic-compatible - set `ANTHROPIC_API_KEY`,
   `ANTHROPIC_BASE_URL`, and comma-separated `ANTHROPIC_MODELS`
   env variables
-- OpenAI-compatible (llama-stack, etc) - configure in
+- OpenAI-compatible - set `OPENAI_API_KEY`, `OPENAI_BASE_URL`,
+  and comma-separated `OPENAI_MODELS` env variables
+- OpenAI-compatible feedback (llama-stack, etc) - configure in
   `~/.config/english-pronounce/config.yaml`:
 
 ```yaml

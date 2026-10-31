@@ -1,6 +1,7 @@
 cefrpy
 google-genai
 anthropic
+openai
 gTTS
 httpx[socks]
 librosa

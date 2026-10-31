@@ -1049,6 +1049,27 @@ def test_anthropic_api():
     return [(f"anthropic {m}", lambda m=m: ask(m)) for m in models]
 
 
+def test_openai_api():
+    models = [m.strip() for m in
+              os.getenv("OPENAI_MODELS", "").split(",") if m.strip()]
+    if not (os.getenv("OPENAI_API_KEY") and models):
+        return []
+
+    from openai import OpenAI
+    c = OpenAI()
+
+    def ask(m):
+        r = c.chat.completions.create(
+            model=m,
+            max_tokens=512,
+            messages=[{"role": "user",
+                       "content": "Reply with exactly OK."}],
+        )
+        return r.choices[0].message.content.strip()
+
+    return [(f"openai {m}", lambda m=m: ask(m)) for m in models]
+
+
 def test_services():
     raw = _ref_raw("hello")
     p = data.prompts.feedback.format(word="hello", ipa="/hɛˈloʊ/")
@@ -1079,6 +1100,7 @@ def test_services():
         m = cfg.openai.model or "gemini/gemini-2.5-flash"
         svcs.append((f"openai {m} feedback", lambda:
                      _ask_openai(_raw_to_wav(raw), p)))
+    svcs.extend(test_openai_api())
     svcs.extend(test_anthropic_api())
     svcs.append(("gTTS", lambda: speak("test")))
 
