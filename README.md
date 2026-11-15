@@ -52,6 +52,22 @@ pangram assessment:
 ./pronounce.py --twisters -c         # tongue twisters, continuous mode
 ./pronounce.py --voice puck          # choose TTS voice
 ./pronounce.py --test-services       # test API connectivity
+./google_media.py 'https://docs.google.com/videos/<id>' \
+  --text 'expected sentence'         # download Vids media and analyze audio
+```
+
+### google_media.py
+
+Downloads Google Vids media through application-default Google credentials,
+caches it by file ID and modification time, and sends its extracted audio to
+the same AI backend as `pronounce.py`. Use `--text` when the expected sentence
+is known; without it, the AI also transcribes the speech.
+
+Authenticate first:
+
+```sh
+gcloud auth application-default login \
+  --scopes=https://www.googleapis.com/auth/drive.readonly
 ```
 
 ### Sample output
